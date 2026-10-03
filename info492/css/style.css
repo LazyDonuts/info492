@@ -1,0 +1,22 @@
+h1 {
+  font-family: 'Helvetica';
+  color: white;
+  background-color: rebeccapurple;
+  padding: 1em;
+}
+
+h2 {
+  font-family: 'Helvetica';
+  color: gold;
+}
+
+.about-heading {
+  color: mediumaquamarine;
+  background-color: lightgray;
+}
+
+img {
+  max-width: 250px;
+  border: 1px solid black;
+  border-radius: 50%;
+}
