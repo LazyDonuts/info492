@@ -35,6 +35,12 @@ section h2 {
     margin-top: 0;
 }
 
+h3 {
+    color:#0978ef;
+    padding-top: 10px;
+    border-bottom: 2px solid #eee;
+}
+
 ul {
     margin: 15px 0 15px 25px;
     line-height: 1.6;
