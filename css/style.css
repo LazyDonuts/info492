@@ -196,7 +196,7 @@ h3 {
   color: var(--muted);
 }
 .hero h1 {
-  font-size: clamp(34px, 3.3vw, 46px);
+  font-size: clamp(42px, 4vw, 58px);
   line-height: 1.25;
   letter-spacing: -1.1px;
   margin: 32px 0 24px;
@@ -207,11 +207,11 @@ h3 {
   color: #4d6f9e;
 }
 .hero-description {
-  font-size: 15px;
+  font-size: 18px;
 
   color: var(--muted);
-  max-width: 470px;
-  line-height: 1.85;
+  max-width: 550px;
+  line-height: 1.8;
 }
 .hero-actions {
   display: flex;
@@ -1486,12 +1486,12 @@ h3 {
 }
 .hero-subtitle {
   font-family: var(--display);
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1.4;
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 1.45;
   letter-spacing: -0.5px;
-  margin: 0 0 20px;
-  max-width: 480px;
+  margin: 0 0 22px;
+  max-width: 560px;
 }
 .hero h1 .title-separator {
   color: #91a8c4;
@@ -1555,4 +1555,45 @@ h3 {
 }
 .full-thesis .text-link {
   margin-top: 20px;
+}
+
+.hero-actions .button {
+  font-size: 14px;
+  padding: 19px 25px;
+}
+.hero-actions .text-link {
+  font-size: 14px;
+}
+.hero-copy .hero-meta {
+  font-size: 10px;
+}
+@media (min-width: 721px) and (max-width: 1000px) {
+  .hero h1 {
+    font-size: 38px;
+  }
+  .hero-subtitle {
+    font-size: 23px;
+  }
+  .hero-description {
+    font-size: 16px;
+  }
+  .hero-actions .button,
+  .hero-actions .text-link {
+    font-size: 12px;
+  }
+  .hero-copy .hero-meta {
+    font-size: 8px;
+  }
+}
+@media (max-width: 720px) {
+  .hero-actions .button {
+    font-size: 11px;
+    padding: 16px;
+  }
+  .hero-actions .text-link {
+    font-size: 11px;
+  }
+  .hero-copy .hero-meta {
+    font-size: 8px;
+  }
 }
