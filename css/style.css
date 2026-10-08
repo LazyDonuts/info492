@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap");
 :root {
   --ink: #153458;
-  --muted: #526781;
+  --muted: #465d79;
   --paper: #ffffff;
   --blue: #2468dc;
   --line: #dae5f2;
@@ -51,7 +51,7 @@ h3 {
   font-weight: 600;
 }
 h2 {
-  font-size: clamp(34px, 4vw, 54px);
+  font-size: clamp(34px, 3.7vw, 48px);
   line-height: 1.14;
   letter-spacing: -2px;
 }
@@ -63,7 +63,7 @@ h3 {
   color: var(--ink);
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 1.9px;
   line-height: 1.5;
@@ -119,7 +119,7 @@ h3 {
   display: flex;
   align-items: center;
   font-family: var(--display);
-  font-size: 23px;
+  font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.8px;
 }
@@ -147,7 +147,7 @@ h3 {
 .site-header nav {
   display: flex;
   gap: 35px;
-  font-size: 12px;
+  font-size: 16px;
 
   color: var(--muted);
 }
@@ -155,7 +155,7 @@ h3 {
   color: var(--blue);
 }
 .header-link {
-  font-size: 12px;
+  font-size: 16px;
 
   border-bottom: 1px solid #b3c9e7;
   padding-bottom: 5px;
@@ -174,7 +174,7 @@ h3 {
   grid-template-columns: 1.15fr 1fr;
   gap: 30px;
   padding: 78px 5.5% 0;
-  min-height: 670px;
+  min-height: 745px;
 }
 .hero-grid {
   position: absolute;
@@ -207,7 +207,7 @@ h3 {
   color: #4d6f9e;
 }
 .hero-description {
-  font-size: 18px;
+  font-size: 20px;
 
   color: var(--muted);
   max-width: 550px;
@@ -225,7 +225,7 @@ h3 {
   justify-content: space-between;
   gap: 25px;
   padding: 17px 22px;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
   border-radius: 3px;
   transition:
@@ -245,7 +245,7 @@ h3 {
   display: inline-flex;
   gap: 18px;
   align-items: center;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 600;
 }
 .text-link:hover {
@@ -255,7 +255,7 @@ h3 {
   display: flex;
   gap: 21px;
   margin: 47px 0 38px;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1.2px;
 
   color: var(--muted);
@@ -277,14 +277,14 @@ h3 {
   justify-content: space-between;
 
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1.6px;
 
   border-top: 1px solid #cbdcf0;
   padding-top: 15px;
 }
 .scan-field {
-  height: 375px;
+  height: 460px;
   position: relative;
   margin-top: 20px;
 
@@ -306,14 +306,14 @@ h3 {
 .request > span,
 .request-top,
 .request-state {
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1.2px;
 
   color: var(--muted);
 }
 .request strong {
   display: block;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 500;
   margin: 18px 0;
 }
@@ -332,7 +332,7 @@ h3 {
   opacity: 0.95;
 }
 .request-front {
-  top: 173px;
+  top: 185px;
   left: 1%;
 
   background: #2468dc;
@@ -363,11 +363,11 @@ h3 {
   border-radius: 2px;
 
   color: #ffffff;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 700;
 }
 .request-front p {
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.7;
 
   color: #e1ecff;
@@ -380,11 +380,11 @@ h3 {
   border-top: 1px solid #ffffff40;
   margin-top: 20px;
   padding-top: 13px;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 .signal-bars {
-  font-size: 14px;
+  font-size: 17px;
 }
 .scan-line {
   position: absolute;
@@ -405,11 +405,11 @@ h3 {
   gap: 9px;
 
   color: var(--muted);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 .crosshair {
-  font-size: 23px;
+  font-size: 24px;
   color: var(--blue);
 }
 .visual-caption-note {
@@ -427,7 +427,7 @@ h3 {
   align-items: center;
   padding: 22px 0;
   margin-top: 7px;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.5px;
   color: var(--muted);
 }
@@ -451,7 +451,7 @@ h3 {
 }
 .section-heading > p:last-child {
   align-self: center;
-  font-size: 15px;
+  font-size: 18px;
   max-width: 420px;
   color: var(--muted);
 }
@@ -477,21 +477,21 @@ h3 {
   line-height: 1.4;
 }
 .metric > span {
-  font-size: 20px;
+  font-size: 22px;
   letter-spacing: -0.5px;
   color: #677f9d;
 }
 .evidence h3 {
-  font-size: 15px;
+  font-size: 18px;
   margin: 10px 0 9px;
 }
 .evidence p {
-  font-size: 12px;
+  font-size: 16px;
   color: var(--muted);
   max-width: 290px;
 }
 .evidence a {
-  font-size: 10px;
+  font-size: 13px;
   display: inline-flex;
   gap: 25px;
   margin-top: 20px;
@@ -511,16 +511,16 @@ h3 {
   border-left: 3px solid #2468dc;
 }
 .thesis-band h3 {
-  font-size: 30px;
+  font-size: 32px;
   line-height: 1.2;
   margin-top: 16px;
   letter-spacing: -1px;
 }
 .thesis-band > div > p:not(.eyebrow) {
-  font-size: 14px;
+  font-size: 17px;
 }
 .small-note {
-  font-size: 11px !important;
+  font-size: 14px !important;
   color: var(--muted);
   margin-top: 13px;
 }
@@ -547,7 +547,7 @@ h3 {
 .prototype-heading > p {
   max-width: 360px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 17px;
 }
 .demo {
   margin-top: 45px;
@@ -573,11 +573,11 @@ h3 {
   background: #2468dc;
 }
 .demo-toolbar strong {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 500;
 }
 .demo-label {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
   color: var(--muted);
   margin-left: 20px;
@@ -594,7 +594,7 @@ h3 {
   background: transparent;
   padding: 9px 14px;
   color: #526781;
-  font-size: 11px;
+  font-size: 14px;
   border-radius: 2px;
 }
 .sort-button.active {
@@ -616,7 +616,7 @@ h3 {
 .queue-columns {
   display: flex;
   justify-content: space-between;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.4px;
   color: var(--muted);
   padding: 0 15px 15px;
@@ -652,16 +652,16 @@ h3 {
 }
 .row-title {
   display: block;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 600;
   margin-bottom: 5px;
 }
 .row-meta {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted);
 }
 .row-risk {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.6px;
   padding: 5px 7px;
   white-space: nowrap;
@@ -694,18 +694,18 @@ h3 {
 }
 .detail-id {
   color: var(--blue);
-  font-size: 10px;
+  font-size: 13px;
   letter-spacing: 1px;
   margin: 26px 0 9px;
 }
 .rfi-detail h3 {
-  font-size: 26px;
+  font-size: 28px;
   line-height: 1.3;
   letter-spacing: -1px;
 }
 .detail-description {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 16px;
   margin-top: 15px;
 }
 .detail-reason {
@@ -715,18 +715,18 @@ h3 {
   border-top: 1px solid #cbdcf0;
 }
 .detail-reason span {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.4px;
   color: var(--blue);
 }
 .detail-reason p {
-  font-size: 12px;
+  font-size: 16px;
   margin-top: 9px;
 
   color: var(--ink);
 }
 .detail-action {
-  font-size: 10px;
+  font-size: 13px;
 
   color: var(--muted);
   margin-top: 14px;
@@ -734,7 +734,7 @@ h3 {
 .detail-risk {
   align-self: flex-start;
   margin-top: 13px;
-  font-size: 9px;
+  font-size: 12px;
   padding: 6px 9px;
 }
 .demo-footer {
@@ -746,12 +746,12 @@ h3 {
   border-top: 1px solid var(--line);
 }
 .demo-footer > span {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
   white-space: nowrap;
 }
 .demo-footer p {
-  font-size: 10px;
+  font-size: 13px;
   color: var(--muted);
 }
 .noscript-note {
@@ -771,21 +771,21 @@ h3 {
 }
 .experiment-number {
   font-family: var(--display);
-  font-size: 30px;
+  font-size: 32px;
   color: #7c9bc0;
   line-height: 1.4;
 }
 .experiment .eyebrow {
   color: #2468dc;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.5px;
 }
 .experiment h3 {
-  font-size: 24px;
+  font-size: 26px;
   margin: 9px 0 10px;
 }
 .experiment p:not(.eyebrow) {
-  font-size: 13px;
+  font-size: 16px;
   color: var(--muted);
   max-width: 460px;
 }
@@ -794,7 +794,7 @@ h3 {
   padding-left: 32px;
 }
 .experiment-measure > span:first-child {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.3px;
   color: var(--muted);
 }
@@ -802,7 +802,7 @@ h3 {
   margin: 12px 0;
 }
 .planned {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
   display: inline-block;
   border: 1px solid #c6d9ef;
@@ -828,7 +828,7 @@ h3 {
 }
 .project-layout > div > p:not(.eyebrow) {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 17px;
 }
 .data-note {
   display: flex;
@@ -843,11 +843,11 @@ h3 {
   margin-top: 7px;
 }
 .data-note strong {
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 500;
 }
 .data-note p {
-  font-size: 11px;
+  font-size: 14px;
 
   color: var(--muted);
   margin-top: 6px;
@@ -872,17 +872,17 @@ h3 {
 }
 .flow-step > span:first-child {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 13px;
 }
 .flow-step > span:last-child {
   margin-left: auto;
   color: var(--blue);
 }
 .flow-step h3 {
-  font-size: 17px;
+  font-size: 20px;
 }
 .flow-step p {
-  font-size: 11px;
+  font-size: 14px;
 
   color: var(--muted);
   margin-top: 6px;
@@ -899,7 +899,7 @@ h3 {
   color: #e1ecff !important;
 }
 .flow-owner {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
   white-space: nowrap;
 
@@ -907,7 +907,7 @@ h3 {
   padding: 5px;
 }
 .flow-artifacts {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.7px;
   display: flex;
   justify-content: space-between;
@@ -929,7 +929,7 @@ h3 {
   margin-top: 22px;
 }
 .team-heading > p {
-  font-size: 12px;
+  font-size: 16px;
   color: var(--muted);
 }
 .team-grid {
@@ -945,18 +945,18 @@ h3 {
 .member-initials {
   display: inline-flex;
   font-family: var(--display);
-  font-size: 30px;
+  font-size: 32px;
   letter-spacing: -1px;
   color: #2468dc;
   border-bottom: 2px solid var(--blue);
   padding-bottom: 5px;
 }
 .team-grid h3 {
-  font-size: 20px;
+  font-size: 22px;
   margin: 23px 0 9px;
 }
 .team-grid p {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
   color: var(--muted);
 }
@@ -970,7 +970,7 @@ h3 {
   gap: 50px;
 }
 .reference-heading h2 {
-  font-size: 31px;
+  font-size: 34px;
   letter-spacing: -1px;
   margin-top: 20px;
 }
@@ -986,18 +986,18 @@ h3 {
   border-top: 1px solid var(--line);
 }
 .reference-links strong {
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 500;
 }
 .reference-links small {
   display: block;
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.7;
   color: var(--muted);
   margin-top: 6px;
 }
 .reference-links a > span:nth-child(2) {
-  font-size: 20px;
+  font-size: 22px;
   color: #2468dc;
   transition: transform 0.2s;
 }
@@ -1016,18 +1016,18 @@ h3 {
   border-top: 1px solid var(--line);
 }
 .site-footer p {
-  font-size: 12px;
+  font-size: 16px;
 
   color: var(--muted);
 }
 .site-footer > span {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.3px;
 
   color: var(--muted);
 }
 .site-footer > a:last-child {
-  font-size: 10px;
+  font-size: 13px;
 
   color: var(--muted);
 }
@@ -1103,7 +1103,7 @@ h3 {
     letter-spacing: -0.8px;
   }
   .hero-description {
-    font-size: 13px;
+    font-size: 16px;
   }
   .hero-actions {
     align-items: flex-start;
@@ -1112,7 +1112,7 @@ h3 {
   }
   .hero-meta {
     gap: 10px;
-    font-size: 7px;
+    font-size: 12px;
   }
   .hero-meta span + span:before {
     margin-right: 10px;
@@ -1131,7 +1131,7 @@ h3 {
     left: 5%;
   }
   .request strong {
-    font-size: 16px;
+    font-size: 18px;
   }
   .section-wrap {
     padding-top: 75px;
@@ -1156,13 +1156,13 @@ h3 {
     gap: 20px;
   }
   .header-link {
-    font-size: 10px;
+    font-size: 13px;
   }
   .thesis-band {
     gap: 35px;
   }
   .flow-owner {
-    font-size: 7px;
+    font-size: 12px;
   }
 }
 @media (max-width: 720px) {
@@ -1173,12 +1173,12 @@ h3 {
     height: 72px;
   }
   .brand {
-    font-size: 16px;
+    font-size: 18px;
     letter-spacing: -0.5px;
   }
   .site-header nav {
     gap: 18px;
-    font-size: 10px;
+    font-size: 13px;
   }
   .header-link {
     display: none;
@@ -1194,7 +1194,7 @@ h3 {
     letter-spacing: -0.7px;
   }
   .hero-description {
-    font-size: 14px;
+    font-size: 17px;
   }
   .hero-actions {
     flex-direction: row;
@@ -1203,16 +1203,16 @@ h3 {
   }
   .button {
     padding: 15px;
-    font-size: 10px;
+    font-size: 13px;
     gap: 15px;
   }
   .text-link {
-    font-size: 10px;
+    font-size: 13px;
     gap: 10px;
   }
   .hero-meta {
     margin: 30px 0 0;
-    font-size: 8px;
+    font-size: 12px;
   }
   .hero-visual {
     justify-self: center;
@@ -1221,7 +1221,7 @@ h3 {
     padding-top: 0;
   }
   .scan-field {
-    height: 350px;
+    height: 460px;
   }
   .visual-caption {
     margin-top: 15px;
@@ -1229,7 +1229,7 @@ h3 {
   .hero-bottom {
     margin-top: 20px;
     padding: 20px 0;
-    font-size: 7px;
+    font-size: 12px;
     letter-spacing: 1px;
   }
   .hero-bottom > span {
@@ -1237,7 +1237,7 @@ h3 {
     line-height: 1.7;
   }
   .hero .eyebrow {
-    font-size: 8px;
+    font-size: 12px;
     letter-spacing: 1.4px;
   }
   .section-wrap {
@@ -1251,7 +1251,7 @@ h3 {
     grid-column: auto;
   }
   .section-heading > p:last-child {
-    font-size: 14px;
+    font-size: 17px;
     max-width: none;
   }
   h2 {
@@ -1287,10 +1287,10 @@ h3 {
     margin-top: 32px;
   }
   .thesis-band h3 {
-    font-size: 28px;
+    font-size: 30px;
   }
   .thesis-band > div > p:not(.eyebrow) {
-    font-size: 13px;
+    font-size: 16px;
   }
   .prototype-heading {
     display: block;
@@ -1301,7 +1301,7 @@ h3 {
   .prototype-heading > p {
     margin-top: 22px;
     max-width: none;
-    font-size: 13px;
+    font-size: 16px;
   }
   .demo {
     margin-top: 30px;
@@ -1325,7 +1325,7 @@ h3 {
   }
   .sort-button {
     flex: 1;
-    font-size: 11px;
+    font-size: 14px;
     padding: 11px;
   }
   .demo-body {
@@ -1346,7 +1346,7 @@ h3 {
     margin-top: 16px;
   }
   .rfi-detail h3 {
-    font-size: 25px;
+    font-size: 27px;
   }
   .detail-reason {
     margin: 20px 0 10px;
@@ -1358,7 +1358,7 @@ h3 {
     padding: 16px;
   }
   .demo-footer p {
-    font-size: 10px;
+    font-size: 13px;
   }
   .experiment-list {
     margin-top: 30px;
@@ -1369,10 +1369,10 @@ h3 {
     padding: 28px 0;
   }
   .experiment-number {
-    font-size: 25px;
+    font-size: 27px;
   }
   .experiment h3 {
-    font-size: 22px;
+    font-size: 24px;
   }
   .experiment-measure {
     grid-column: 2;
@@ -1388,21 +1388,21 @@ h3 {
     gap: 35px;
   }
   .project-layout > div > p:not(.eyebrow) {
-    font-size: 13px;
+    font-size: 16px;
   }
   .flow-step {
     padding: 22px 13px;
     gap: 15px;
   }
   .flow-step h3 {
-    font-size: 16px;
+    font-size: 18px;
   }
   .flow-owner {
     padding: 4px;
-    font-size: 7px;
+    font-size: 12px;
   }
   .flow-artifacts {
-    font-size: 7px;
+    font-size: 12px;
     letter-spacing: 0.1px;
   }
   .team-heading {
@@ -1429,10 +1429,10 @@ h3 {
   }
   .team-grid h3 {
     margin: 0;
-    font-size: 20px;
+    font-size: 22px;
   }
   .team-grid p {
-    font-size: 7px;
+    font-size: 12px;
   }
   .references-section {
     grid-template-columns: 1fr;
@@ -1440,7 +1440,7 @@ h3 {
     gap: 30px;
   }
   .reference-heading h2 {
-    font-size: 31px;
+    font-size: 34px;
   }
   .site-footer {
     flex-wrap: wrap;
@@ -1452,13 +1452,13 @@ h3 {
   }
   .site-footer p {
     width: 100%;
-    font-size: 13px;
+    font-size: 16px;
   }
   .site-footer > span {
-    font-size: 7px;
+    font-size: 12px;
   }
   .site-footer > a:last-child {
-    font-size: 9px;
+    font-size: 12px;
   }
   .js-reveal .reveal {
     transform: translateY(12px);
@@ -1486,7 +1486,7 @@ h3 {
 }
 .hero-subtitle {
   font-family: var(--display);
-  font-size: 27px;
+  font-size: 28px;
   font-weight: 500;
   line-height: 1.45;
   letter-spacing: -0.5px;
@@ -1498,7 +1498,7 @@ h3 {
 }
 @media (max-width: 720px) {
   .hero-subtitle {
-    font-size: 19px;
+    font-size: 21px;
     margin-bottom: 18px;
   }
   .brand-separator {
@@ -1507,7 +1507,7 @@ h3 {
 }
 
 .team-grid .member-role {
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.5;
   letter-spacing: 0;
   color: var(--blue);
@@ -1515,7 +1515,7 @@ h3 {
 }
 @media (max-width: 720px) {
   .team-grid .member-role {
-    font-size: 13px;
+    font-size: 16px;
   }
 }
 
@@ -1528,7 +1528,7 @@ h3 {
   cursor: pointer;
   list-style: none;
   padding: 20px 0;
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 600;
   display: flex;
   justify-content: space-between;
@@ -1539,7 +1539,7 @@ h3 {
 }
 .full-thesis summary span {
   color: var(--blue);
-  font-size: 20px;
+  font-size: 22px;
 }
 .full-thesis[open] summary span {
   transform: rotate(45deg);
@@ -1549,7 +1549,7 @@ h3 {
   max-width: 850px;
 }
 .full-thesis p {
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.9;
   color: var(--muted);
 }
@@ -1558,42 +1558,385 @@ h3 {
 }
 
 .hero-actions .button {
-  font-size: 14px;
+  font-size: 17px;
   padding: 19px 25px;
 }
 .hero-actions .text-link {
-  font-size: 14px;
+  font-size: 17px;
 }
 .hero-copy .hero-meta {
-  font-size: 10px;
+  font-size: 13px;
 }
 @media (min-width: 721px) and (max-width: 1000px) {
   .hero h1 {
     font-size: 38px;
   }
   .hero-subtitle {
-    font-size: 23px;
+    font-size: 24px;
   }
   .hero-description {
-    font-size: 16px;
+    font-size: 18px;
   }
   .hero-actions .button,
   .hero-actions .text-link {
-    font-size: 12px;
+    font-size: 16px;
   }
   .hero-copy .hero-meta {
-    font-size: 8px;
+    font-size: 12px;
   }
 }
 @media (max-width: 720px) {
   .hero-actions .button {
-    font-size: 11px;
+    font-size: 14px;
     padding: 16px;
   }
   .hero-actions .text-link {
-    font-size: 11px;
+    font-size: 14px;
   }
   .hero-copy .hero-meta {
-    font-size: 8px;
+    font-size: 12px;
+  }
+}
+
+/* Comfortable reading sizes and spacing across the full research site. */
+.eyebrow {
+  letter-spacing: 1.3px;
+}
+.site-header nav {
+  gap: 28px;
+}
+.hero-meta {
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+.hero-bottom {
+  gap: 25px;
+  line-height: 1.6;
+}
+.visual-label,
+.visual-caption,
+.request-top,
+.request-state,
+.request-bottom,
+.demo-label,
+.queue-columns,
+.planned,
+.flow-artifacts,
+.flow-owner {
+  letter-spacing: 0.8px;
+}
+.request {
+  padding: 24px;
+}
+.request-front p {
+  font-size: 16px;
+}
+.request strong {
+  font-size: 22px;
+}
+.request-bottom {
+  gap: 14px;
+  line-height: 1.5;
+}
+.visual-caption {
+  flex-wrap: wrap;
+  line-height: 1.6;
+}
+.evidence article {
+  padding-top: 38px;
+  padding-bottom: 38px;
+}
+.evidence p {
+  max-width: 330px;
+}
+.small-note {
+  font-size: 14px !important;
+  line-height: 1.7;
+}
+.section-heading > p:last-child {
+  max-width: 480px;
+}
+.prototype-heading > p {
+  max-width: 420px;
+}
+.demo-toolbar {
+  flex-wrap: wrap;
+}
+.demo-label {
+  white-space: nowrap;
+}
+.rfi-row {
+  min-height: 84px;
+  padding: 17px;
+}
+.row-title {
+  line-height: 1.45;
+}
+.row-meta {
+  display: block;
+  line-height: 1.6;
+}
+.row-risk {
+  flex-shrink: 0;
+}
+.rfi-detail {
+  padding: 32px;
+}
+.detail-description,
+.detail-reason p {
+  line-height: 1.8;
+}
+.demo-footer {
+  align-items: flex-start;
+}
+.demo-footer > span {
+  white-space: normal;
+  max-width: 300px;
+  line-height: 1.6;
+  flex-shrink: 0;
+}
+.experiment {
+  padding: 40px 0;
+  grid-template-columns: 65px 1.3fr 1fr;
+  gap: 32px;
+}
+.experiment p:not(.eyebrow) {
+  font-size: 18px;
+  max-width: 520px;
+  line-height: 1.8;
+}
+.experiment-measure > span:first-child {
+  letter-spacing: 1px;
+}
+.flow-step {
+  padding: 27px 20px;
+}
+.flow-step p {
+  line-height: 1.65;
+}
+.flow-owner {
+  font-size: 12px;
+}
+.flow-artifacts {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 12px 18px;
+  line-height: 1.7;
+}
+.team-grid article {
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
+.team-grid .member-role {
+  font-size: 18px;
+}
+.reference-links a {
+  padding: 25px 0;
+}
+.reference-links strong {
+  font-size: 18px;
+  line-height: 1.55;
+}
+.reference-links small {
+  font-size: 15px;
+  line-height: 1.75;
+  margin-top: 9px;
+}
+.full-thesis p {
+  font-size: 18px;
+  max-width: 75ch;
+}
+.site-footer {
+  flex-wrap: wrap;
+}
+@media (max-width: 1000px) and (min-width: 721px) {
+  .site-header {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 90px;
+    padding-top: 18px;
+    padding-bottom: 18px;
+    gap: 20px;
+  }
+  .site-header nav {
+    gap: 20px;
+  }
+  .header-link {
+    font-size: 14px;
+  }
+  .hero-meta {
+    gap: 12px;
+  }
+  .request {
+    padding: 20px;
+  }
+  .request strong {
+    font-size: 20px;
+  }
+  .request-front p {
+    font-size: 15px;
+  }
+  .request-bottom {
+    font-size: 11px;
+  }
+  .demo-body {
+    grid-template-columns: 1.1fr 1fr;
+  }
+  .flow-step {
+    flex-wrap: wrap;
+  }
+  .flow-owner {
+    margin-left: 36px !important;
+  }
+}
+@media (max-width: 720px) {
+  .site-header {
+    height: auto;
+    min-height: 90px;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+  .site-header nav {
+    width: 100%;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 14px;
+  }
+  .hero-copy .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.8px;
+  }
+  .hero-copy .hero-meta {
+    font-size: 12px;
+    gap: 12px;
+  }
+  .hero-meta span + span:before {
+    margin-right: 12px;
+  }
+  .hero-bottom {
+    font-size: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .hero-bottom > span {
+    max-width: none;
+  }
+  .hero-actions {
+    flex-wrap: wrap;
+    gap: 22px;
+  }
+  .hero-actions .button,
+  .hero-actions .text-link {
+    font-size: 15px;
+  }
+  .visual-label {
+    font-size: 12px;
+  }
+  .request {
+    padding: 19px;
+  }
+  .request strong {
+    font-size: 20px;
+  }
+  .request-front p {
+    font-size: 15px;
+  }
+  .request-bottom {
+    font-size: 12px;
+    flex-wrap: wrap;
+  }
+  .visual-caption {
+    font-size: 12px;
+  }
+  .visual-caption-note {
+    margin-left: 0;
+  }
+  .section-heading > p:last-child,
+  .prototype-heading > p {
+    font-size: 17px;
+  }
+  .experiment {
+    grid-template-columns: 34px 1fr;
+    gap: 16px;
+    padding: 30px 0;
+  }
+  .experiment h3 {
+    font-size: 25px;
+  }
+  .experiment-measure {
+    grid-column: 2;
+    padding-left: 0;
+  }
+  .experiment p:not(.eyebrow) {
+    font-size: 17px;
+  }
+  .flow-step {
+    padding: 25px 13px;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .flow-step h3 {
+    font-size: 21px;
+  }
+  .flow-step p {
+    font-size: 16px;
+    max-width: 230px;
+  }
+  .flow-owner {
+    margin-left: 36px !important;
+  }
+  .flow-artifacts {
+    font-size: 12px;
+    gap: 10px;
+  }
+  .data-note strong {
+    font-size: 17px;
+  }
+  .data-note p {
+    font-size: 16px;
+  }
+  .team-grid .member-role {
+    font-size: 17px;
+  }
+  .reference-links strong {
+    font-size: 17px;
+  }
+  .reference-links small {
+    font-size: 14px;
+  }
+  .demo-footer {
+    gap: 12px;
+  }
+  .demo-footer p {
+    font-size: 14px;
+  }
+  .rfi-detail {
+    padding: 27px;
+  }
+  .full-thesis p {
+    font-size: 17px;
+  }
+}
+.flow-step p {
+  font-size: 17px;
+}
+.flow-step h3 {
+  font-size: 22px;
+}
+.data-note p {
+  font-size: 16px;
+}
+.data-note strong {
+  font-size: 17px;
+}
+@media (max-width: 720px) {
+  .flow-step p {
+    font-size: 16px;
+  }
+  .flow-step h3 {
+    font-size: 21px;
   }
 }
