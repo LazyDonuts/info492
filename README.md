@@ -1,4 +1,4 @@
-# Signal · INFO 492 Team 1
+# INFO 492 · Team 1
 
 A static research website for Sandra Zhu, Micah Santos, and Hangyu Zhang, taking the general contractor perspective on AI-assisted RFI prioritization.
 

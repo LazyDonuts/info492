@@ -119,9 +119,9 @@ h3 {
   display: flex;
   align-items: center;
   font-family: var(--display);
-  font-size: 30px;
+  font-size: 23px;
   font-weight: 800;
-  letter-spacing: -1.6px;
+  letter-spacing: -0.8px;
 }
 .brand-dot {
   color: var(--blue);
@@ -1172,7 +1172,8 @@ h3 {
     height: 72px;
   }
   .brand {
-    font-size: 27px;
+    font-size: 16px;
+    letter-spacing: -0.5px;
   }
   .site-header nav {
     gap: 18px;
@@ -1475,5 +1476,44 @@ h3 {
   .js-reveal .reveal {
     opacity: 1;
     transform: none;
+  }
+}
+
+.brand-separator {
+  color: var(--blue);
+  margin: 0 7px;
+}
+.hero-subtitle {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.5px;
+  margin: 0 0 20px;
+  max-width: 480px;
+}
+.hero h1 .title-separator {
+  color: var(--blue);
+}
+@media (max-width: 720px) {
+  .hero-subtitle {
+    font-size: 19px;
+    margin-bottom: 18px;
+  }
+  .brand-separator {
+    margin: 0 5px;
+  }
+}
+
+.team-grid .member-role {
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  color: var(--blue);
+  font-weight: 500;
+}
+@media (max-width: 720px) {
+  .team-grid .member-role {
+    font-size: 13px;
   }
 }
