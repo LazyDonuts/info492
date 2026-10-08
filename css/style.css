@@ -1517,3 +1517,41 @@ h3 {
     font-size: 13px;
   }
 }
+
+.full-thesis {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.full-thesis summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 20px 0;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.full-thesis summary::-webkit-details-marker {
+  display: none;
+}
+.full-thesis summary span {
+  color: var(--blue);
+  font-size: 20px;
+}
+.full-thesis[open] summary span {
+  transform: rotate(45deg);
+}
+.full-thesis > div {
+  padding: 0 0 25px;
+  max-width: 850px;
+}
+.full-thesis p {
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--muted);
+}
+.full-thesis .text-link {
+  margin-top: 20px;
+}
