@@ -1,456 +1,637 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="INFO 492 Team 1" />
+    <meta
+      name="description"
+      content="An INFO 492 research project exploring AI-assisted prioritization of construction RFIs by potential cost risk."
+    />
+    <meta name="theme-color" content="#2468dc" />
+    <title>INFO 492 · Team 1 | Prioritizing High-Risk RFIs with AI</title>
+    <link rel="stylesheet" href="css/style.css?v=20261007-2" />
+    <script src="js/main.js?v=20261007-2" defer></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="author" content="INFO 492 Team 1" />
-  <meta name="description"
-    content="An INFO 492 research project exploring AI-assisted prioritization of construction RFIs by potential cost risk." />
-  <meta name="theme-color" content="#2468dc" />
-  <title>INFO 492 · Team 1 | Prioritizing High-Risk RFIs with AI</title>
-  <link rel="stylesheet" href="css/style.css?v=20261007-2" />
-  <script src="js/main.js?v=20261007-2" defer></script>
-</head>
-
-<body>
-  <a class="skip-link" href="#main">Skip to content</a>
-  <header class="site-header">
-    <a class="brand" href="#" aria-label="INFO 492 Team 1 home">INFO 492 <span class="brand-separator">·</span> Team
-      1</a>
-    <nav aria-label="Main navigation">
-      <a href="#research">The research</a><a href="#experiments">Experiments</a><a href="#team">Our team</a>
-    </nav>
-    <a class="header-link" href="#prototype">Explore the concept <span aria-hidden="true">↗</span></a>
-  </header>
-  <main id="main">
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-grid" aria-hidden="true"></div>
-      <div class="hero-copy">
-        <p class="eyebrow">
-          <span class="live-dot"></span> INFO 492 / CONSTRUCTION INFORMATICS
-        </p>
-        <h1 id="hero-title">
-          INFO 492 <span class="title-separator">·</span> <span>Team 1</span>
-        </h1>
-        <p class="hero-subtitle">Prioritizing High-Risk RFIs with AI</p>
-        <p class="hero-description">
-          Every construction question needs an answer.<br />Some need one
-          sooner. We’re exploring how AI can help general contractors spot the
-          RFIs with the greatest cost risk.
-        </p>
-        <div class="hero-actions">
-          <a class="button button-lime" href="#prototype">See prioritization in action <span
-              aria-hidden="true">↗</span></a><a class="text-link" href="#research">Meet the research <span
-              aria-hidden="true">↓</span></a>
-        </div>
-        <div class="hero-meta">
-          <span>TEAM 01</span><span>GENERAL CONTRACTOR</span><span>AUTUMN 2026</span>
-        </div>
-      </div>
-      <div class="hero-visual" aria-label="Concept illustration: identify a high-risk request among incoming RFIs">
-        <div class="visual-label">
-          <span>INCOMING INFORMATION</span><span>01 — 03</span>
-        </div>
-        <div class="scan-field">
-          <div class="scan-line" aria-hidden="true"></div>
-          <div class="request request-back">
-            <span>RFI / 018</span><strong>Finish specification</strong><span class="request-state">ROUTINE REVIEW</span>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="INFO 492 Team 1 home"
+        >INFO 492 <span class="brand-separator">·</span> Team 1</a
+      >
+      <nav aria-label="Main navigation">
+        <a href="#research">The research</a
+        ><a href="#experiments">Experiments</a><a href="#team">Our team</a>
+      </nav>
+      <a class="header-link" href="#prototype"
+        >Explore the concept <span aria-hidden="true">↗</span></a
+      >
+    </header>
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-grid" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span class="live-dot"></span> INFO 492 / CONSTRUCTION INFORMATICS
+          </p>
+          <h1 id="hero-title">
+            INFO 492 <span class="title-separator">·</span> <span>Team 1</span>
+          </h1>
+          <p class="hero-subtitle">Prioritizing High-Risk RFIs with AI</p>
+          <p class="hero-description">
+            Every construction question needs an answer.<br />Some need one
+            sooner. We’re exploring how AI can help general contractors spot the
+            RFIs with the greatest cost risk.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-lime" href="#prototype"
+              >See prioritization in action <span aria-hidden="true">↗</span></a
+            ><a class="text-link" href="#research"
+              >Meet the research <span aria-hidden="true">↓</span></a
+            >
           </div>
-          <div class="request request-middle">
-            <span>RFI / 024</span><strong>Service routing</strong><span class="request-state">REVIEW PENDING</span>
+          <div class="hero-meta">
+            <span>TEAM 01</span><span>GENERAL CONTRACTOR</span
+            ><span>AUTUMN 2026</span>
           </div>
-          <div class="request request-front">
-            <div class="request-top">
-              <span>RFI / 031</span><span class="risk-tag">HIGH RISK</span>
+        </div>
+        <div
+          class="hero-visual"
+          aria-label="Concept illustration: identify a high-risk request among incoming RFIs"
+        >
+          <div class="visual-label">
+            <span>INCOMING INFORMATION</span><span>01 — 03</span>
+          </div>
+          <div class="scan-field">
+            <div class="scan-line" aria-hidden="true"></div>
+            <div class="request request-back">
+              <span>RFI / 018</span><strong>Finish specification</strong
+              ><span class="request-state">ROUTINE REVIEW</span>
             </div>
-            <strong>Structural detail conflict</strong>
-            <p>
-              Potential rework. Schedule exposure.<br />A signal for earlier
-              human review.
-            </p>
-            <div class="request-bottom">
-              <span class="signal-bars" aria-hidden="true">▂ ▄ ▆ █</span><span>PRIORITY SIGNAL DETECTED ↗</span>
+            <div class="request request-middle">
+              <span>RFI / 024</span><strong>Service routing</strong
+              ><span class="request-state">REVIEW PENDING</span>
             </div>
-          </div>
-        </div>
-        <div class="visual-caption">
-          <span class="crosshair" aria-hidden="true">+</span> LESS NOISE. A
-          CLEARER NEXT STEP.<span class="visual-caption-note">Concept illustration</span>
-        </div>
-      </div>
-      <div class="hero-bottom">
-        <span>A QUESTION OF COORDINATION, NOT JUST SPEED.</span><a href="#research"
-          aria-label="Scroll to research">SCROLL TO EXPLORE <span aria-hidden="true">↓</span></a>
-      </div>
-    </section>
-    <section class="research section-wrap" id="research" aria-labelledby="research-title">
-      <div class="section-heading reveal">
-        <p class="eyebrow">01 / THE RESEARCH</p>
-        <h2 id="research-title">
-          A small question.<br />A big downstream impact.
-        </h2>
-        <p>
-          An RFI — Request for Information — asks for clarification when
-          drawings, specifications, or site conditions leave a construction
-          decision unresolved.
-        </p>
-      </div>
-      <div class="evidence reveal">
-        <article>
-          <span class="metric">$1,089<span> / RFI</span></span>
-          <h3>The cost of clarification</h3>
-          <p>
-            Average processing cost per answered request in a 2013 study of
-            1,362 construction projects.
-          </p>
-          <a href="#references">Hughes et al., 2013 <span aria-hidden="true">↗</span></a>
-        </article>
-        <article>
-          <span class="metric">~25<span>%</span></span>
-          <h3>Questions left unanswered</h3>
-          <p>
-            The estimated share of RFIs that received no response in the
-            Americas, reported in the same study.
-          </p>
-          <a href="#references">Hughes et al., 2013 <span aria-hidden="true">↗</span></a>
-        </article>
-        <article>
-          <span class="metric">8.1<span> days</span></span>
-          <h3>Time adds up</h3>
-          <p>
-            Average RFI turnaround in a 2020 study of projects in Australia
-            and New Zealand.
-          </p>
-          <a href="#references">Aibinu et al., 2020 <span aria-hidden="true">↗</span></a>
-        </article>
-      </div>
-      <div class="thesis-band reveal">
-        <div>
-          <p class="eyebrow">OUR TESTABLE CLAIM</p>
-          <h3>Equal priority can hide<br />unequal cost risk.</h3>
-        </div>
-        <div>
-          <p>
-            Critical RFIs can be delayed when every request receives similar
-            priority. We hypothesize that AI-assisted impact assessment can
-            help GCs identify the highest cost risks earlier and reduce
-            avoidable RFI-related costs by <strong>10% or more.</strong>
-          </p>
-          <p class="small-note">
-            Research target · Not a demonstrated result
-          </p>
-          <a class="text-link dark-link"
-            href="https://docs.google.com/document/d/1DtZcle9EkVuVeR8Sq29ZWV9f7MnqZ_dMiSB-OrAZP_Q/edit?usp=sharing"
-            target="_blank" rel="noopener noreferrer">Read our full thesis <span aria-hidden="true">↗</span><span
-              class="sr-only"> (opens in a new tab)</span></a>
-        </div>
-      </div>
-      <details class="full-thesis">
-        <summary>
-          Read the full team thesis <span aria-hidden="true">+</span>
-        </summary>
-        <div>
-          <p>
-            The thesis for our team is that construction projects can result in significant financial loss and project
-            delays when Critical Requests For Information (RFI) are treated with similar priority without regard for
-            cost importance. We propose that an AI-assisted impact assessment could reduce cost by 10% or more by
-            helping general contractors (GC) identify RFIs with the highest cost risk. In 2013, a study of 1,362
-            construction projects in the Americas, surfaced an average of 796 RFIs with a minimum of 100 RFIs each, and
-            an average cost of around $1,089 per request and about $859,000 total for the firms. This is considering
-            only RFIs that were reviewed and responded to, and does not consider the cost of the estimated 25% that
-            never got replies. (Hughes, et al., 2013). With almost 1 in 4 RFIs not getting a response, the current
-            average RFI response rate becomes problematic. This lack of responses leaves the submitters unsure of their
-            next steps, potentially leading to buildings that don’t meet the spec, or are otherwise low-quality. The
-            cost of unsettled RFIs can eat away at the profit margin of an already low margin industry, and this is just
-            considering the cost of processing them alone.Based on the study’s recommendation to use cost as a way to
-            prioritize RFIs and lack of literature regarding cost prioritization, it can be concluded that there is a
-            lack of RFI prioritization methods that could be a major cause of unsettled RFIs.
-            The amount of RFIs increases with the scale of the project and the amount of people who work on it, meaning
-            bigger and more complex projects tend to have more RFIs submitted per day in addition to having a higher
-            turnaround time for them. However, it is possible to have a shorter turnaround for complex projects if the
-            team is experienced and organized. In a 2020 study on projects done in Australia and New Zealand, the
-            average RFI turnaround time was about 8.1 days, with those with higher correspondences having a about 156.6
-            or more per day, had a turnaround time of around 13.49 days. This is comparatively much higher turnaround
-            times than the 5.97 days for projects with 16.9 or less correspondence a day. This effect is also seen with
-            projects that last longer. The projects that lasted 819.4 days or more had a longer turnaround time of about
-            17.18 days compared to those that lasted 160.4 days or less with an average of about 1.79 days. Likewise,
-            projects that had more people or organisations involved in it generally reported longer turnaround times
-            (Aibinu et al., 2020). The projects that are the most costly and hard to build are the ones that are the
-            most delayed, which would push the cost up for as long as the project remains incomplete, missing important
-            deadlines in the process, resulting in increasingly severe losses financially and in terms of project
-            completion. An AI-assisted impact assessment would be able to find the RFIs that would cause the highest
-            cost risk so that we get to the most important RFIs the fastest. This would help reduce turnover times,
-            buffering the impact of large collaboration populations and ensuring that no RFI is left unresponded to.
-            This is especially important with the bigger project, with the amount of RFIs they get and their turnaround
-            time compared to smaller ones.
-
-          </p>
-          <a class="text-link dark-link" href="#references">View research references <span
-              aria-hidden="true">↓</span></a>
-        </div>
-      </details>
-    </section>
-    <section class="prototype-section" id="prototype" aria-labelledby="prototype-title">
-      <div class="section-wrap">
-        <div class="prototype-heading reveal">
-          <div>
-            <p class="eyebrow">02 / INTERACTIVE CONCEPT</p>
-            <h2 id="prototype-title">
-              Same requests.<br />A different first move.
-            </h2>
-          </div>
-          <p>
-            Switch from arrival order to illustrative risk priority. Select a
-            request to see why it might deserve earlier attention.
-          </p>
-        </div>
-        <div class="demo reveal">
-          <div class="demo-toolbar">
-            <div>
-              <span class="live-dot"></span><strong>RFI review queue</strong><span class="demo-label">6 REQUESTS</span>
-            </div>
-            <div class="sort-controls" role="group" aria-label="Request sorting">
-              <button type="button" class="sort-button active" data-sort="arrival" aria-pressed="true">
-                Arrival order</button><button type="button" class="sort-button" data-sort="risk" aria-pressed="false">
-                Risk priority <span aria-hidden="true">↗</span>
-              </button>
-            </div>
-          </div>
-          <div class="demo-body">
-            <div class="queue-panel">
-              <div class="queue-columns" aria-hidden="true">
-                <span>REQUEST / TRADE</span><span>RISK SIGNAL</span>
+            <div class="request request-front">
+              <div class="request-top">
+                <span>RFI / 031</span><span class="risk-tag">HIGH RISK</span>
               </div>
-              <div id="rfi-list" class="rfi-list"></div>
+              <strong>Structural detail conflict</strong>
+              <p>
+                Potential rework. Schedule exposure.<br />A signal for earlier
+                human review.
+              </p>
+              <div class="request-bottom">
+                <span class="signal-bars" aria-hidden="true">▂ ▄ ▆ █</span
+                ><span>PRIORITY SIGNAL DETECTED ↗</span>
+              </div>
             </div>
-            <aside class="rfi-detail" id="rfi-detail" aria-labelledby="detail-title"></aside>
           </div>
-          <div class="demo-footer">
-            <span><span aria-hidden="true">◌</span> SIMULATED DATA · PRESET RISK
-              SIGNALS</span>
-            <p>
-              This is an interaction prototype. It does not run an AI model or
-              predict real project costs.
-            </p>
+          <div class="visual-caption">
+            <span class="crosshair" aria-hidden="true">+</span> LESS NOISE. A
+            CLEARER NEXT STEP.<span class="visual-caption-note"
+              >Concept illustration</span
+            >
           </div>
-          <p id="queue-status" class="sr-only" role="status" aria-live="polite"></p>
         </div>
-        <noscript>
-          <p class="noscript-note">
-            Enable JavaScript to explore the simulated RFI queue. The research
-            and experiment plan below remain available.
-          </p>
-        </noscript>
-      </div>
-    </section>
-    <section class="section-wrap experiments" id="experiments" aria-labelledby="experiments-title">
-      <div class="section-heading reveal">
-        <p class="eyebrow">03 / THE EXPERIMENT PLAN</p>
-        <h2 id="experiments-title">
-          Build. Prioritize.<br />Then test the difference.
-        </h2>
-        <p>
-          Four planned demos turn our thesis into something we can examine.
-          Each stage builds on the evidence from the one before it.
-        </p>
-      </div>
-      <div class="experiment-list">
-        <article class="experiment reveal">
-          <span class="experiment-number">01</span>
-          <div>
-            <p class="eyebrow">ORGANIZE</p>
-            <h3>Make the queue visible</h3>
-            <p>
-              Build a dashboard organized by status, trade, responsible party,
-              and available cost information.
-            </p>
-          </div>
-          <div class="experiment-measure">
-            <span>WHAT WE’LL CHECK</span>
-            <p>Can a GC see the status and owner of each request?</p>
-            <span class="planned">PLANNED</span>
-          </div>
-        </article>
-        <article class="experiment reveal">
-          <span class="experiment-number">02</span>
-          <div>
-            <p class="eyebrow">ASSESS</p>
-            <h3>Look for cost-risk signals</h3>
-            <p>
-              Use AI-assisted assessment of RFI descriptions and related
-              project records to flag potentially high financial impact.
-            </p>
-          </div>
-          <div class="experiment-measure">
-            <span>WHAT WE’LL CHECK</span>
-            <p>How well do the flags align with available cost evidence?</p>
-            <span class="planned">PLANNED</span>
-          </div>
-        </article>
-        <article class="experiment reveal">
-          <span class="experiment-number">03</span>
-          <div>
-            <p class="eyebrow">PRIORITIZE</p>
-            <h3>Bring critical requests forward</h3>
-            <p>
-              Rank RFIs by predicted cost risk so the GC can review
-              higher-risk requests earlier.
-            </p>
-          </div>
-          <div class="experiment-measure">
-            <span>WHAT WE’LL CHECK</span>
-            <p>Do high-risk requests move earlier in the review order?</p>
-            <span class="planned">PLANNED</span>
-          </div>
-        </article>
-        <article class="experiment reveal">
-          <span class="experiment-number">04</span>
-          <div>
-            <p class="eyebrow">EVALUATE</p>
-            <h3>Measure what changes</h3>
-            <p>
-              Compare AI-assisted prioritization with a standard review
-              process against our 10% cost-reduction target.
-            </p>
-          </div>
-          <div class="experiment-measure">
-            <span>WHAT WE’LL CHECK</span>
-            <p>
-              Does earlier identification reduce avoidable RFI-related costs?
-            </p>
-            <span class="planned">PLANNED</span>
-          </div>
-        </article>
-      </div>
-    </section>
-    <section class="project-section" id="project" aria-labelledby="project-title">
-      <div class="section-wrap project-layout">
-        <div class="reveal">
-          <p class="eyebrow">04 / PROJECT LENS</p>
-          <h2 id="project-title">
-            Real complexity.<br />Traceable evidence.
+        <div class="hero-bottom">
+          <span>A QUESTION OF COORDINATION, NOT JUST SPEED.</span
+          ><a href="#research" aria-label="Scroll to research"
+            >SCROLL TO EXPLORE <span aria-hidden="true">↓</span></a
+          >
+        </div>
+      </section>
+      <section
+        class="research section-wrap"
+        id="research"
+        aria-labelledby="research-title"
+      >
+        <div class="section-heading reveal">
+          <p class="eyebrow">01 / THE RESEARCH</p>
+          <h2 id="research-title">
+            A small question.<br />A big downstream impact.
           </h2>
           <p>
-            Our intended project lens is Seattle's Light Rail expansion into Bellevue and Redmond.
-            We will examine RFI records, change orders, and linked cost-impact
-            information to explore which early signals are associated with
-            later financial impact.
+            An RFI — Request for Information — asks for clarification when
+            drawings, specifications, or site conditions leave a construction
+            decision unresolved.
           </p>
-          <div class="data-note">
-            <span class="live-dot"></span>
+        </div>
+        <div class="evidence reveal">
+          <article>
+            <span class="metric">$1,089<span> / RFI</span></span>
+            <h3>The cost of clarification</h3>
+            <p>
+              Average processing cost per answered request in a 2013 study of
+              1,362 construction projects.
+            </p>
+            <a href="#references"
+              >Hughes et al., 2013 <span aria-hidden="true">↗</span></a
+            >
+          </article>
+          <article>
+            <span class="metric">~25<span>%</span></span>
+            <h3>Questions left unanswered</h3>
+            <p>
+              The estimated share of RFIs that received no response in the
+              Americas, reported in the same study.
+            </p>
+            <a href="#references"
+              >Hughes et al., 2013 <span aria-hidden="true">↗</span></a
+            >
+          </article>
+          <article>
+            <span class="metric">8.1<span> days</span></span>
+            <h3>Time adds up</h3>
+            <p>
+              Average RFI turnaround in a 2020 study of projects in Australia
+              and New Zealand.
+            </p>
+            <a href="#references"
+              >Aibinu et al., 2020 <span aria-hidden="true">↗</span></a
+            >
+          </article>
+        </div>
+        <div class="thesis-band reveal">
+          <div>
+            <p class="eyebrow">OUR TESTABLE CLAIM</p>
+            <h3>Equal priority can hide<br />unequal cost risk.</h3>
+          </div>
+          <div>
+            <p>
+              Critical RFIs can be delayed when every request receives similar
+              priority. We hypothesize that AI-assisted impact assessment can
+              help GCs identify the highest cost risks earlier and reduce
+              avoidable RFI-related costs by <strong>10% or more.</strong>
+            </p>
+            <p class="small-note">
+              Research target · Not a demonstrated result
+            </p>
+            <a
+              class="text-link dark-link"
+              href="https://docs.google.com/document/d/1DtZcle9EkVuVeR8Sq29ZWV9f7MnqZ_dMiSB-OrAZP_Q/edit?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Read our full thesis <span aria-hidden="true">↗</span
+              ><span class="sr-only"> (opens in a new tab)</span></a
+            >
+          </div>
+        </div>
+        <details class="full-thesis">
+          <summary>
+            Read the full team thesis <span aria-hidden="true">+</span>
+          </summary>
+          <div>
+            <p>
+              The thesis for our team is that construction projects can result
+              in significant financial loss and project delays when Critical
+              Requests For Information (RFI) are treated with similar priority
+              without regard for cost importance. We propose that an AI-assisted
+              impact assessment could reduce cost by 10% or more by helping
+              general contractors (GC) identify RFIs with the highest cost risk.
+              In 2013, a study of 1,362 construction projects in the Americas,
+              surfaced an average of 796 RFIs with a minimum of 100 RFIs each,
+              and an average cost of around $1,089 per request and about
+              $859,000 total for the firms. This is considering only RFIs that
+              were reviewed and responded to, and does not consider the cost of
+              the estimated 25% that never got replies. (Hughes, et al., 2013).
+              With almost 1 in 4 RFIs not getting a response, the current
+              average RFI response rate becomes problematic. This lack of
+              responses leaves the submitters unsure of their next steps,
+              potentially leading to buildings that don’t meet the spec, or are
+              otherwise low-quality. The cost of unsettled RFIs can eat away at
+              the profit margin of an already low margin industry, and this is
+              just considering the cost of processing them alone.Based on the
+              study’s recommendation to use cost as a way to prioritize RFIs and
+              lack of literature regarding cost prioritization, it can be
+              concluded that there is a lack of RFI prioritization methods that
+              could be a major cause of unsettled RFIs. The amount of RFIs
+              increases with the scale of the project and the amount of people
+              who work on it, meaning bigger and more complex projects tend to
+              have more RFIs submitted per day in addition to having a higher
+              turnaround time for them. However, it is possible to have a
+              shorter turnaround for complex projects if the team is experienced
+              and organized. In a 2020 study on projects done in Australia and
+              New Zealand, the average RFI turnaround time was about 8.1 days,
+              with those with higher correspondences having a about 156.6 or
+              more per day, had a turnaround time of around 13.49 days. This is
+              comparatively much higher turnaround times than the 5.97 days for
+              projects with 16.9 or less correspondence a day. This effect is
+              also seen with projects that last longer. The projects that lasted
+              819.4 days or more had a longer turnaround time of about 17.18
+              days compared to those that lasted 160.4 days or less with an
+              average of about 1.79 days. Likewise, projects that had more
+              people or organisations involved in it generally reported longer
+              turnaround times (Aibinu et al., 2020). The projects that are the
+              most costly and hard to build are the ones that are the most
+              delayed, which would push the cost up for as long as the project
+              remains incomplete, missing important deadlines in the process,
+              resulting in increasingly severe losses financially and in terms
+              of project completion. An AI-assisted impact assessment would be
+              able to find the RFIs that would cause the highest cost risk so
+              that we get to the most important RFIs the fastest. This would
+              help reduce turnover times, buffering the impact of large
+              collaboration populations and ensuring that no RFI is left
+              unresponded to. This is especially important with the bigger
+              project, with the amount of RFIs they get and their turnaround
+              time compared to smaller ones.
+            </p>
+            <a class="text-link dark-link" href="#references"
+              >View research references <span aria-hidden="true">↓</span></a
+            >
+          </div>
+        </details>
+      </section>
+      <section
+        class="prototype-section"
+        id="prototype"
+        aria-labelledby="prototype-title"
+      >
+        <div class="section-wrap">
+          <div class="prototype-heading reveal">
             <div>
-              <strong>Data access is still part of the plan.</strong>
+              <p class="eyebrow">02 / INTERACTIVE CONCEPT</p>
+              <h2 id="prototype-title">
+                Same requests.<br />A different first move.
+              </h2>
+            </div>
+            <p>
+              Switch from arrival order to illustrative risk priority. Select a
+              request to see why it might deserve earlier attention.
+            </p>
+          </div>
+          <div class="demo reveal">
+            <div class="demo-toolbar">
+              <div>
+                <span class="live-dot"></span><strong>RFI review queue</strong
+                ><span class="demo-label">6 REQUESTS</span>
+              </div>
+              <div
+                class="sort-controls"
+                role="group"
+                aria-label="Request sorting"
+              >
+                <button
+                  type="button"
+                  class="sort-button active"
+                  data-sort="arrival"
+                  aria-pressed="true"
+                >
+                  Arrival order</button
+                ><button
+                  type="button"
+                  class="sort-button"
+                  data-sort="risk"
+                  aria-pressed="false"
+                >
+                  Risk priority <span aria-hidden="true">↗</span>
+                </button>
+              </div>
+            </div>
+            <div class="demo-body">
+              <div class="queue-panel">
+                <div class="queue-columns" aria-hidden="true">
+                  <span>REQUEST / TRADE</span><span>RISK SIGNAL</span>
+                </div>
+                <div id="rfi-list" class="rfi-list"></div>
+              </div>
+              <aside
+                class="rfi-detail"
+                id="rfi-detail"
+                aria-labelledby="detail-title"
+              ></aside>
+            </div>
+            <div class="demo-footer">
+              <span
+                ><span aria-hidden="true">◌</span> SIMULATED DATA · PRESET RISK
+                SIGNALS</span
+              >
               <p>
-                If usable project records are unavailable, we will use
-                synthetic data from Kaggle, GitHub, or LLM generation and
-                document its assumptions and limits.
+                This is an interaction prototype. It does not run an AI model or
+                predict real project costs.
               </p>
             </div>
+            <p
+              id="queue-status"
+              class="sr-only"
+              role="status"
+              aria-live="polite"
+            ></p>
+          </div>
+          <noscript>
+            <p class="noscript-note">
+              Enable JavaScript to explore the simulated RFI queue. The research
+              and experiment plan below remain available.
+            </p>
+          </noscript>
+        </div>
+      </section>
+      <section
+        class="section-wrap experiments"
+        id="experiments"
+        aria-labelledby="experiments-title"
+      >
+        <div class="section-heading reveal">
+          <p class="eyebrow">03 / THE EXPERIMENT PLAN</p>
+          <h2 id="experiments-title">
+            Build. Prioritize.<br />Then test the difference.
+          </h2>
+          <p>
+            Four planned demos turn our thesis into something we can examine.
+            Each stage builds on the evidence from the one before it.
+          </p>
+        </div>
+        <div class="experiment-list">
+          <article class="experiment reveal">
+            <span class="experiment-number">01</span>
+            <div>
+              <p class="eyebrow">ORGANIZE</p>
+              <h3>Structured RFI Dashboard</h3>
+              <p>
+                Build a dashboard that organizes RFIs by status, trade,
+                responsible party, and available cost-related information. Give
+                GCs a clearer view of RFIs and make items that may need
+                attention easier to identify.
+              </p>
+            </div>
+            <div class="experiment-measure">
+              <span>WHAT WE’LL CHECK</span>
+              <p>
+                Can GCs clearly see RFI status, responsibility, and available
+                cost information?
+              </p>
+              <span class="planned">PLANNED</span>
+            </div>
+          </article>
+          <article class="experiment reveal">
+            <span class="experiment-number">02</span>
+            <div>
+              <p class="eyebrow">ASSESS</p>
+              <h3>AI Risk Assessment</h3>
+              <p>
+                Analyze RFI descriptions and related project data with an
+                AI-assisted tool to estimate potential cost risk. Classify or
+                score requests based on their potential financial impact.
+              </p>
+            </div>
+            <div class="experiment-measure">
+              <span>WHAT WE’LL CHECK</span>
+              <p>
+                How well do risk classifications or scores align with available
+                cost evidence?
+              </p>
+              <span class="planned">PLANNED</span>
+            </div>
+          </article>
+          <article class="experiment reveal">
+            <span class="experiment-number">03</span>
+            <div>
+              <p class="eyebrow">PRIORITIZE</p>
+              <h3>Risk-Based Prioritization</h3>
+              <p>
+                Rank RFIs by predicted cost risk in a prioritization interface.
+                Surface high-risk requests first so GCs can quickly identify
+                issues that may require earlier attention.
+              </p>
+            </div>
+            <div class="experiment-measure">
+              <span>WHAT WE’LL CHECK</span>
+              <p>
+                Can GCs identify high-risk RFIs earlier in the review queue?
+              </p>
+              <span class="planned">PLANNED</span>
+            </div>
+          </article>
+          <article class="experiment reveal">
+            <span class="experiment-number">04</span>
+            <div>
+              <p class="eyebrow">EVALUATE</p>
+              <h3>AI-Assisted Review Comparison</h3>
+              <p>
+                Compare the standard RFI review process with an AI-assisted
+                workflow combining structured information, risk assessment, and
+                risk-based prioritization. Explore whether it helps GCs identify
+                high-cost-risk RFIs earlier and potentially reduce avoidable
+                RFI-related costs.
+              </p>
+            </div>
+            <div class="experiment-measure">
+              <span>WHAT WE’LL CHECK</span>
+              <p>
+                Does the AI-assisted workflow identify high-cost-risk RFIs
+                earlier than standard review?
+              </p>
+              <span class="planned">PLANNED</span>
+            </div>
+          </article>
+        </div>
+      </section>
+      <section
+        class="project-section"
+        id="project"
+        aria-labelledby="project-title"
+      >
+        <div class="section-wrap project-layout">
+          <div class="reveal">
+            <p class="eyebrow">04 / PROJECT LENS</p>
+            <h2 id="project-title">
+              Real complexity.<br />Traceable evidence.
+            </h2>
+            <p>
+              Our intended project lens is Seattle's Light Rail expansion into
+              Bellevue and Redmond. We will examine RFI records, change orders,
+              and linked cost-impact information to explore which early signals
+              are associated with later financial impact.
+            </p>
+            <div class="data-note">
+              <span class="live-dot"></span>
+              <div>
+                <strong>Information artifacts in scope</strong>
+                <p>
+                  RFI descriptions establish the initial problem context. Linked
+                  change orders and available cost-impact records help us
+                  examine whether particular RFI types later resulted in higher
+                  financial impact.
+                </p>
+              </div>
+            </div>
+            <div class="data-note">
+              <span class="live-dot"></span>
+              <div>
+                <strong>Data access is still part of the plan.</strong>
+                <p>
+                  If usable project records are unavailable, we will use
+                  synthetic data from Kaggle, GitHub, or LLM generation and
+                  document its assumptions and limits.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="flow-diagram reveal">
+            <p class="eyebrow">COORDINATION POSTURE</p>
+            <div class="flow-step">
+              <span>01</span>
+              <div>
+                <h3>Subcontractors</h3>
+                <p>Raise field questions and identify conflicts.</p>
+              </div>
+              <span aria-hidden="true">↓</span>
+            </div>
+            <div class="flow-step flow-focus">
+              <span>02</span>
+              <div>
+                <h3>General contractor</h3>
+                <p>
+                  Receive RFIs across project participants, assess risk, and
+                  decide which issues need earlier attention.
+                </p>
+              </div>
+              <span class="flow-owner">OUR VIEW</span>
+            </div>
+            <div class="flow-step">
+              <span>03</span>
+              <div>
+                <h3>Design team</h3>
+                <p>Provide clarification and design decisions.</p>
+              </div>
+              <span aria-hidden="true">↵</span>
+            </div>
+            <div class="flow-step">
+              <span aria-hidden="true">↗</span>
+              <div>
+                <h3>Potential users</h3>
+                <p>
+                  Future users indirectly influence the design team’s decisions,
+                  especially for projects that people use frequently.
+                </p>
+              </div>
+            </div>
+            <div class="flow-artifacts">
+              RFI RECORDS <span>→</span> CHANGE ORDERS <span>→</span> COST
+              IMPACT
+            </div>
           </div>
         </div>
-        <div class="flow-diagram reveal">
-          <p class="eyebrow">THE COORDINATION LOOP</p>
-          <div class="flow-step">
-            <span>01</span>
-            <div>
-              <h3>Subcontractors</h3>
-              <p>Raise field questions and identify conflicts.</p>
-            </div>
-            <span aria-hidden="true">↓</span>
+      </section>
+      <section
+        class="section-wrap team-section"
+        id="team"
+        aria-labelledby="team-title"
+      >
+        <div class="team-heading reveal">
+          <div>
+            <p class="eyebrow">05 / THE PEOPLE</p>
+            <h2 id="team-title">One team.<br />A shared question.</h2>
           </div>
-          <div class="flow-step flow-focus">
-            <span>02</span>
-            <div>
-              <h3>General contractor</h3>
-              <p>Assess risk, prioritize, and coordinate responses.</p>
-            </div>
-            <span class="flow-owner">OUR VIEW</span>
-          </div>
-          <div class="flow-step">
-            <span>03</span>
-            <div>
-              <h3>Design team</h3>
-              <p>Provide clarification and design decisions.</p>
-            </div>
-            <span aria-hidden="true">↵</span>
-          </div>
-          <div class="flow-artifacts">
-            RFI RECORDS <span>→</span> CHANGE ORDERS <span>→</span> COST
-            IMPACT
-          </div>
+          <p>
+            Team 1 · General Contractor<br />University of Washington<br />INFO
+            492 · Autumn 2026
+          </p>
         </div>
-      </div>
-    </section>
-    <section class="section-wrap team-section" id="team" aria-labelledby="team-title">
-      <div class="team-heading reveal">
-        <div>
-          <p class="eyebrow">05 / THE PEOPLE</p>
-          <h2 id="team-title">One team.<br />A shared question.</h2>
+        <div class="team-grid reveal">
+          <article>
+            <span class="member-initials">SZ</span>
+            <h3>Sandra Zhu</h3>
+            <p class="member-role">Coder / Organizer</p>
+          </article>
+          <article>
+            <span class="member-initials">MS</span>
+            <h3>Micah Santos</h3>
+            <p class="member-role">Generalist</p>
+          </article>
+          <article>
+            <span class="member-initials">IZ</span>
+            <h3>Iker Zhang</h3>
+            <p class="member-role">Product / UX Lead</p>
+          </article>
         </div>
-        <p>
-          Team 1 · General Contractor<br />University of Washington<br />INFO
-          492 · Autumn 2026
+        <p class="small-note">
+          Full individual contribution statements are available in our team
+          document.
         </p>
-      </div>
-      <div class="team-grid reveal">
-        <article>
-          <span class="member-initials">SZ</span>
-          <h3>Sandra Zhu</h3>
-          <p class="member-role">Coder / Organizer</p>
-        </article>
-        <article>
-          <span class="member-initials">MS</span>
-          <h3>Micah Santos</h3>
-          <p class="member-role">Generalist</p>
-        </article>
-        <article>
-          <span class="member-initials">IZ</span>
-          <h3>Iker Zhang</h3>
-          <p class="member-role">Product / UX Lead</p>
-        </article>
-      </div>
-      <p class="small-note">
-        Full individual contribution statements are available in our team
-        document.
-      </p>
-    </section>
-    <section class="section-wrap references-section" id="references" aria-labelledby="references-title">
-      <div class="reference-heading">
-        <p class="eyebrow">06 / GO DEEPER</p>
-        <h2 id="references-title">
-          Built on research.<br />Open to scrutiny.
-        </h2>
-      </div>
-      <div class="reference-links">
-        <a href="https://www.cmaanet.org/sites/default/files/resource/Impact%20%26%20Control%20of%20RFIs%20on%20Construction%20Projects.pdf"
-          target="_blank" rel="noopener noreferrer"><span><strong>Impact &amp; control of RFIs on construction
-              projects</strong><small>Hughes, Wells, Nutter &amp; Zack · 2013 · Navigant Construction
-              Forum</small></span><span aria-hidden="true">↗</span><span class="sr-only"> (opens PDF in a new
-            tab)</span></a><a href="https://doi.org/10.1108/BEPAM-10-2018-0130" target="_blank"
-          rel="noopener noreferrer"><span><strong>RFI frequency and turnaround time: a data-analytic
-              study</strong><small>Aibinu, Carter, Francis &amp; Vaz-Serra · 2020 · Built
-              Environment Project and Asset Management</small></span><span aria-hidden="true">↗</span><span
-            class="sr-only"> (opens in a new tab)</span></a><a
-          href="https://docs.google.com/document/d/1DtZcle9EkVuVeR8Sq29ZWV9f7MnqZ_dMiSB-OrAZP_Q/edit?usp=sharing"
-          target="_blank" rel="noopener noreferrer"><span><strong>Our working document</strong><small>Full thesis,
-              project lens, coordination posture &amp;
-              contributions</small></span><span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new
-            tab)</span></a><a href="https://canva.com/design/DAHXSrvTqH4/LRmzFKpggehdsVzKhaO0sg/edit" target="_blank"
-          rel="noopener noreferrer"><span><strong>Our team presentation</strong><small>Prioritizing High-Risk RFIs with
-              AI · Access depends on Canva
-              sharing settings</small></span><span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new
-            tab)</span></a>
-      </div>
-    </section>
-  </main>
-  <footer class="site-footer">
-    <a class="brand" href="#">INFO 492 <span class="brand-separator">·</span> Team 1</a>
-    <p>Better questions. Clearer priorities.</p>
-    <span>INFO 492 / TEAM 01 / 2026</span><a href="https://github.com/LazyDonuts/info492" target="_blank"
-      rel="noopener noreferrer">Project on GitHub ↗<span class="sr-only">
-        (opens in a new tab)</span></a>
-  </footer>
-</body>
-
+      </section>
+      <section
+        class="section-wrap references-section"
+        id="references"
+        aria-labelledby="references-title"
+      >
+        <div class="reference-heading">
+          <p class="eyebrow">06 / GO DEEPER</p>
+          <h2 id="references-title">
+            Built on research.<br />Open to scrutiny.
+          </h2>
+        </div>
+        <div class="reference-links">
+          <a
+            href="https://www.cmaanet.org/sites/default/files/resource/Impact%20%26%20Control%20of%20RFIs%20on%20Construction%20Projects.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><span
+              ><strong
+                >Impact &amp; control of RFIs on construction projects</strong
+              ><small
+                >Hughes, Wells, Nutter &amp; Zack · 2013 · Navigant Construction
+                Forum</small
+              ></span
+            ><span aria-hidden="true">↗</span
+            ><span class="sr-only"> (opens PDF in a new tab)</span></a
+          ><a
+            href="https://doi.org/10.1108/BEPAM-10-2018-0130"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><span
+              ><strong
+                >RFI frequency and turnaround time: a data-analytic
+                study</strong
+              ><small
+                >Aibinu, Carter, Francis &amp; Vaz-Serra · 2020 · Built
+                Environment Project and Asset Management</small
+              ></span
+            ><span aria-hidden="true">↗</span
+            ><span class="sr-only"> (opens in a new tab)</span></a
+          ><a
+            href="https://docs.google.com/document/d/1DtZcle9EkVuVeR8Sq29ZWV9f7MnqZ_dMiSB-OrAZP_Q/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><span
+              ><strong>Our working document</strong
+              ><small
+                >Full thesis, project lens, coordination posture &amp;
+                contributions</small
+              ></span
+            ><span aria-hidden="true">↗</span
+            ><span class="sr-only"> (opens in a new tab)</span></a
+          ><a
+            href="https://canva.com/design/DAHXSrvTqH4/LRmzFKpggehdsVzKhaO0sg/edit"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><span
+              ><strong>Our team presentation</strong
+              ><small
+                >Prioritizing High-Risk RFIs with AI · Access depends on Canva
+                sharing settings</small
+              ></span
+            ><span aria-hidden="true">↗</span
+            ><span class="sr-only"> (opens in a new tab)</span></a
+          >
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <a class="brand" href="#"
+        >INFO 492 <span class="brand-separator">·</span> Team 1</a
+      >
+      <p>Better questions. Clearer priorities.</p>
+      <span>INFO 492 / TEAM 01 / 2026</span
+      ><a
+        href="https://github.com/LazyDonuts/info492"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Project on GitHub ↗<span class="sr-only">
+          (opens in a new tab)</span
+        ></a
+      >
+    </footer>
+  </body>
 </html>
