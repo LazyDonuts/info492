@@ -10,7 +10,7 @@ We use the team's 1,370 synthetic RFIs modeled around Sound Transit's East Link 
 
 ## What happened
 
-Implementation checks verified data parsing, source-count reconciliation, combined queries, sorting, missing-value behavior and allocation handling. Approved amounts are allocated by RFI/CO links rather than repeating the entire CO cost for every associated RFI. The dataset is historical: it contains closed and void/withdrawn records, with no unresolved RFIs.
+The expanded 24-test suite and browser checks verified data parsing, source-count reconciliation, combined queries, sorting, missing-value behavior and allocation handling. Approved amounts are allocated by RFI/CO links rather than repeating the entire CO cost for every associated RFI. Review also found source duration/date differences and four small CO allocation discrepancies; these remain explicitly labeled without changing source values. The dataset is historical: it contains closed and void/withdrawn records, with no unresolved RFIs.
 
 **Participant findings: not yet measured.** The paired study will ask participants to find RFIs by category/discipline and reviewer, locate recorded cost estimates, and distinguish allocated RFI amounts from shared CO totals. The application includes a local timer, observer-entered accuracy and downloadable trial records. Actual participant counts, elapsed times, accuracy and observations must be added after testing.
 

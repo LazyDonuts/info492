@@ -10,8 +10,8 @@
     <meta name="theme-color" content="#2468dc" />
     <title>RFI Management Dashboard · INFO 492 Team 1</title>
     <link rel="stylesheet" href="css/style.css?v=20261007-2" />
-    <link rel="stylesheet" href="css/dashboard.css?v=20261012-1" />
-    <script type="module" src="js/dashboard.js?v=20261012-1"></script>
+    <link rel="stylesheet" href="css/dashboard.css?v=20261012-2" />
+    <script type="module" src="js/dashboard.js?v=20261012-2"></script>
   </head>
   <body class="dash">
     <a class="skip-link" href="#workspace">Skip to dashboard</a>
@@ -22,7 +22,7 @@
         ><button id="data-info">Data &amp; methodology</button>
       </nav>
     </header>
-    <main id="workspace" class="dash-main">
+    <main id="workspace" class="dash-main" tabindex="-1">
       <div class="page-heading">
         <div>
           <p class="overline">GENERAL CONTRACTOR WORKSPACE</p>
@@ -37,17 +37,22 @@
       </div>
       <div id="load-message" role="status">Loading RFI records…</div>
       <div id="app" hidden>
+        <div id="quality-warning" class="data-warning" role="status" hidden><span id="quality-count"></span> <button id="quality-info">Review data warnings</button></div>
+        <p id="summary-scope" class="summary-scope">FULL DATASET OVERVIEW <span>These totals stay fixed while you filter the register.</span></p>
         <section
           class="metrics"
           id="metrics"
           aria-label="Full dataset summary"
         ></section>
+        <div id="source-note" class="source-note" hidden><p id="source-note-text"></p><button id="source-info" class="text-button">View source checks ↗</button></div>
         <div class="workspace-layout">
           <aside class="filter-panel" aria-label="Filter RFIs">
             <div class="panel-title">
               <h2>Filters</h2>
               <button id="clear" class="text-button">Clear all</button>
             </div>
+            <button id="toggle-filters" class="mobile-filter-toggle" aria-expanded="false" aria-controls="filter-body">Show filters</button>
+            <div id="filter-body">
             <p class="quiet">Combine criteria to narrow the register.</p>
             <div id="filters"></div>
             <div class="filter-note">
@@ -58,6 +63,7 @@
               </p>
             </div>
             <a href="docs/DATA.md" class="text-button">Read the data guide ↗</a>
+            </div>
           </aside>
           <div class="register-column">
             <section class="distribution" aria-labelledby="distribution-title">
@@ -70,7 +76,7 @@
             <section class="register" aria-labelledby="register-title">
               <div class="register-toolbar">
                 <div>
-                  <h2 id="register-title">RFI register</h2>
+                  <h2 id="register-title" tabindex="-1">RFI register</h2>
                   <p id="result-count" aria-live="polite"></p>
                 </div>
                 <div
@@ -84,6 +90,7 @@
                   </button>
                 </div>
               </div>
+              <div id="active-task" class="active-task" hidden><div><strong>Task in progress</strong><p id="active-task-text"></p></div><button id="return-study">Record answer ↗</button></div>
               <div id="search-sort" class="search-toolbar">
                 <label class="search-box"
                   ><span aria-hidden="true">⌕</span
@@ -126,29 +133,32 @@
                 its pagination to locate information. Each entry opens the same
                 source details.
               </p>
+              <p id="table-hint" class="table-hint">Click an RFI to view its full details. Scroll the table sideways for cost information.</p>
               <div
                 id="table-wrap"
                 class="table-wrap"
                 tabindex="0"
+                role="region"
                 aria-label="Scrollable RFI table"
               >
                 <table>
+                  <caption class="sr-only">RFI register. Use column buttons to sort. Costs and status are retrospective; contractor priority is an original submission flag.</caption>
                   <thead>
                     <tr>
-                      <th data-sort="id"><button>RFI / subject</button></th>
-                      <th data-sort="category">
+                      <th scope="col" data-sort="id"><button>RFI / subject</button></th>
+                      <th scope="col" data-sort="category">
                         <button>Category / trade</button>
                       </th>
-                      <th data-sort="status"><button>Status</button></th>
-                      <th data-sort="responsible">
+                      <th scope="col" data-sort="status"><button>Status</button></th>
+                      <th scope="col" data-sort="responsible">
                         <button>Responsible party</button>
                       </th>
-                      <th data-sort="submitted"><button>Submitted</button></th>
-                      <th data-sort="priority">
-                        <button>Contractor priority</button>
+                      <th scope="col" data-sort="submitted"><button>Submitted</button></th>
+                      <th scope="col" data-sort="priority">
+                        <button>Contractor priority<span class="column-note">Original flag · not AI</span></button>
                       </th>
-                      <th data-sort="estimate">
-                        <button>Cost information</button>
+                      <th scope="col" data-sort="estimate">
+                        <button>Cost information<span class="column-note">Sort by estimate</span></button>
                       </th>
                     </tr>
                   </thead>
@@ -234,7 +244,7 @@
               <label class="task-label"
                 >Exact task / target<input
                   id="target"
-                  placeholder="Specify the category, reviewer or RFI and expected answer"
+                  placeholder="Enter the participant-facing question; keep the answer key separate"
                   maxlength="500"
               /></label>
             </div>
@@ -300,7 +310,7 @@
         <h2 id="method-title">About this dataset</h2>
         <button id="close-info" aria-label="Close data information">✕</button>
       </div>
-      <p>
+      <p id="dataset-description">
         The team supplied 1,370 synthetic RFIs modeled around East Link and
         Downtown Redmond Link. RFI text, dates, costs and outcomes are generated
         examples, not official Sound Transit records.

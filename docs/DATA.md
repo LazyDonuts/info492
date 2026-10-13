@@ -73,3 +73,16 @@ All cards describe the full loaded dataset, not the filtered page. Counts per pa
 ## Missing fields and limitations
 
 There are no unsupported required core fields in this supplied snapshot: category, discipline, reviewer, status and dates exist. No current/open operational records exist. No original synthetic-generation program was provided. We have a source description and conversion script, not proof of reproducibility of the generator. The dataset intentionally builds category effects into outcomes; retrieval experiments are possible, but later predictive success would not establish real-world validity. Demo 1 neither predicts risk nor verifies the 10% savings thesis.
+
+## Reconciliation findings — October 13, 2026
+
+The review compared every exported cell in all six CSVs with the retained workbook: all matched. Source data was not edited.
+
+- 401 recorded initial durations and 390 recorded final durations differ from calendar-date subtraction. The source recorded final-duration average is 11.3 days; date subtraction averages about 11.7 days. The cause is not established by the supplied files. The dashboard explicitly labels the source average and shows both duration definitions in details.
+- Approved allocations total $406,590 versus $406,600 for E330-CO-006, and $605,610 versus $605,600 for E330-CO-039. These opposite $10 discrepancies cancel at global level, so global reconciliation alone is insufficient.
+- Requested allocations total $356,710 versus $356,700 for E330-CO-018, and $3,463,090 versus $3,463,100 for E335-CO-023. The UI retains and labels these differences instead of silently adjusting values.
+- There are 767 missing estimate ranges and 971 RFIs without linked CO IDs. Core IDs, categories, disciplines, assigned reviewers, statuses and dates are populated.
+
+Malformed numeric grouping (such as `1,2`), hexadecimal numbers and invalid dates are unavailable, with visible data warnings. CSV requests revalidate the HTTP cache. Partial link sets retain every listed CO ID and make aggregate costs unavailable; entirely absent links may use the original RFI-level allocated totals with an explicit warning. Missing package values receive their own chart group.
+
+Cost filters distinguish **No positive cost evidence** (718 source records: no positive claim, estimate or linked CO) from **Cost information not recorded** (0 source records: the claim flag itself must also be absent). Neither means the project incurred zero cost.
