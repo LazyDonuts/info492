@@ -1,0 +1,12 @@
+{
+  "source": "ST_EastLink_DRLE_RFI_synthetic_dataset.xlsx",
+  "counts": {
+    "rfis": 1370,
+    "contracts": 7,
+    "change_orders": 328,
+    "change_order_outcomes": 328,
+    "rfi_change_order_link": 399,
+    "data_dictionary": 25
+  },
+  "transformation": "ISO date strings; integral numeric values; blanks preserved. No enrichment."
+}

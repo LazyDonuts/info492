@@ -1,0 +1,12 @@
+{
+  "name": "info492-rfi-dashboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "build": "node scripts/validate-site.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
