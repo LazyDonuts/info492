@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Demo 1: organize and inspect the team's synthetic East Link and Downtown Redmond Link RFIs."
+    />
+    <meta name="theme-color" content="#2468dc" />
+    <title>RFI Management Dashboard · INFO 492 Team 1</title>
+    <link rel="stylesheet" href="css/style.css?v=20261007-2" />
+    <link rel="stylesheet" href="css/dashboard.css?v=20261012-1" />
+    <script type="module" src="js/dashboard.js?v=20261012-1"></script>
+  </head>
+  <body class="dash">
+    <a class="skip-link" href="#workspace">Skip to dashboard</a>
+    <header class="dash-header">
+      <a class="brand" href="index.html">INFO 492 <span>·</span> Team 1</a>
+      <nav aria-label="Dashboard navigation">
+        <a href="index.html">Team website <span aria-hidden="true">↗</span></a
+        ><button id="data-info">Data &amp; methodology</button>
+      </nav>
+    </header>
+    <main id="workspace" class="dash-main">
+      <div class="page-heading">
+        <div>
+          <p class="overline">GENERAL CONTRACTOR WORKSPACE</p>
+          <h1>RFI Management Dashboard</h1>
+          <p>Demo 1 — Structured RFI Dashboard</p>
+        </div>
+        <div class="source-tag">
+          <span class="live-dot"></span> Synthetic project data<span
+            >East Link &amp; Downtown Redmond Link</span
+          >
+        </div>
+      </div>
+      <div id="load-message" role="status">Loading RFI records…</div>
+      <div id="app" hidden>
+        <section
+          class="metrics"
+          id="metrics"
+          aria-label="Full dataset summary"
+        ></section>
+        <div class="workspace-layout">
+          <aside class="filter-panel" aria-label="Filter RFIs">
+            <div class="panel-title">
+              <h2>Filters</h2>
+              <button id="clear" class="text-button">Clear all</button>
+            </div>
+            <p class="quiet">Combine criteria to narrow the register.</p>
+            <div id="filters"></div>
+            <div class="filter-note">
+              <strong>Submission vs. outcomes</strong>
+              <p>
+                Cost-impact flags were available at submission. Estimates,
+                response data, and change orders are recorded later.
+              </p>
+            </div>
+            <a href="docs/DATA.md" class="text-button">Read the data guide ↗</a>
+          </aside>
+          <div class="register-column">
+            <section class="distribution" aria-labelledby="distribution-title">
+              <div class="panel-title">
+                <h2 id="distribution-title">Contract packages</h2>
+                <span id="chart-caption" class="quiet">All records</span>
+              </div>
+              <div id="package-chart" class="package-chart"></div>
+            </section>
+            <section class="register" aria-labelledby="register-title">
+              <div class="register-toolbar">
+                <div>
+                  <h2 id="register-title">RFI register</h2>
+                  <p id="result-count" aria-live="polite"></p>
+                </div>
+                <div
+                  class="view-switch"
+                  role="group"
+                  aria-label="Comparison view"
+                >
+                  <button id="structured" aria-pressed="true">Dashboard</button
+                  ><button id="baseline" aria-pressed="false">
+                    Plain list
+                  </button>
+                </div>
+              </div>
+              <div id="search-sort" class="search-toolbar">
+                <label class="search-box"
+                  ><span aria-hidden="true">⌕</span
+                  ><input
+                    id="search"
+                    type="search"
+                    placeholder="Search RFI ID, description, location…"
+                    aria-label="Search RFIs"
+                /></label>
+                <label class="sort-label"
+                  >Sort by<select id="sort">
+                    <option value="submitted:desc">
+                      Submitted · newest first
+                    </option>
+                    <option value="submitted:asc">
+                      Submitted · oldest first
+                    </option>
+                    <option value="id:asc">RFI ID · A–Z</option>
+                    <option value="estimate:desc">
+                      Estimate · highest first (later)
+                    </option>
+                    <option value="approved:desc">
+                      Allocated CO cost · highest first (later)
+                    </option>
+                    <option value="category:asc">Category · A–Z</option>
+                    <option value="responsible:asc">
+                      Responsible party · A–Z
+                    </option>
+                  </select></label
+                >
+              </div>
+              <div
+                id="chips"
+                class="active-chips"
+                aria-label="Active filters"
+              ></div>
+              <p id="baseline-note" class="baseline-note" hidden>
+                Comparison baseline: the same records in source order, without
+                dashboard search, filters, summaries or charts. Use the list and
+                its pagination to locate information. Each entry opens the same
+                source details.
+              </p>
+              <div
+                id="table-wrap"
+                class="table-wrap"
+                tabindex="0"
+                aria-label="Scrollable RFI table"
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      <th data-sort="id"><button>RFI / subject</button></th>
+                      <th data-sort="category">
+                        <button>Category / trade</button>
+                      </th>
+                      <th data-sort="status"><button>Status</button></th>
+                      <th data-sort="responsible">
+                        <button>Responsible party</button>
+                      </th>
+                      <th data-sort="submitted"><button>Submitted</button></th>
+                      <th data-sort="priority">
+                        <button>Contractor priority</button>
+                      </th>
+                      <th data-sort="estimate">
+                        <button>Cost information</button>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="rows"></tbody>
+                </table>
+              </div>
+              <div id="plain-list" class="plain-list" hidden></div>
+              <div id="empty" class="empty-state" hidden>
+                <span aria-hidden="true">⌕</span>
+                <h3>No matching RFIs</h3>
+                <p>Try a shorter search or remove a filter.</p>
+                <button id="empty-clear" class="primary-button">
+                  Clear all filters
+                </button>
+              </div>
+              <div class="pagination">
+                <label
+                  >Rows per page
+                  <select id="page-size">
+                    <option>25</option>
+                    <option>50</option>
+                    <option>100</option>
+                  </select></label
+                ><span id="page-label"></span>
+                <div>
+                  <button id="previous" aria-label="Previous page">←</button
+                  ><button id="next" aria-label="Next page">→</button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+        <section class="test-panel" aria-labelledby="test-title">
+          <details id="study">
+            <summary>
+              <span
+                ><span class="overline">DEMO 1 EVALUATION</span
+                ><strong id="test-title"
+                  >Test information retrieval</strong
+                ></span
+              ><span class="quiet"
+                >Task timer &amp; local results
+                <span aria-hidden="true">＋</span></span
+              >
+            </summary>
+            <p>
+              Can a structured dashboard help GCs find and understand
+              cost-related RFIs more efficiently? Compare equivalent tasks in
+              both views. Results are recorded on this device only.
+            </p>
+            <div class="study-inputs">
+              <label
+                >Participant code<input
+                  id="participant"
+                  placeholder="e.g. P01"
+                  maxlength="40"
+              /></label>
+              <label
+                >Condition<select id="condition" aria-label="Condition">
+                  <option value="structured">Structured dashboard</option>
+                  <option value="baseline">Plain list</option>
+                </select></label
+              >
+              <label class="task-label"
+                >Task<select id="task" aria-label="Task">
+                  <option value="category">
+                    Find an RFI in a chosen category and discipline
+                  </option>
+                  <option value="responsible">
+                    Find an RFI assigned to a chosen reviewer
+                  </option>
+                  <option value="estimate">
+                    Find an RFI with a recorded cost estimate
+                  </option>
+                  <option value="linked">
+                    Inspect an RFI and report its linked CO and allocated cost
+                  </option>
+                  <option value="custom">
+                    Custom information-finding task
+                  </option>
+                </select></label
+              >
+              <label class="task-label"
+                >Exact task / target<input
+                  id="target"
+                  placeholder="Specify the category, reviewer or RFI and expected answer"
+                  maxlength="500"
+              /></label>
+            </div>
+            <div class="timer-controls">
+              <button id="start-test" class="primary-button">Start task</button
+              ><output id="timer" aria-label="Elapsed time">00:00</output
+              ><label
+                >Observed answer<input
+                  id="answer"
+                  placeholder="Participant’s answer"
+                  maxlength="500" /></label
+              ><label
+                >Accuracy (observer)<select
+                  id="accuracy"
+                  aria-label="Accuracy (observer)"
+                >
+                  <option value="not scored">Not scored</option>
+                  <option value="correct">Correct</option>
+                  <option value="partial">Partially correct</option>
+                  <option value="incorrect">Incorrect</option>
+                </select></label
+              ><button id="finish-test" disabled>Finish &amp; record</button
+              ><button id="cancel-test" disabled>Cancel</button>
+            </div>
+            <p id="test-message" class="quiet" aria-live="polite"></p>
+            <div class="study-results">
+              <h3>Recorded trials <span id="trial-count">0</span></h3>
+              <button id="export-tests">Download results CSV</button>
+            </div>
+            <div id="trials" class="trials"></div>
+            <p class="quiet">
+              Accuracy is entered by an observer. This demo measures retrieval,
+              not AI predictions or cost savings. No experimental results have
+              been prefilled.
+            </p>
+          </details>
+        </section>
+        <footer class="dash-footer">
+          <span>INFO 492 · Team 1 / Demo 1</span
+          ><span
+            >Synthetic RFIs and modeled outcomes · No AI analysis in this
+            demo</span
+          ><a href="docs/DEMO-NOTE.md">Demo note ↗</a>
+        </footer>
+      </div>
+      <noscript
+        >This dashboard requires JavaScript to load and query the RFI
+        register.</noscript
+      >
+    </main>
+    <dialog id="detail" class="drawer" aria-labelledby="detail-title">
+      <div class="drawer-top">
+        <div>
+          <p class="overline">RFI RECORD</p>
+          <h2 id="detail-title"></h2>
+        </div>
+        <button id="close-detail" aria-label="Close RFI details">✕</button>
+      </div>
+      <div id="detail-content"></div>
+    </dialog>
+    <dialog id="methodology" class="methodology" aria-labelledby="method-title">
+      <div class="panel-title">
+        <h2 id="method-title">About this dataset</h2>
+        <button id="close-info" aria-label="Close data information">✕</button>
+      </div>
+      <p>
+        The team supplied 1,370 synthetic RFIs modeled around East Link and
+        Downtown Redmond Link. RFI text, dates, costs and outcomes are generated
+        examples, not official Sound Transit records.
+      </p>
+      <h3>Information timing</h3>
+      <p>
+        The source Data Dictionary marks routing metadata, descriptions and
+        contractor impact flags as available at submission. Status, response
+        times, estimates, schedule effects and change-order results are
+        retrospective. Its estimate description says “early,” but its
+        availability flag is N; this dashboard follows N.
+      </p>
+      <h3>Cost allocation</h3>
+      <p>
+        RFI-linked amounts use RFI_CO_Link allocations. Whole change-order
+        approved amounts are shown separately in details as shared CO totals,
+        never attributed in full to each RFI. Missing estimates are not zero
+        cost.
+      </p>
+      <h3>Ground truth</h3>
+      <p>
+        Outcome-derived impact scores, priority tiers and ranks are retained
+        only in explicitly labeled source metadata for future evaluation. They
+        are never used for ranking, search or risk badges here.
+      </p>
+      <div id="data-quality"></div>
+      <p>
+        <a class="text-button" href="docs/DATA.md"
+          >Field mapping and transformations ↗</a
+        >
+      </p>
+    </dialog>
+  </body>
+</html>
