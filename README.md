@@ -79,8 +79,9 @@ npm run build
 - [Demo Note draft, under 500 words](docs/DEMO-NOTE.md)
 - [Individual contribution statement templates](docs/CONTRIBUTIONS.md)
 - [Implementation request](docs/IMPLEMENTATION-PROMPT.md)
+- [Comprehensive review and remaining submission work](docs/QA-REPORT.md)
 
-Browser trial results remain on the current device's localStorage. Nothing is sent to a server. Use participant codes rather than names, and download results after testing. Removing a trial is reversible by re-entering it; the UI does not fabricate outcomes or auto-score answers.
+Browser trial results remain on the current device's localStorage. Nothing is sent to a server. Use participant codes rather than names, and download results after testing. Export before removing a trial; removal has no built-in undo; the UI does not fabricate outcomes or auto-score answers.
 
 ## Code organization
 

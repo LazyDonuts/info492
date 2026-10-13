@@ -5,7 +5,9 @@ import {
   FILTER_FIELDS,
   MISSING,
   number,
-} from "./rfi-data.js";
+  date,
+  packageCounts,
+} from "./rfi-data.js?v=20261012-2";
 const $ = (id) => document.getElementById(id);
 const escape = (value) =>
   String(value ?? "").replace(
@@ -53,7 +55,8 @@ const costOptions = {
   flag: "Cost impact claimed at submission",
   estimate: "Recorded estimate (later)",
   linked: "Linked change order (later)",
-  missing: "No flag, estimate or linked CO",
+  missing: "No positive cost evidence",
+  unavailable: "Cost information not recorded",
 };
 const state = {
   model: null,
@@ -135,11 +138,11 @@ function renderMetrics() {
       "Cost claim, recorded estimate or linked CO",
     ) +
     metric(
-      "Avg. final response",
+      "Avg. recorded final response",
       s.response === null
         ? "Unavailable"
         : `${s.response.toFixed(1)}<span style="font-size:14px;letter-spacing:0"> d</span>`,
-      `Retrospective · ${s.responseN} valid durations`,
+      `Source durations · ${s.responseN} records; ${state.model.reconciliation.durations.final.length} differ from dates`,
     );
 }
 function createFilters() {
@@ -172,25 +175,21 @@ function renderChips() {
     .join("");
 }
 function renderChart() {
-  const context = queryRecords(state.model.records, {
-    ...state.filters,
-    package: "",
-  });
-  const counts = new Map(state.model.options.package.map((p) => [p, 0]));
-  context.forEach((r) => {
-    if (r.package) counts.set(r.package, (counts.get(r.package) || 0) + 1);
-  });
+  const counts = new Map(packageCounts(state.model.records, state.filters));
   const max = Math.max(...counts.values(), 1);
   $("package-chart").innerHTML = [...counts]
     .map(
       ([p, n]) =>
-        `<button class="package-bar" data-package="${escape(p)}" aria-label="Filter package ${escape(p)}, ${n} RFIs" aria-pressed="${state.filters.package === p}"><span>${escape(p)}<strong>${integer(n)}</strong></span><i class="bar-track"><i style="width:${(n / max) * 100}%"></i></i></button>`,
+        `<button class="package-bar" data-package="${escape(p)}" aria-label="Filter package ${escape(p === "__missing" ? MISSING : p)}, ${n} RFIs" aria-pressed="${state.filters.package === p}"><span>${escape(p === "__missing" ? MISSING : p)}<strong>${integer(n)}</strong></span><i class="bar-track"><i style="width:${(n / max) * 100}%"></i></i></button>`,
     )
     .join("");
-  $("chart-caption").textContent = "Counts after other filters";
+  $("chart-caption").textContent = "Other filters applied · click a package to filter";
 }
 function render() {
   if (!state.model) return;
+  const focused = document.activeElement;
+  const focusedPackage = focused?.dataset.package;
+  const focusedChip = focused?.dataset.remove;
   const structured = state.mode === "structured";
   const records = structured
     ? queryRecords(
@@ -206,6 +205,8 @@ function render() {
     visible = records.slice(begin, begin + state.size);
   $("result-count").textContent =
     `${integer(records.length)} ${structured ? "matching" : "source"} RFIs · ${integer(state.model.records.length)} total`;
+  $("table-wrap").scrollTop = 0;
+  $("plain-list").scrollTop = 0;
   $("page-label").textContent = records.length
     ? `${begin + 1}–${begin + visible.length} of ${integer(records.length)} · Page ${state.page} / ${pages}`
     : "0 records";
@@ -214,11 +215,13 @@ function render() {
   $("table-wrap").hidden = !structured || !records.length;
   $("plain-list").hidden = structured;
   $("search-sort").hidden = !structured;
+  $("table-hint").hidden = !structured;
   $("chips").hidden = !structured;
   $("baseline-note").hidden = structured;
   document.querySelector(".filter-panel").hidden = !structured;
   document.querySelector(".distribution").hidden = !structured;
   $("metrics").hidden = !structured;
+  $("summary-scope").hidden = !structured;
   document.querySelector(".workspace-layout").style.gridTemplateColumns =
     structured ? "" : "minmax(0,1fr)";
   $("empty").hidden = records.length > 0;
@@ -228,7 +231,7 @@ function render() {
     $("rows").innerHTML = visible
       .map(
         (r) =>
-          `<tr data-rfi="${escape(r.id)}"><td><button class="record-link" data-rfi="${escape(r.id)}" aria-label="Open ${escape(r.id)}"><span>${escape(r.id)}</span><strong>${escape(r.title)}</strong></button><span class="cell-sub">${display(r.package)} · ${display(r.location)}</span></td><td>${display(r.category)}<span class="cell-sub">${display(r.trade)}</span></td><td>${statusBadge(r)}</td><td>${display(r.responsible)}</td><td>${dateText(r.submitted)}</td><td>${priorityBadge(r)}</td><td><span class="${r.costFlag ? "cost-yes" : "cost-no"}">${r.costFlag === null ? "Flag not recorded" : r.costFlag ? "Cost impact claimed" : "No cost impact claimed"}</span><span class="cell-sub">${r.hasEstimate ? `${escape(estimate(r))}<br>Estimate · recorded later` : "Estimate not recorded"}</span>${r.linkedIds.length ? `<span class="cell-sub">${r.linkedIds.length} linked CO${r.linkedIds.length > 1 ? "s" : ""} · later</span>` : ""}</td></tr>`,
+          `<tr data-rfi="${escape(r.id)}"><td><button class="record-link" data-rfi="${escape(r.id)}" aria-label="Open ${escape(r.id)}"><span>${escape(r.id)}</span><strong>${escape(r.title)}</strong></button><span class="cell-sub">${display(r.package)} · ${display(r.location)}</span></td><td>${display(r.category)}<span class="cell-sub">${display(r.trade)}</span></td><td>${statusBadge(r)}</td><td>${display(r.responsible)}</td><td>${dateText(r.submitted)}</td><td>${priorityBadge(r)}</td><td><span class="${r.costFlag ? "cost-yes" : "cost-no"}">${r.costFlag === null ? "Flag not recorded" : r.costFlag ? "Cost impact claimed" : "No cost impact claimed"}</span><span class="cell-sub">${r.hasEstimate ? `${escape(estimate(r))}<br>Estimate · recorded later` : "Estimate not recorded"}</span>${r.linkedIds.length ? `<span class="cell-sub">${r.linkedIds.length} linked CO${r.linkedIds.length > 1 ? "s" : ""} · later<br>Allocated approved: ${money(r.approved)}</span>` : ""}</td></tr>`,
       )
       .join("");
     document
@@ -245,6 +248,9 @@ function render() {
       );
     renderChips();
     renderChart();
+    if (focusedPackage) {
+      [...$("package-chart").querySelectorAll("button")].find((el) => el.dataset.package === focusedPackage)?.focus({preventScroll: true});
+    } else if (focusedChip) $("search").focus({preventScroll: true});
   } else {
     $("plain-list").innerHTML = visible
       .map(
@@ -341,12 +347,17 @@ function showDetail(id, trigger) {
         `<dt>${escape(k)}<span class="timing">${retrospectiveKeys.has(k) ? "Retrospective" : knownKeys.has(k) ? "At submission" : "Timing not classified in dictionary"}</span></dt><dd>${display(v)}</dd>`,
     )
     .join("");
+  const durationDiffers = r.responseDays !== null && r.finalCalendarDays !== null && r.responseDays !== r.finalCalendarDays;
+  const initialDiffers = r.initialResponseDays !== null && r.initialCalendarDays !== null && r.initialResponseDays !== r.initialCalendarDays;
+  const coNote = (id) => state.model.reconciliation.allocations.filter(v => v.coId === id).map(v => `<p class="source-discrepancy">Source discrepancy: ${v.field === "allocated_approved_cost_usd" ? "approved" : "requested"} allocations across all linked RFIs total ${money(v.allocated)}, versus ${money(v.total)} for the whole CO (${money(Math.abs(v.difference))} difference). Original amounts retained.</p>`).join("");
   let cos = r.linkedCOs
     .map(
       (co) =>
-        `<article class="co-card"><h4>${escape(co.id)}</h4>${grid([entry("Allocation share", co.share === null ? MISSING : `${(co.share * 100).toFixed(1)}%`), entry("Allocated approved amount", money(co.approved)), entry("Allocated requested amount", money(co.requested)), entry("Whole CO approved amount (shared)", money(number(co.outcome.final_approved_cost_usd))), entry("CO outcome", display(co.outcome.outcome || co.order.outcome)), entry("Outcome date", dateText(co.outcome.outcome_date?.match(/^\d{4}-\d{2}-\d{2}$/) ? co.outcome.outcome_date : null)), entry("Allocated time", days(co.time)), entry("Whole CO time granted (shared)", days(number(co.outcome.time_granted_days)))])}<p>The whole CO may involve multiple RFIs. Only the supplied RFI allocation is attributed to this request. Association alone does not establish causation.</p></article>`,
+        `<article class="co-card"><h4>${escape(co.id)}</h4>${grid([entry("Allocation share", co.share === null ? MISSING : `${(co.share * 100).toFixed(1)}%`), entry("Allocated approved amount", money(co.approved)), entry("Allocated requested amount", money(co.requested)), entry("Whole CO approved amount (shared)", money(number(co.outcome.final_approved_cost_usd))), entry("CO outcome", display(co.outcome.outcome || co.order.outcome)), entry("Outcome date", dateText(date(co.outcome.outcome_date))), entry("Allocated time", days(co.time)), entry("Whole CO time granted (shared)", days(number(co.outcome.time_granted_days)))])}<p>The whole CO may involve multiple RFIs. Only the supplied RFI allocation is attributed to this request. Association alone does not establish causation.</p>${coNote(co.id)}</article>`,
     )
     .join("");
+  if (cos && r.missingLinks.length)
+    cos += `<p class="data-warning">Allocation records unavailable for ${escape(r.missingLinks.join(", "))}. The aggregate is unavailable because the supplied links are incomplete.</p>`;
   if (!cos)
     cos = `<p>${r.linkedIds.length ? `Source lists ${escape(r.linkedIds.join(", "))}, but allocation-level records are unavailable. Existing RFI-level allocated amounts are shown above.` : "No linked change order is recorded for this RFI."}</p>`;
   $("detail-content").innerHTML =
@@ -354,13 +365,13 @@ function showDetail(id, trigger) {
   <section class="drawer-section"><h3>Responsibility &amp; routing</h3>${grid([entry("Submitting contractor", display(r.contractor)), entry("Submitted by", display(r.submittedBy)), entry("Responsible party / assigned reviewer", display(r.responsible), "At submission"), entry("Submitted", dateText(r.submitted)), entry("Response requirement", days(number(r.raw.required_response_days)), "At submission"), entry("Spec section", display(r.raw.spec_section), "At submission")])}</section>
   <section class="drawer-section"><h3>Cost information</h3><div class="cost-stage">The Data Dictionary marks estimates and CO amounts as unavailable at submission. These are recorded estimates and modeled outcomes, not predictions.</div>${grid([entry("Contractor claims cost impact", flagText(r.costFlag), "At submission"), entry("Contractor estimate range", escape(estimate(r)), "Recorded later · not approved cost"), entry("Allocated approved CO cost", r.linkedIds.length ? money(r.approved) : "No linked CO recorded", "Retrospective RFI-level allocation"), entry("Allocated requested CO cost", r.linkedIds.length ? money(r.requested) : "No linked CO recorded", "Retrospective RFI-level allocation")])}</section>
   <section class="drawer-section"><h3>Linked change orders <span class="timing">Retrospective modeled outcomes</span></h3>${cos}</section>
-  <section class="drawer-section"><h3>Schedule &amp; response</h3>${grid([entry("Contractor claims schedule impact", flagText(flagRaw(r.raw.contractor_claims_schedule_impact)), "At submission"), entry("On critical path at submission", flagText(flagRaw(r.raw.on_critical_path_at_submittal)), "At submission"), entry("Claimed schedule impact", days(number(r.raw.schedule_impact_days_claimed)), "Recorded later"), entry("Modeled critical-path delay", days(number(r.raw.critical_path_delay_days_actual)), "Retrospective"), entry("Modeled float consumed", days(number(r.raw.float_consumed_days_actual)), "Retrospective"), entry("Initial response duration", days(r.initialResponseDays), "Retrospective"), entry("Final response duration", days(r.responseDays), "Retrospective"), entry("Response date", dateText(r.responseDate), "Retrospective"), entry("Closed date", dateText(r.closedDate), "Retrospective")])}</section>
+  <section class="drawer-section"><h3>Schedule &amp; response</h3>${initialDiffers || durationDiffers ? '<p class="source-discrepancy">Source durations differ from calendar-date differences. Both are shown below; no source values have been changed.</p>' : ""}${grid([entry("Contractor claims schedule impact", flagText(flagRaw(r.raw.contractor_claims_schedule_impact)), "At submission"), entry("On critical path at submission", flagText(flagRaw(r.raw.on_critical_path_at_submittal)), "At submission"), entry("Claimed schedule impact", days(number(r.raw.schedule_impact_days_claimed)), "Recorded later"), entry("Modeled critical-path delay", days(number(r.raw.critical_path_delay_days_actual)), "Retrospective"), entry("Modeled float consumed", days(number(r.raw.float_consumed_days_actual)), "Retrospective"), entry("Recorded initial response duration", days(r.initialResponseDays), "Retrospective source value"), entry("Recorded final response duration", days(r.responseDays), "Retrospective source value"), entry("Submission → first response", days(r.initialCalendarDays), "Calculated from dates · calendar days"), entry("Submission → closure", days(r.finalCalendarDays), "Calculated from dates · calendar days"), entry("Response date", dateText(r.responseDate), "Retrospective"), entry("Closed date", dateText(r.closedDate), "Retrospective")])}</section>
   <section class="drawer-section"><h3>Contract context</h3>${grid([entry("Package name", display(r.contract.package_name)), entry("Delivery method", display(r.contract.delivery_method)), entry("Base value", money(number(r.contract.contract_base_usd))), entry("Value provenance", display(r.contract.source_status))])}<p>Contract facts and estimates follow the source workbook. Project-level anchors do not validate these synthetic RFI outcomes.</p></section>
   <details class="source-metadata"><summary>All source fields &amp; information timing</summary><dl>${meta}</dl></details>
   <details class="source-metadata"><summary>Outcome-derived ground truth (future evaluation only)</summary><p>These labels are built from modeled outcomes. Demo 1 does not use them to rank or score RFIs.</p><dl>${truths.map((k) => `<dt>${k}</dt><dd>${display(r.raw[k])}</dd>`).join("")}</dl></details>`;
   $("detail").showModal();
   $("detail").scrollTop = 0;
-  $("close-detail").focus();
+  $("close-detail").focus({preventScroll: true});
 }
 function flagRaw(v) {
   return /^(Y|Yes|true|1)$/i.test(v || "")
@@ -369,6 +380,12 @@ function flagRaw(v) {
       ? false
       : null;
 }
+$("toggle-filters").addEventListener("click", () => {
+  const expanded = $("toggle-filters").getAttribute("aria-expanded") !== "true";
+  $("toggle-filters").setAttribute("aria-expanded", String(expanded));
+  $("toggle-filters").textContent = expanded ? "Hide filters" : "Show filters";
+  $("filter-body").classList.toggle("filters-expanded", expanded);
+});
 $("close-detail").addEventListener("click", () => $("detail").close());
 $("detail").addEventListener("close", () => {
   if (opener?.isConnected) opener.focus();
@@ -392,8 +409,8 @@ $("sort").addEventListener("change", (e) => {
   state.page = 1;
   render();
 });
-$("clear").addEventListener("click", reset);
-$("empty-clear").addEventListener("click", reset);
+for (const id of ["clear", "empty-clear"])
+  $(id).addEventListener("click", () => { reset(); $("search").focus(); });
 $("chips").addEventListener("click", (e) => {
   const key = e.target.closest("[data-remove]")?.dataset.remove;
   if (!key) return;
@@ -454,12 +471,14 @@ $("page-size").addEventListener("change", (e) => {
 $("previous").addEventListener("click", () => {
   state.page--;
   render();
-  $("table-wrap").scrollTop = 0;
+  $("register-title").focus({preventScroll:true});
+  $("register-title").scrollIntoView({block:"start", behavior:"instant"});
 });
 $("next").addEventListener("click", () => {
   state.page++;
   render();
-  $("table-wrap").scrollTop = 0;
+  $("register-title").focus({preventScroll:true});
+  $("register-title").scrollIntoView({block:"start", behavior:"instant"});
 });
 $("structured").addEventListener("click", () => {
   if (running && running.condition !== "structured") {
@@ -506,6 +525,10 @@ function lockStudy(active) {
   $("start-test").disabled = active;
   $("finish-test").disabled = !active;
   $("cancel-test").disabled = !active;
+  $("page-size").disabled = active;
+  $("structured").disabled = active;
+  $("baseline").disabled = active;
+  $("active-task").hidden = !active;
 }
 $("start-test").addEventListener("click", () => {
   if (!state.model) return;
@@ -516,6 +539,11 @@ $("start-test").addEventListener("click", () => {
       "Enter a participant code and an exact task / target before starting.";
     return;
   }
+  state.sort = "submitted";
+  state.direction = "desc";
+  state.size = 25;
+  $("sort").value = "submitted:desc";
+  $("page-size").value = "25";
   reset();
   setMode($("condition").value);
   running = {
@@ -523,6 +551,8 @@ $("start-test").addEventListener("click", () => {
     target,
     condition: $("condition").value,
     task: $("task").value,
+    pageSize: state.size,
+    initialSort: state.mode === "baseline" ? "source order" : "submitted:desc",
     startedAt: new Date().toISOString(),
     started: performance.now(),
   };
@@ -530,6 +560,9 @@ $("start-test").addEventListener("click", () => {
   $("accuracy").value = "not scored";
   $("timer").value = "00:00";
   lockStudy(true);
+  $("active-task-text").textContent = target;
+  $("register-title").focus({preventScroll: true});
+  $("register-title").scrollIntoView({block: "start", behavior: "instant"});
   tick = setInterval(() => {
     const seconds = Math.floor((performance.now() - running.started) / 1000);
     $("timer").value =
@@ -551,6 +584,7 @@ $("finish-test").addEventListener("click", () => {
     datasetRecords: state.model.records.length,
   });
   clearInterval(tick);
+  $("timer").value = `${trials.at(-1).elapsedSeconds.toFixed(1)} s`;
   running = null;
   lockStudy(false);
   persist();
@@ -589,6 +623,8 @@ $("export-tests").addEventListener("click", () => {
     "accuracy",
     "dataset",
     "datasetRecords",
+    "pageSize",
+    "initialSort",
   ];
   const content = [keys, ...trials.map((t) => keys.map((k) => t[k]))]
     .map((row) => row.map(csvCell).join(","))
@@ -602,9 +638,21 @@ $("export-tests").addEventListener("click", () => {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
+$("return-study").addEventListener("click", () => {
+  $("answer").focus();
+});
+$("source-info").addEventListener("click", () => $("methodology").showModal());
+$("quality-info").addEventListener("click", () => $("methodology").showModal());
 async function initialize() {
   try {
     state.model = await loadData();
+    $("dataset-description").textContent = `The team supplied ${integer(state.model.records.length)} synthetic RFIs modeled around East Link and Downtown Redmond Link. RFI text, dates, costs and outcomes are generated examples, not official Sound Transit records.`;
+    $("quality-warning").hidden = !state.model.warnings.length;
+    $("quality-count").textContent = `${state.model.warnings.length} data-quality warning(s). Some source information is incomplete or invalid.`;
+    const reconciliation = state.model.reconciliation;
+    const hasNotes = reconciliation.durations.initial.length || reconciliation.durations.final.length || reconciliation.allocations.length;
+    $("source-note").hidden = !hasNotes;
+    $("source-note-text").textContent = `Source checks: ${reconciliation.durations.final.length} recorded final durations differ from date differences; ${new Set(reconciliation.allocations.map(v => v.coId)).size} COs have allocation-total differences. Original values retained; details show both.`;
     createFilters();
     renderMetrics();
     render();
@@ -621,7 +669,7 @@ async function initialize() {
         )
         .join(
           "",
-        )}</ul><h3>Data checks</h3>${state.model.warnings.length ? "<ul>" + state.model.warnings.map((w) => `<li>${escape(w)}</li>`).join("") + "</ul>" : "<p>No duplicate identifiers, orphan RFI links or invalid allocation-share totals were found.</p>"}`;
+        )}</ul><h3>Source reconciliation</h3><p>${reconciliation.durations.initial.length} recorded initial durations and ${reconciliation.durations.final.length} recorded final durations differ from calendar-date differences. The average uses the recorded final-duration field, not date subtraction. The reason is not established by the supplied files.</p><ul>${reconciliation.allocations.map(v => `<li>${escape(v.coId)}: ${escape(v.field)} sums to ${money(v.allocated)} versus ${money(v.total)} for the whole CO. Source amounts retained.</li>`).join("")}</ul><h3>Structural data checks</h3>${state.model.warnings.length ? "<ul>" + state.model.warnings.map((w) => `<li>${escape(w)}</li>`).join("") + "</ul>" : "<p>No duplicate identifiers, orphan RFI links or invalid allocation-share totals were found.</p>"}`;
     if (!storageAvailable)
       $("test-message").textContent =
         "Browser storage is unavailable. Download trial results before closing.";

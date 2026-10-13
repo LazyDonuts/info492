@@ -12,25 +12,33 @@ export function parseCSV(text) {
   const rows = [];
   let row = [],
     field = "",
-    quoted = false;
+    quoted = false,
+    closedQuote = false;
   text = text.replace(/^\uFEFF/, "");
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
+    if (closedQuote && c !== "," && c !== "\n" && c !== "\r")
+      throw new Error("Unexpected text after a quoted CSV field.");
     if (c === '"') {
       if (quoted && text[i + 1] === '"') {
         field += '"';
         i++;
-      } else if (!field || quoted) quoted = !quoted;
+      } else if (!field || quoted) {
+        closedQuote = quoted;
+        quoted = !quoted;
+      }
       else throw new Error("Unexpected quote in CSV field.");
     } else if (c === "," && !quoted) {
       row.push(field);
       field = "";
+      closedQuote = false;
     } else if ((c === "\n" || c === "\r") && !quoted) {
       if (c === "\r" && text[i + 1] === "\n") i++;
       row.push(field);
       if (row.some((v) => v.trim())) rows.push(row);
       row = [];
       field = "";
+      closedQuote = false;
     } else field += c;
   }
   if (quoted) throw new Error("Unclosed quoted CSV field.");
@@ -60,15 +68,18 @@ export function number(value) {
     /^(n\/?a|null|unknown|not recorded)$/i.test(String(value).trim())
   )
     return null;
-  const s = String(value).replace(/[$,\s]/g, "");
-  if (!s) return null;
+  // Accept decimal/currency values, never repair malformed grouping or coerce hex.
+  const input = String(value).trim();
+  if (!/^[+-]?\$?(?:(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?|\.\d+)$/.test(input))
+    return null;
+  const s = input.replace(/[$,]/g, "");
   const n = Number(s);
   return Number.isFinite(n) ? n : null;
 }
 export function date(value) {
   if (!value) return null;
   const s = String(value).trim();
-  const match = /^(\d{4})-(\d{2})-(\d{2})(?:T.*)?$/.exec(s);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
   if (!match) return null;
   const day = `${match[1]}-${match[2]}-${match[3]}`;
   const d = new Date(day + "T00:00:00Z");
@@ -116,6 +127,17 @@ export function buildModel(tables) {
   const contracts = index(tables.contracts, "package_id"),
     orders = index(tables.change_orders, "co_id"),
     outcomes = index(tables.change_order_outcomes, "co_id");
+  validateValues(tables, warnings);
+  for (const r of rows)
+    if (text(r.package_id) && !contracts.has(r.package_id))
+      warnings.push(`Contract package missing ${r.package_id} for ${r.rfi_id}.`);
+  for (const [id, order] of orders) {
+    if (!outcomes.has(id)) warnings.push(`CO outcome missing ${id}.`);
+    if (text(order.package_id) && !contracts.has(order.package_id))
+      warnings.push(`Contract package missing ${order.package_id} for ${id}.`);
+  }
+  for (const id of outcomes.keys())
+    if (!orders.has(id)) warnings.push(`Orphan CO outcome ${id}; register missing.`);
   const ids = new Set(),
     links = new Map(),
     seen = new Set(),
@@ -135,7 +157,10 @@ export function buildModel(tables) {
       warnings.push(`Orphan RFI link ${link.rfi_id}; excluded.`);
       continue;
     }
+    if (!text(link.co_id)) throw new Error(`Missing co_id in link for ${link.rfi_id}.`);
     const share = number(link.allocation_share);
+    if (share === null || share < 0 || share > 1)
+      warnings.push(`Invalid allocation share for ${link.rfi_id} / ${link.co_id}.`);
     if (share !== null)
       shareSums.set(link.co_id, (shareSums.get(link.co_id) || 0) + share);
     if (!orders.has(link.co_id))
@@ -165,10 +190,20 @@ export function buildModel(tables) {
       .split(/[;,|]/)
       .map((v) => v.trim())
       .filter(Boolean);
+    const linkedIds = [...new Set([...directIds, ...edges.map((e) => e.id)])];
+    const missingLinks = directIds.filter((id) => !edges.some((e) => e.id === id));
+    if (missingLinks.length)
+      warnings.push(`Missing allocation links for ${r.rfi_id}: ${missingLinks.join(", ")}.`);
+    if (Object.hasOwn(r, "linked_co_ids") && edges.some((e) => !directIds.includes(e.id)))
+      warnings.push(`RFI/link ID disagreement for ${r.rfi_id}; all supplied links retained.`);
+    for (const edge of edges) {
+      if (r.package_id && edge.order.package_id && r.package_id !== edge.order.package_id)
+        warnings.push(`Package mismatch for ${r.rfi_id} / ${edge.id}.`);
+    }
     // Existing allocations from the RFI sheet are already RFI-level amounts, never whole-CO amounts.
     const sumKnown = (field, fallback) =>
       edges.length
-        ? edges.every((e) => e[field] !== null)
+        ? !missingLinks.length && edges.every((e) => e[field] !== null)
           ? edges.reduce((n, e) => n + e[field], 0)
           : null
         : number(fallback);
@@ -194,21 +229,23 @@ export function buildModel(tables) {
       responseDate: date(r.response_date),
       closedDate: date(r.closed_date),
       linkedCOs: edges,
-      linkedIds: edges.length ? edges.map((e) => e.id) : directIds,
+      linkedIds,
+      missingLinks,
       approved: sumKnown("approved", r.linked_approved_cost_usd),
       requested: sumKnown("requested", r.linked_requested_cost_usd),
       allocatedTime: sumKnown("time", r.linked_time_granted_days),
       contract: contracts.get(r.package_id) || {},
       raw: r,
       sourceIndex: i,
+      initialCalendarDays: calendarDays(r.submitted_date, r.response_date),
+      finalCalendarDays: calendarDays(r.submitted_date, r.closed_date),
     };
     record.hasEstimate =
       record.estimateLow !== null || record.estimateHigh !== null;
     record.hasCost =
-      record.costFlag !== null ||
+      record.costFlag === true ||
       record.hasEstimate ||
-      record.linkedIds.length > 0 ||
-      record.approved !== null;
+      record.linkedIds.length > 0;
     record.search = [
       record.id,
       record.title,
@@ -242,6 +279,7 @@ export function buildModel(tables) {
       DATA_FILES.map((k) => [k, (tables[k] || []).length]),
     ),
     tables,
+    reconciliation: reconcileSource(records, tables),
   };
 }
 export function queryRecords(
@@ -269,9 +307,12 @@ export function queryRecords(
         (filters.cost === "linked" && r.linkedIds.length > 0) ||
         (filters.cost === "missing" &&
           !r.hasEstimate &&
-          r.costFlag === null &&
-          r.linkedIds.length === 0)),
+          r.costFlag !== true &&
+          r.linkedIds.length === 0) ||
+        (filters.cost === "unavailable" &&
+          !r.hasEstimate && r.costFlag === null && r.linkedIds.length === 0)),
   );
+  if (sortKey === null) return result;
   const value = (r) =>
     sortKey === "estimate"
       ? (r.estimateHigh ?? r.estimateLow)
@@ -314,9 +355,7 @@ export function summarize(records) {
     withdrawn: statuses.filter((r) =>
       /^(void\/withdrawn|withdrawn|cancelled|canceled)$/i.test(r.status),
     ).length,
-    cost: records.filter(
-      (r) => r.hasEstimate || r.costFlag === true || r.linkedIds.length,
-    ).length,
+    cost: records.filter((r) => r.hasCost).length,
     response: response.length
       ? response.reduce((a, b) => a + b, 0) / response.length
       : null,
@@ -329,7 +368,7 @@ export async function loadData(base = "./data/", fetcher = fetch) {
   await Promise.all(
     DATA_FILES.map(async (name) => {
       try {
-        const response = await fetcher(`${base}${name}.csv`);
+        const response = await fetcher(`${base}${name}.csv`, {cache: "no-cache"});
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         tables[name] = parseCSV(await response.text());
       } catch (error) {
@@ -347,4 +386,67 @@ export async function loadData(base = "./data/", fetcher = fetch) {
   const model = buildModel(tables);
   model.warnings.push(...issues);
   return model;
+}
+
+// Data checks never mutate or impute the supplied values.
+export function validateValues(tables, warnings = []) {
+  const isMissing = (v) => v == null || /^(?:|n\/?a|null|unknown|not recorded)$/i.test(String(v).trim());
+  const dateFields = /(?:_date|_window_start|_window_end)$/;
+  const numericFields = /(?:_usd|_days|_pct_of_base|_count|_0_100|_rank)$|^(?:required_response_days|response_days_initial|response_days_final|days_overdue_initial|revision_cycles|num_reviewers|attachments|allocation_share|days_notice_to_pricing|days_pricing_to_close|days_notice_to_close|pct_)/;
+  const flagFields = /^(?:contractor_claims_.*|on_critical_path_at_submittal|response_on_time|led_to_change_order)$/;
+  for (const [table, rows] of Object.entries(tables)) {
+    if (table === "data_dictionary") continue;
+    for (const [i, row] of rows.entries()) {
+      for (const [key, value] of Object.entries(row)) {
+        if (isMissing(value)) continue;
+        const invalid = dateFields.test(key) ? date(value) === null
+          : numericFields.test(key) ? number(value) === null
+          : flagFields.test(key) ? flag(value) === null : false;
+        if (invalid) warnings.push(`Invalid ${key} in ${table} row ${i + 2}; shown as unavailable.`);
+      }
+      if (table === "rfis") {
+        const low = number(row.contractor_est_cost_low_usd), high = number(row.contractor_est_cost_high_usd);
+        if (low !== null && high !== null && low > high)
+          warnings.push(`Reversed estimate range for ${row.rfi_id}; source values retained.`);
+        if (date(row.response_date) && date(row.submitted_date) && row.response_date < row.submitted_date)
+          warnings.push(`Response precedes submission for ${row.rfi_id}.`);
+        if (date(row.closed_date) && date(row.response_date) && row.closed_date < row.response_date)
+          warnings.push(`Closure precedes response for ${row.rfi_id}.`);
+      }
+    }
+  }
+  return warnings;
+}
+export function packageCounts(records, filters = {}) {
+  const counts = new Map();
+  for (const record of records) counts.set(record.package || "__missing", 0);
+  // No sort is needed to aggregate a distribution.
+  for (const record of queryRecords(records, {...filters, package: ""}, null)) {
+    const key = record.package || "__missing";
+    counts.set(key, counts.get(key) + 1);
+  }
+  return [...counts].sort(([a], [b]) => a.localeCompare(b));
+}
+
+export function calendarDays(start, end) {
+  return date(start) && date(end) ? (Date.parse(end) - Date.parse(start)) / 86400000 : null;
+}
+export function reconcileSource(records, tables) {
+  const durations = {};
+  for (const [key, recorded, calendar] of [["initial", "initialResponseDays", "initialCalendarDays"], ["final", "responseDays", "finalCalendarDays"]]) {
+    durations[key] = records.filter(r => r[recorded] !== null && r[calendar] !== null && r[recorded] !== r[calendar]).map(r => r.id);
+  }
+  const allocations = [];
+  for (const co of tables.change_order_outcomes || []) {
+    const edges = (tables.rfi_change_order_link || []).filter(e => e.co_id === co.co_id);
+    if (!edges.length) continue;
+    for (const [field, totalField] of [["allocated_approved_cost_usd", "final_approved_cost_usd"], ["allocated_requested_cost_usd", "requested_cost_usd"]]) {
+      const values = edges.map(e => number(e[field]));
+      const total = number(co[totalField]);
+      if (total === null || values.some(v => v === null)) continue;
+      const sum = values.reduce((a,b) => a+b, 0);
+      if (Math.abs(sum-total) > 0.005) allocations.push({coId: co.co_id, field, total, allocated: sum, difference: sum-total});
+    }
+  }
+  return {durations, allocations};
 }

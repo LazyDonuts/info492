@@ -220,3 +220,170 @@ test("empty source produces an honest empty model", () => {
   assert.equal(summarize(m.records).response, null);
   assert.equal(queryRecords(m.records).length, 0);
 });
+
+test("malformed currencies and dates are unavailable, never silently repaired", () => {
+  for (const value of ['1,2', '12,34.00', '1 2', '0x10', '1.2.3', '$', 'Infinity', 'NaN', '1e3'])
+    assert.equal(number(value), null, value);
+  for (const [input, expected] of [['$1,234.50',1234.5],['-12.50',-12.5],['.5',.5],['0',0],['1,000,000',1000000]])
+    assert.equal(number(input), expected);
+  assert.equal(date('2024-02-29Tgarbage'), null);
+  assert.equal(date('2024-13-01'), null);
+  assert.equal(date('2023-02-29'), null);
+  assert.throws(() => parseCSV('id,name\nA,"question"junk'), /Unexpected text/);
+});
+
+test("partial allocation files preserve all listed CO IDs and never present a partial sum as total", () => {
+  const m = buildModel({rfis:[{rfi_id:'A',linked_co_ids:'X; Y',linked_approved_cost_usd:'100'}],
+    change_orders:[{co_id:'X'},{co_id:'Y'}],
+    rfi_change_order_link:[{rfi_id:'A',co_id:'X',allocation_share:'1',allocated_approved_cost_usd:'40'}]});
+  assert.deepEqual(m.records[0].linkedIds, ['X','Y']);
+  assert.deepEqual(m.records[0].missingLinks, ['Y']);
+  assert.equal(m.records[0].approved, null);
+  assert.ok(m.warnings.some(w=>w.includes('Missing allocation links for A: Y')));
+  const fallback = buildModel({rfis:[{rfi_id:'A',linked_co_ids:'X; Y',linked_approved_cost_usd:'100'}]});
+  assert.equal(fallback.records[0].approved,100);
+  assert.ok(fallback.warnings.some(w=>w.includes('Missing allocation links')));
+});
+
+test("missing amounts within a linked set do not become a partial or zero aggregate", () => {
+  const m=buildModel({rfis:[{rfi_id:'A'}],rfi_change_order_link:[
+    {rfi_id:'A',co_id:'X',allocation_share:'1',allocated_approved_cost_usd:'0'},
+    {rfi_id:'A',co_id:'Y',allocation_share:'1',allocated_approved_cost_usd:''}
+  ]});
+  assert.equal(m.records[0].approved,null);
+  assert.equal(m.records[0].linkedCOs[0].approved,0);
+});
+
+test("cost absence distinguishes no positive evidence from entirely unrecorded information", () => {
+  assert.equal(queryRecords(model.records,{cost:'missing'}).length,1370-652);
+  assert.equal(queryRecords(model.records,{cost:'unavailable'}).length,0);
+  const m=buildModel({rfis:[
+    {rfi_id:'unknown'},
+    {rfi_id:'negative',contractor_claims_cost_impact:'N'},
+    {rfi_id:'positive',contractor_claims_cost_impact:'Y'},
+    {rfi_id:'zero-estimate',contractor_est_cost_high_usd:'0'}
+  ]});
+  assert.deepEqual(queryRecords(m.records,{cost:'missing'},'id','asc').map(r=>r.id),['negative','unknown']);
+  assert.deepEqual(queryRecords(m.records,{cost:'unavailable'}).map(r=>r.id),['unknown']);
+  assert.equal(summarize(m.records).cost,2);
+});
+
+test("all source filter choices match independent raw-table counts", () => {
+  const mapping={status:'status',category:'content_category',trade:'discipline',responsible:'assigned_reviewer',package:'package_id'};
+  for (const [ui,raw] of Object.entries(mapping)) {
+    for (const value of model.options[ui]) {
+      assert.equal(queryRecords(model.records,{[ui]:value}).length,tables.rfis.filter(r=>r[raw]===value).length,`${ui} ${value}`);
+      if (ui !== "package") for (const packageId of model.options.package)
+        assert.equal(queryRecords(model.records,{[ui]:value,package:packageId}).length,tables.rfis.filter(r=>r[raw]===value && r.package_id===packageId).length);
+    }
+  }
+  assert.equal(queryRecords(model.records,{cost:'flag'}).length,621);
+  assert.equal(queryRecords(model.records,{cost:'estimate'}).length,603);
+  assert.equal(queryRecords(model.records,{cost:'linked'}).length,399);
+});
+
+test("search handles whitespace, case, partial IDs and literal punctuation without regex injection", () => {
+  assert.equal(queryRecords(model.records,{search:'   '}).length,1370);
+  const lower=queryRecords(model.records,{search:'e320-rfi-00'}).map(r=>r.id);
+  assert.deepEqual(queryRecords(model.records,{search:'E320-RFI-00'}).map(r=>r.id),lower);
+  assert.equal(lower.length,99);
+  for (const q of ['(SR 202)','8-in.','.*','<script>','"',"'",'TPSS/OCS']) {
+    const words=q.toLowerCase().split(/\s+/);
+    const expected=tables.rfis.filter(r=>words.every(w=>[r.rfi_id,r.subject,r.description,r.location,r.content_category,r.discipline,r.assigned_reviewer,r.package_id].join(' ').toLowerCase().includes(w)));
+    assert.equal(queryRecords(model.records,{search:q}).length,expected.length,q);
+  }
+});
+
+test("all supported sorts remain ordered after filtering, in both directions, with nulls last", () => {
+  for(const key of ['id','submitted','estimate','approved','category','responsible','priority','status'])
+    for(const direction of ['asc','desc']) {
+      const result=queryRecords(model.records,{package:'DRLE'},key,direction);
+      const value=r=>key==='estimate'?(r.estimateHigh??r.estimateLow):key==='approved'?(r.linkedIds.length?r.approved:null):r[key];
+      let missing=false;
+      for(let i=0;i<result.length;i++) {
+        const v=value(result[i]);
+        if(v===null) {missing=true;continue;}
+        assert.equal(missing,false);
+        if(i && value(result[i-1])!==null) {
+          const prev=value(result[i-1]);
+          const cmp=typeof v==='number'?prev-v:String(prev).localeCompare(String(v),undefined,{numeric:true});
+          assert.ok(direction==='asc'?cmp<=0:cmp>=0,`${key} ${direction}`);
+        }
+      }
+    }
+});
+
+test("source keys, category codes, dates and package relationships are internally consistent", () => {
+  const rfis=new Map(tables.rfis.map(r=>[r.rfi_id,r]));
+  const cos=new Map(tables.change_orders.map(r=>[r.co_id,r]));
+  const packages=new Set(tables.contracts.map(r=>r.package_id));
+  const categories=new Map();
+  for(const r of tables.rfis) {
+    assert.ok(packages.has(r.package_id));
+    if(categories.has(r.content_category_code)) assert.equal(categories.get(r.content_category_code),r.content_category);
+    categories.set(r.content_category_code,r.content_category);
+    for(const k of ['submitted_date','response_date','closed_date']) assert.ok(date(r[k]),`${r.rfi_id} ${k}`);
+    const initial=(Date.parse(r.response_date)-Date.parse(r.submitted_date))/86400000;
+    const final=(Date.parse(r.closed_date)-Date.parse(r.submitted_date))/86400000;
+    assert.ok(initial >= 0 && final >= initial);
+  }
+  for(const co of tables.change_orders) {
+    assert.ok(packages.has(co.package_id));
+    const links=tables.rfi_change_order_link.filter(e=>e.co_id===co.co_id);
+    assert.equal(links.length,number(co.linked_rfi_count));
+    assert.deepEqual(links.map(e=>e.rfi_id).sort(),co.linked_rfi_ids.split(/[;,|]/).map(v=>v.trim()).sort());
+  }
+  for(const e of tables.rfi_change_order_link) {
+    assert.ok(rfis.has(e.rfi_id)); assert.ok(cos.has(e.co_id));
+    assert.equal(rfis.get(e.rfi_id).package_id,cos.get(e.co_id).package_id);
+  }
+  for(const outcome of tables.change_order_outcomes) {
+    assert.ok(cos.has(outcome.co_id));
+    assert.equal(outcome.package_id,cos.get(outcome.co_id).package_id);
+  }
+});
+
+test("each RFI and CO reconciles its own allocation totals, not only the global total", () => {
+  for(const r of model.records.filter(r=>r.linkedIds.length)) {
+    assert.equal(r.approved,number(r.raw.linked_approved_cost_usd));
+    assert.equal(r.requested,number(r.raw.linked_requested_cost_usd));
+  }
+  for(const co of tables.change_order_outcomes) {
+    const links=tables.rfi_change_order_link.filter(e=>e.co_id===co.co_id);
+    const allocated=links.reduce((n,e)=>n+number(e.allocated_approved_cost_usd),0);
+    const diff=allocated-number(co.final_approved_cost_usd);
+    const expected={'E330-CO-006':-10,'E330-CO-039':10};
+    assert.equal(diff,expected[co.co_id] || 0,co.co_id);
+  }
+});
+
+test("invalid metadata and unresolved relationships are surfaced without editing source", () => {
+  const tables={rfis:[{rfi_id:'A',package_id:'missing',submitted_date:'2024-02-31',contractor_est_cost_high_usd:'1,2',contractor_claims_cost_impact:'perhaps',linked_co_ids:'X'}],
+    change_orders:[{co_id:'X',package_id:'other'}],
+    rfi_change_order_link:[{rfi_id:'A',co_id:'X',allocation_share:'2',allocated_approved_cost_usd:'30'}]};
+  const copy=JSON.stringify(tables);
+  const m=buildModel(tables);
+  assert.equal(m.records[0].submitted,null);assert.equal(m.records[0].estimateHigh,null);assert.equal(m.records[0].costFlag,null);
+  for(const text of ['Invalid submitted_date','Invalid contractor_est_cost_high_usd','Invalid contractor_claims_cost_impact','Contract package missing','Package mismatch','CO outcome missing','Invalid allocation share'])
+    assert.ok(m.warnings.some(w=>w.includes(text)),text);
+  assert.equal(JSON.stringify(tables),copy);
+});
+
+test("package chart includes missing packages and reconciles totals after all other filters", async () => {
+  const {packageCounts}=await import('../js/rfi-data.js');
+  const counts=packageCounts(model.records,{package:'DRLE',cost:'estimate'});
+  assert.equal(counts.reduce((n,[,v])=>n+v,0),603);
+  assert.equal(counts.find(([p])=>p==='DRLE')[1],queryRecords(model.records,{package:'DRLE',cost:'estimate'}).length);
+  const m=buildModel({rfis:[{rfi_id:'A'},{rfi_id:'B',package_id:'P'}]});
+  assert.deepEqual(packageCounts(m.records),[['__missing',1],['P',1]]);
+});
+
+test("source duration and CO discrepancies are exposed rather than silently rewritten", () => {
+  assert.equal(model.reconciliation.durations.initial.length,401);
+  assert.equal(model.reconciliation.durations.final.length,390);
+  assert.deepEqual(model.reconciliation.allocations.filter(r=>r.field==='allocated_approved_cost_usd').map(r=>[r.coId,r.difference]),[['E330-CO-006',-10],['E330-CO-039',10]]);
+  const r=model.records.find(r=>r.id==='E320-RFI-0003');
+  assert.equal(r.responseDays,16);
+  assert.equal(r.finalCalendarDays,18);
+  assert.equal(r.raw.response_days_final,'16');
+});
