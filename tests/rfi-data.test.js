@@ -10,6 +10,7 @@ import {
   number,
   date,
   loadData,
+  compareCostRanking,
 } from "../js/rfi-data.js";
 const tables = Object.fromEntries(
   await Promise.all(
@@ -367,6 +368,59 @@ test("invalid metadata and unresolved relationships are surfaced without editing
   for(const text of ['Invalid submitted_date','Invalid contractor_est_cost_high_usd','Invalid contractor_claims_cost_impact','Contract package missing','Package mismatch','CO outcome missing','Invalid allocation share'])
     assert.ok(m.warnings.some(w=>w.includes(text)),text);
   assert.equal(JSON.stringify(tables),copy);
+});
+
+test("cost ranking comparison matches recorded-estimate order and reports rank shifts from other filters", () => {
+  const gold = queryRecords(model.records, { cost: "estimate" }, "estimate", "desc");
+  const open = compareCostRanking(model.records, {});
+  assert.equal(open.goldCount, 603);
+  assert.equal(open.identical, true);
+  assert.equal(open.identicalLists, false);
+  assert.equal(open.sameRankCount, 603);
+  assert.equal(open.covered, 603);
+  assert.equal(open.topCovered, 25);
+  assert.equal(open.extraWithoutEstimate, 1370 - 603);
+  const byEstimate = compareCostRanking(model.records, { cost: "estimate" });
+  assert.equal(byEstimate.identical, true);
+  assert.equal(byEstimate.identicalLists, true);
+  assert.deepEqual(
+    gold.map((r) => r.id),
+    byEstimate.rows.map((row) => row.record.id),
+  );
+  const category = model.options.category[0];
+  const filtered = compareCostRanking(model.records, { category });
+  const inCategory = new Set(
+    queryRecords(model.records, { category, cost: "estimate" }).map((r) => r.id),
+  );
+  assert.equal(filtered.identical, inCategory.size === gold.length);
+  assert.equal(filtered.covered, inCategory.size);
+  assert.equal(
+    filtered.missingCount,
+    gold.filter((r) => !inCategory.has(r.id)).length,
+  );
+  const sample = buildModel({
+    rfis: [
+      { rfi_id: "A", content_category: "X", contractor_est_cost_high_usd: "100" },
+      { rfi_id: "B", content_category: "X", contractor_est_cost_high_usd: "80" },
+      { rfi_id: "C", content_category: "Y", contractor_est_cost_high_usd: "50" },
+      { rfi_id: "D", content_category: "X" },
+    ],
+  });
+  const full = compareCostRanking(sample.records, {}, 2);
+  assert.equal(full.identical, true);
+  assert.equal(full.extraWithoutEstimate, 1);
+  assert.equal(full.topCovered, 2);
+  const byY = compareCostRanking(sample.records, { category: "Y" }, 2);
+  assert.equal(byY.identical, false);
+  assert.deepEqual(
+    byY.rows.map((row) => [row.record.id, row.costRank, row.viewRank, row.status]),
+    [
+      ["A", 1, null, "missing"],
+      ["B", 2, null, "missing"],
+      ["C", 3, 1, "shifted"],
+    ],
+  );
+  assert.equal(byY.topCovered, 0);
 });
 
 test("package chart includes missing packages and reconciles totals after all other filters", async () => {

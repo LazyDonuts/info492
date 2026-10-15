@@ -417,6 +417,47 @@ export function validateValues(tables, warnings = []) {
   }
   return warnings;
 }
+const RANKING_TOP_K = 25;
+
+export function compareCostRanking(records, filters = {}, topK = RANKING_TOP_K) {
+  const gold = queryRecords(records, { cost: "estimate" }, "estimate", "desc");
+  const organized = queryRecords(records, filters, "estimate", "desc");
+  const viewIndex = new Map(organized.map((r, i) => [r.id, i]));
+  const estimateOrder = organized.filter((r) => r.hasEstimate);
+  const rows = gold.map((record, i) => {
+    const viewRank = viewIndex.has(record.id) ? viewIndex.get(record.id) + 1 : null;
+    const costRank = i + 1;
+    return {
+      record,
+      costRank,
+      viewRank,
+      status: viewRank == null ? "missing" : viewRank === costRank ? "same" : "shifted",
+    };
+  });
+  const covered = rows.filter((row) => row.viewRank !== null).length;
+  const sameRankCount = rows.filter((row) => row.status === "same").length;
+  const top = gold.slice(0, Math.min(Math.max(0, topK), gold.length));
+  const extraWithoutEstimate = organized.length - estimateOrder.length;
+  return {
+    goldCount: gold.length,
+    viewCount: organized.length,
+    viewEstimateCount: estimateOrder.length,
+    covered,
+    sameRankCount,
+    missingCount: gold.length - covered,
+    extraWithoutEstimate,
+    identical:
+      gold.length === estimateOrder.length &&
+      gold.every((record, i) => record.id === estimateOrder[i]?.id),
+    identicalLists:
+      gold.length === organized.length &&
+      gold.every((record, i) => record.id === organized[i]?.id),
+    topK: top.length,
+    topCovered: top.filter((record) => viewIndex.has(record.id)).length,
+    rows,
+  };
+}
+
 export function packageCounts(records, filters = {}) {
   const counts = new Map();
   for (const record of records) counts.set(record.package || "__missing", 0);

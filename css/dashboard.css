@@ -290,6 +290,96 @@
 .package-bar[aria-pressed="true"] .bar-track i {
   background: var(--blue);
 }
+.ranking-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+  margin-top: 8px;
+}
+.ranking-summary article {
+  min-width: 0;
+}
+.ranking-summary span {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.ranking-summary strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+.ranking-summary small {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.ranking-compare details {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+.ranking-compare summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--blue);
+  list-style: none;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+.ranking-compare summary::-webkit-details-marker {
+  display: none;
+}
+.ranking-compare summary::after {
+  content: "＋";
+  margin-left: auto;
+  color: var(--muted);
+  font-weight: 400;
+}
+.ranking-compare details[open] summary::after {
+  content: "–";
+}
+.ranking-compare details > .quiet {
+  margin: 8px 0 10px;
+}
+.ranking-list {
+  display: grid;
+  gap: 2px;
+  max-height: 220px;
+  overflow: auto;
+}
+.dash .ranking-rfi {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  min-height: 0;
+}
+.dash .ranking-rfi:hover {
+  background: #f4f7fb;
+}
+.ranking-rfi-id {
+  font-size: 12px;
+  color: var(--muted);
+}
+.ranking-rfi strong {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
 .register-toolbar {
   display: flex;
   justify-content: space-between;
@@ -870,6 +960,9 @@ body.dash:has(dialog[open]) {
   .package-chart {
     grid-template-columns: repeat(4, 1fr);
   }
+  .ranking-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .source-tag {
     white-space: normal;
   }
@@ -972,6 +1065,10 @@ body.dash:has(dialog[open]) {
     grid-template-columns: repeat(4, 1fr);
     gap: 16px 10px;
   }
+  .ranking-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 10px;
+  }
   .package-bar span {
     font-size: 13px;
   }
@@ -1069,6 +1166,7 @@ body.dash:has(dialog[open]) {
   .dash :is(input, select) { font-size: 16px; }
   .active-task { align-items: start; flex-direction: column; padding: 15px; }
   .package-chart { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ranking-summary { grid-template-columns: minmax(0, 1fr); }
   .detail-grid { grid-template-columns: 1fr; }
   .summary-scope { font-size: 13px; }
 }
