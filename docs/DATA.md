@@ -9,7 +9,27 @@ Snapshot exported October 12, 2026. The second linked workbook, `RFIs_changeOrde
 
 The original workbook is preserved at `data/source/ST_EastLink_DRLE_RFI_synthetic_dataset.xlsx`. Its README is copied verbatim to `data/source/README-from-workbook.txt`. This describes seed 20261012, category-conditioned distributions, the modeled cost calibration and the original generation assumptions. No original generator code was supplied. Our import script does not reconstruct it.
 
-The team's generation request asked for realistic synthetic RFIs, metadata, change orders and outcomes based around the light rail expansion into Bellevue and Redmond. Full request and generated-data justification remain in the [team Data document](https://docs.google.com/document/d/1DtZcle9EkVuVeR8Sq29ZWV9f7MnqZ_dMiSB-OrAZP_Q/edit). Workbook methodology is supplied-source content, not independently verified history. All RFI-level facts, costs and outcomes are generated. Public contract facts and placeholders have distinct `source_status` notes.
+The team's generation request asked for realistic synthetic RFIs, metadata, change orders and outcomes based around the light rail expansion into Bellevue and Redmond. The prompt inputted is as follows.
+```
+I need synthetic data to run a realistic test to see whether categorizing RFI documents by certain content will help give them a clear priority/ranking in terms of importance. Because of this, data generated must be realistic. I am planning to do this based on data and documents about Sound Transit's (Seattle) expansion of the Light Rail into Bellevue and Redmond. Give me RFIs, RFI metadata, on-change orders, on change order outcomes, RFI response times, RFI schedule impacts, and any RFI linked cost-impact information. Base data on the real project using your own calculations and official internet data.
+```
+Justification: the prompt above specifies to base data on obtainable published information about the project due to access constraints at the time, resulting in the drawing of the following real data: 
+```
+Downtown Redmond Link (DRLE): the $1.53B baseline budget, single design-build contract, May 10, 2025 opening and Stacy Witbeck/Kuney JV are from official Sound Transit records and press coverage. The February 2025 motion to add up to $25M of contract contingency, with the project 97% complete, is also in the data.
+E330 (Bellevue tunnel): Atkinson’s bid and authorized amounts are from the Nov 2015 bid result.
+E360 (Overlake): Kiewit-Hoffman’s base and authorized amounts and the June 2016 notice to proceed are from Sound Transit Board Motion M2016-48.
+E340 (Bel-Red): the Max J. Kuney authorized cap is from Board Motion M2021-06.
+E335 (Downtown Bellevue to Spring District): the GC/CM award and the $10M contingency increase (Board Motion M2021-05), which cited design-related issues, are in the data.
+E750 (Systems): the LTK Engineering role is from Board Motion M2020-19.
+East Link schedule: the baseline budget and float history are reflected, so E335 and E750 get higher delay rates and slower responses, and the Redmond extension gets lighter ones.
+```
+and the following synthesized data: 
+```
+Contract values: E320, E335, E750 and DRLE base values were not in the sources I reviewed, so I estimated them. The E320 and E750 contractors are left as placeholders. The Contracts sheet marks which values are verified.
+Cost calibration: I calibrated RFI-linked approved cost to a percentage of each contract’s base value (3% for DRLE up to 9% for E335, about $115M in total). Those percentages are my assumptions, not published figures.
+RFI details: the RFI counts and text, dates, response times, and cost and delay distributions are all generated.
+```
+Workbook methodology is supplied-source content, not independently verified history. All RFI-level facts, costs and outcomes are generated. Public contract facts and placeholders have distinct `source_status` notes.
 
 ## Tables and transformation
 
