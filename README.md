@@ -94,3 +94,21 @@ Browser trial results remain on the current device's localStorage. Nothing is se
 - `tests/rfi-data.test.js`: parsing, actual-data reconciliation, missing fields and allocation tests
 
 A future AI module can consume an explicit submission-only field whitelist from the data model; it must not use the retrospective fields or ground-truth labels as predictions.
+
+## Demo 2 AI RFI Prioritization Agent
+
+The header now uses **Demo Menu** on the homepage and both demos. Demo 1 remains at `dashboard.html`; Demo 2 is `demo2.html`. Future demos are disabled Coming soon entries. Demo 1's source data, dashboard logic, task study and styles are unchanged.
+
+```sh
+npm test
+npm run build
+npm start
+```
+
+Open http://127.0.0.1:4922/demo2.html. Select ten synthetic development RFIs using search/checkboxes or a reproducible seed, or import ten UTF-8 CSV/JSON records (file upload or pasted text). Review the exact submission-only payload. A server-side OpenAI provider connection must be configured before analysis; without it the UI explicitly reports unavailable and does not fake results.
+
+See [secure local/hosted setup and retention](docs/DEMO2-SETUP.md), [original v0.3 rubric](docs/RFI-PRIORITY-CRITERIA-v0.3.md), [methodology page](methodology.html), [prompt configuration](docs/DEMO2-PROMPT.md), and [implementation/QA status](docs/DEMO2-IMPLEMENTATION.md). The static Pages deployment is preserved; a separate HTTPS Node service and secrets are needed for online model calls. No hosted API or provider key was available for live verification.
+
+Evidence extraction uses structured JSON with exact source-quote checks; a deterministic rule engine maps the team rubric to P0/P1/P2, Needs Information and exclusion states. Errors never count as valid abstentions. Ranked results use P0/P1/P2 then supported decision date, submission date and ID; the optional within-tier ID inspection view is explicitly labeled and does not change assessments. Detail views preserve the search/filter state.
+
+Evaluation mode freezes the set, model/prompt/rubric/implementation hashes and prospective threshold. Run twice with the same stateless agent, then the fixed keyword baseline. Import the prepared human answer key only afterward, locally. Inspect each run's cases to record observer failure groups and role-boundary violations separately; incomplete reviews are labeled incomplete. Export privately before leaving (tab-memory only). `/eval` contains honest NOT RUN templates; no real human reference, scores or savings have been fabricated.

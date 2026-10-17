@@ -1,0 +1,27 @@
+# Secrets are entered privately during Blueprint creation, never committed.
+services:
+  - type: web
+    name: info492-demo2
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm test && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/config
+    autoDeployTrigger: "off"
+    envVars:
+      - key: NODE_VERSION
+        value: "24.14.1"
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: ALLOWED_ORIGINS
+        value: https://lazydonuts.github.io,http://127.0.0.1:4922,http://localhost:4922
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        sync: false
+      - key: DEMO2_ACCESS_TOKEN
+        generateValue: true

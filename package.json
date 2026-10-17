@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "build": "node scripts/validate-site.js"
+    "build": "node scripts/validate-site.js",
+    "start": "node server/index.js",
+    "start:env": "node --env-file=.env server/index.js"
   },
   "engines": {
     "node": ">=18"
