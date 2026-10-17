@@ -1,3 +1,4 @@
+import { teamTokenStorage } from "./demo2-auth.js";
 import { parseCSV } from "./rfi-data.js";
 import {
   projectDataset,
@@ -68,6 +69,40 @@ function endpoint() {
     );
   return url.origin;
 }
+let tokenOrigin;
+function tokenStore() {
+  return teamTokenStorage(() => window.localStorage, endpoint());
+}
+function restoreToken() {
+  $("access-token").value = "";
+  try {
+    tokenOrigin = endpoint();
+    const saved = tokenStore().load();
+    $("remember-token").checked = saved.remember;
+    $("access-token").value = saved.token;
+    $("token-storage-status").textContent = !saved.available
+      ? "Browser storage is unavailable. Enter the token for this tab."
+      : saved.token ? "Saved token filled automatically for this backend."
+      : "Enter your team token once to remember it on this browser.";
+  } catch {
+    tokenOrigin = null;
+    $("token-storage-status").textContent = "Enter a valid backend URL before saving a token.";
+  }
+}
+function saveToken() {
+  try {
+    if (endpoint() !== tokenOrigin) restoreToken();
+    const remember = $("remember-token").checked;
+    const ok = tokenStore().save($("access-token").value, remember);
+    $("token-storage-status").textContent = !ok
+      ? "Could not save in this browser. The token works only in this tab."
+      : remember && $("access-token").value.trim()
+        ? "Token remembered on this browser for this backend."
+        : remember ? "Enter your team token once to remember it on this browser."
+        : "Token will not be remembered after this tab closes.";
+  } catch { /* Invalid endpoints cannot receive or store a credential. */ }
+  controls();
+}
 async function connect() {
   if (state.busy || state.study) return;
   state.config = null;
@@ -116,6 +151,8 @@ function controls() {
     "source-upload",
     "endpoint",
     "access-token",
+    "remember-token",
+    "forget-token",
     "connect",
     "mode-demo",
     "mode-eval",
@@ -296,12 +333,24 @@ $("import-text").onclick = () => {
 };
 $("connect").onclick = connect;
 $("endpoint").oninput = () => {
+  restoreToken();
   state.config = null;
   $("connection-state").textContent =
     "Backend URL changed. Check connection before sending data.";
   controls();
 };
-$("access-token").oninput = controls;
+$("access-token").oninput = saveToken;
+$("remember-token").onchange = saveToken;
+$("forget-token").onclick = () => {
+  $("access-token").value = "";
+  $("remember-token").checked = false;
+  let cleared = false;
+  try { cleared = tokenStore().forget(); } catch { /* Invalid endpoint. */ }
+  $("token-storage-status").textContent = cleared
+    ? "Saved token cleared. Enter it again when needed."
+    : "Token cleared from this tab. Browser storage could not be updated.";
+  controls();
+};
 $("consent").onchange = controls;
 $("mode-demo").onclick = () => setMode("demo");
 $("mode-eval").onclick = () => setMode("eval");
@@ -957,6 +1006,7 @@ async function init() {
     location.port !== "4922"
   )
     $("endpoint").value = "http://127.0.0.1:4922";
+  restoreToken();
   try {
     const res = await fetch("data/rfis.csv", { cache: "no-cache" });
     if (!res.ok) throw new Error(`Dataset HTTP ${res.status}`);

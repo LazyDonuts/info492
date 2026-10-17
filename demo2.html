@@ -11,9 +11,9 @@
     <link rel="stylesheet" href="css/style.css?v=20261007-2" />
     <link rel="stylesheet" href="css/dashboard.css?v=20261012-2" />
     <link rel="stylesheet" href="css/demo-menu.css?v=20261017-align" />
-    <link rel="stylesheet" href="css/demo2.css?v=20261017-working" />
+    <link rel="stylesheet" href="css/demo2.css?v=20261017-remember" />
     <script type="module" src="js/demo-menu.js?v=20261016"></script>
-    <script type="module" src="js/demo2.js?v=20261017-working-2"></script>
+    <script type="module" src="js/demo2.js?v=20261017-remember"></script>
   </head>
   <body class="dash agent-page">
     <a class="skip-link" href="#workspace">Skip to agent</a>
@@ -103,8 +103,13 @@
                 autocomplete="off" /></label
             ><button id="connect">Check connection</button>
           </div>
+          <div class="token-preferences">
+            <label><input id="remember-token" type="checkbox" checked /> Remember token on this browser</label>
+            <button id="forget-token" type="button">Clear saved token</button>
+          </div>
+          <p id="token-storage-status" role="status" aria-live="polite"></p>
           <p class="quiet">
-            The token stays in this tab’s memory. Uploads are sent to the
+            Only the team token is remembered in this browser when enabled. Never enter a provider API key here. Uploads are sent to the
             configured backend and the selected AI provider only after you
             confirm the exact payload.
             <a href="docs/DEMO2-SETUP.md">Setup and data handling ↗</a>
