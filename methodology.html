@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Demo 2: evidence-based RFI review priority using team rubric v0.3 and a server-side AI agent."
+    />
+    <title>Priority Criteria · INFO 492 Team 1</title>
+    <link rel="stylesheet" href="css/style.css?v=20261007-2" />
+    <link rel="stylesheet" href="css/dashboard.css?v=20261012-2" />
+    <link rel="stylesheet" href="css/demo-menu.css?v=20261016" />
+    <link rel="stylesheet" href="css/demo2.css?v=20261016" />
+    <script type="module" src="js/demo-menu.js?v=20261016"></script>
+  </head>
+  <body class="dash agent-page">
+    <a class="skip-link" href="#workspace">Skip to agent</a>
+    <header class="dash-header">
+      <a class="brand" href="index.html">INFO 492 <span>·</span> Team 1</a>
+      <nav aria-label="Main navigation">
+        <div class="demo-menu" data-demo-menu>
+          <button
+            class="demo-trigger"
+            aria-expanded="false"
+            aria-controls="demo-links"
+          >
+            Demo Menu <span aria-hidden="true">⌄</span>
+          </button>
+          <div class="demo-panel" id="demo-links" data-demo-panel hidden>
+            <a href="dashboard.html">Demo 1 — Structured RFI Dashboard</a
+            ><a href="demo2.html" aria-current="page"
+              >Demo 2 — AI RFI Prioritization Agent</a
+            >
+            <span class="future-demo" aria-disabled="true"
+              >Demo 3 — Risk-Based Prioritization<small
+                >Coming soon</small
+              ></span
+            ><span class="future-demo" aria-disabled="true"
+              >Demo 4 — AI-Assisted Review Comparison<small
+                >Coming soon</small
+              ></span
+            >
+          </div>
+        </div>
+        <a href="index.html#research">The research</a
+        ><a href="index.html#experiments">Experiments</a
+        ><a href="index.html#team">Our team</a>
+      </nav>
+    </header>
+    <main id="workspace" class="agent-main methodology-page">
+      <div class="agent-heading">
+        <div>
+          <p class="overline">METHOD / TEAM RUBRIC v0.3</p>
+          <h1>RFI Priority Criteria</h1>
+        </div>
+        <a href="demo2.html">Back to Demo 2 ↗</a>
+      </div>
+      <p class="agent-disclosure">
+        High = P0 · Medium = P1 · Low = P2. Preserved team research with
+        sources; a proposed pilot rubric, not a validated industry standard.
+      </p>
+      <article class="card">
+        <p>
+          <strong
+            >INFO 492 Team 1 · Proposed rubric v0.3 · October 16, 2026</strong
+          >
+        </p>
+        <p>
+          We prioritize RFIs for earlier GC review when submission-time evidence
+          identifies an additional-cost mechanism and a remaining opportunity to
+          limit that exposure. The criteria below are research-informed team
+          proposals for pilot annotation. They have not yet been validated by a
+          GC or tested for accuracy. Review priority is distinct from eventual
+          financial loss.
+        </p>
+        <h2><strong>Research basis</strong></h2>
+        <p>
+          Construction guidance supports recording the affected work, potential
+          cost consequences, schedule dependencies, and response needs. Navigant
+          distinguishes RFI handling costs from downstream construction impacts
+          [1]. FDOT uses schedule impact and resolution complexity to set
+          response priorities; its matrix is not a financial-risk classification
+          [2]. FTA recommends documenting risk impacts, proximity, treatment and
+          ownership [3]. These sources inform our evidence fields, but do not
+          establish universal High, Medium or Low cost thresholds. Our decision
+          rules are operational choices requiring team calibration.
+        </p>
+        <h2><strong>Evidence to record</strong></h2>
+        <p>
+          Code each field as <strong>Yes, No or Unknown</strong>, with a
+          quotation and source location. A submitter’s assertion should be
+          identified as an assertion. Absence of information means Unknown, not
+          No.
+        </p>
+        <ul>
+          <li>
+            <strong>U — Unresolved issue:</strong> a specific question or
+            discrepancy remains unanswered at the decision time.
+          </li>
+          <li>
+            <strong>A — Affected work:</strong> a named component, location,
+            activity, procurement commitment or paid resource is affected.
+          </li>
+          <li>
+            <strong>M — Monetary mechanism:</strong> the issue is connected to
+            additional work, rework, replacement, committed-material loss or
+            paid disruption. A category or a bare cost-impact flag is
+            insufficient.
+          </li>
+          <li>
+            <strong>X — Time-sensitive exposure:</strong> waiting creates
+            ongoing charges or locks in exposure before the documented normal
+            review window ends. Assess the exposure pathway before considering
+            protection. “ASAP” alone is insufficient.
+          </li>
+          <li>
+            <strong>D — Remaining decision opportunity:</strong> earlier review
+            could inform a still-available action that changes the remaining
+            exposure. This does not guarantee that the action will succeed. Past
+            expenditure alone does not establish D.
+          </li>
+          <li>
+            <strong>B — Effective protection:</strong> an implemented hold,
+            resequencing or other measure covers the relevant exposure through
+            the review window, without an unaddressed substitute cost. A
+            suggested hold is not an implemented hold.
+          </li>
+        </ul>
+        <p>
+          Record consequence extent, supported quantities and timestamped
+          estimates separately. Do not invent probabilities, dollar thresholds
+          or weighted scores. If no review horizon is documented and timing
+          comparison is necessary, X remains Unknown.
+        </p>
+        <h2><strong>Priority decision rules</strong></h2>
+        <p>
+          Screen out resolved or out-of-scope items first. Apply the following
+          rules to each distinct cost mechanism. A material contradiction or
+          missing fact that prevents the relevant decision must be resolved or
+          recorded as Needs information.
+        </p>
+        <p>
+          <strong>High — Earlier review needed.</strong> U, A, M, X and D are
+          Yes, and B is No. The packet identifies a concrete cost mechanism,
+          time-sensitive exposure and a remaining action opportunity without
+          effective protection.
+        </p>
+        <p>
+          <strong>High — Mitigation unverified.</strong> U, A, M, X and D are
+          Yes, but B is Unknown. Prioritize human verification and retain the
+          uncertainty flag. This is a precautionary review recommendation, not
+          proof that mitigation fails or that the eventual loss is large.
+        </p>
+        <p>
+          <strong>Medium — Cost issue requiring planned review.</strong> U, A
+          and M are Yes, with affirmative evidence that X is No or B is Yes. D
+          need not be known in this branch. If X is known and D is affirmatively
+          No, an in-scope unresolved cost issue is also Medium, with the reason
+          that no remaining exposure-changing opportunity has been identified.
+          This last branch is a proposed team choice to test during calibration.
+        </p>
+        <p>
+          <strong>Low — Routine clarification.</strong> The packet adequately
+          supports a bounded clarification with no identified additional-cost
+          mechanism and no contradictory cost assertion. Low means no mechanism
+          was identified in the supplied evidence; it does not guarantee zero
+          risk.
+        </p>
+        <p>
+          <strong>Needs information — No priority assigned.</strong> Essential
+          U/A/M facts are undecidable; a material contradiction remains; or X/D
+          are unknown where required to distinguish the applicable levels. Do
+          not force an incomplete case into Medium or Low. This is an evidence
+          status, not a fourth risk severity.
+        </p>
+        <p>
+          <strong>Multiple mechanisms:</strong> any independently supported High
+          mechanism establishes overall High while preserving other missing
+          questions. Otherwise, an unresolved mechanism that could change the
+          level produces Needs information. If all relevant mechanisms are
+          assessable, any Medium produces Medium; Low requires adequate evidence
+          across the whole issue. Protection against one loss does not
+          automatically protect another.
+        </p>
+        <p>
+          <strong>Within-tier order:</strong> use supported decision dates, then
+          submission time, then stable ID. Keep expedited-verification items
+          visible. Safety escalation is separate from cost priority. The agent
+          does not authorize work, payments, design decisions or contractual
+          entitlement; AIA G716 also distinguishes an RFI response from
+          authorization for cost/time-increasing work [4].
+        </p>
+        <h2><strong>Boundary examples</strong></h2>
+        <p>
+          The following are invented calibration examples, not real evaluation
+          cases.
+        </p>
+        <ul>
+          <li>
+            <strong>Fabrication continuing:</strong> conflicting dimensions
+            affect panels being fabricated; timely clarification can change
+            production, and no hold is available → High. If an effective,
+            no-charge hold covers the response window → Medium.
+          </li>
+          <li>
+            <strong>Protection not documented:</strong> the same fabrication
+            exposure and decision opportunity are supported, but the hold status
+            is missing → High with mitigation-unverified flag. Ask whether a
+            hold is implemented, until when, and at what cost.
+          </li>
+          <li>
+            <strong>“Urgent utility conflict” only:</strong> no affected item or
+            financial consequence is explained → Needs information. The utility
+            category and urgent label do not establish High.
+          </li>
+          <li>
+            <strong>Work paused:</strong> a named rental resource continues
+            accruing charges and an answer could release it → High if no
+            effective protection. If the resource is off hire and other work
+            continues without added expense → Medium when the underlying
+            added-cost issue remains.
+          </li>
+          <li>
+            <strong>Negation matters:</strong> “No demolition is required; only
+            the drawing reference needs correction,” with adequate context →
+            Low. “Installed supports must be replaced, but the work is
+            effectively protected until review” → Medium.
+          </li>
+          <li>
+            <strong>Past versus remaining loss:</strong> already scrapped
+            material does not alone justify High. Additional identical parts
+            still being produced, with a remaining opportunity to correct
+            production and no protection, can justify High. A purely historical
+            settled loss is outside the active-review scope.
+          </li>
+          <li>
+            <strong>Conflicting evidence:</strong> a form says no cost impact
+            while the narrative describes required extra materials → Needs
+            information until the discrepancy is clarified. “No schedule impact”
+            and “additional material cost” are different dimensions and need not
+            conflict.
+          </li>
+          <li>
+            <strong>Safety:</strong> a reported immediate hazard triggers
+            separate human escalation even if the cost priority cannot be
+            determined. Do not wait for a cost estimate to flag the hazard.
+          </li>
+        </ul>
+        <h2><strong>Handling missing information</strong></h2>
+        <ul>
+          <li>
+            Identify exactly which missing fact affects the decision. Missing an
+            irrelevant attachment does not automatically prevent classification.
+          </li>
+          <li>
+            Return the supported evidence, Unknown fields and specific
+            questions: What work is affected? What extra work or expense would
+            occur? What happens if the answer waits? Which action remains
+            possible? Is protection actually in place, and does it generate
+            standby costs?
+          </li>
+          <li>
+            If the packet describes ongoing charges, active affected fabrication
+            or a specific impending irreversible commitment, send it for
+            expedited human verification even when priority remains unassigned.
+            An unexplained “urgent” label is insufficient.
+          </li>
+          <li>
+            Keep the original submission assessment unchanged. Record later
+            information as a new timestamped assessment, rather than silently
+            adding hindsight.
+          </li>
+          <li>
+            Distinguish an evidence gap from a technical failure. A timeout,
+            malformed output or system-truncated packet is a processing failure,
+            not a correct Needs-information judgment. Record failures separately
+            and retain them in the test denominator.
+          </li>
+        </ul>
+        <p>
+          Allowing abstention requires reporting how often the system actually
+          assigns a level, alongside correctness; otherwise apparent accuracy
+          can hide excessive refusal [5].
+        </p>
+        <h2><strong>Case selection and annotation</strong></h2>
+        <ul>
+          <li>
+            <strong>Follow the worksheet:</strong> use 10 real items unless an
+            alternative is explicitly permitted. Confirm original provenance.
+            IDs matching our synthetic dataset do not establish that cases are
+            real.
+          </li>
+          <li>
+            <strong>Use submission-time packets:</strong> retain original
+            question text and actual available attachments, work status,
+            supported dates and protection evidence. Attachment counts do not
+            supply attachment contents. A contractual response allowance is not
+            an activity deadline.
+          </li>
+          <li>
+            <strong>Prevent hindsight:</strong> exclude later responses, closure
+            dates, realized delays, change-order outcomes and outcome-derived
+            priority labels. In our workbook, contractor estimate fields marked
+            unavailable at submission remain excluded until their provenance is
+            clarified.
+          </li>
+          <li>
+            <strong>Separate practice from testing:</strong> calibrate on other
+            cases. Keep duplicates, revisions and closely related issues
+            together. Freeze selection before viewing AI results; describe
+            whether the sample is consecutive, random or a deliberately selected
+            challenge set.
+          </li>
+          <li>
+            <strong>Create the reference independently:</strong> two people
+            label the same packets separately using evidence, then compare and
+            adjudicate. Preserve the initial disagreements and reasons. Do not
+            use AI labels or synthetic outcome tiers as the answer key.
+          </li>
+          <li>
+            <strong>Freeze and evaluate:</strong> record the rubric, inputs,
+            prompt, model settings, baseline and success target before testing.
+            Use exact disposition matches out of 10 as the proposed single
+            primary metric; report both AI runs and the simple-method score
+            separately. High recall, coverage and boundary violations are
+            additional diagnostics. Eight out of ten is a proposed team target,
+            not a validated industry threshold.
+          </li>
+        </ul>
+        <p>
+          Document source provenance and verify evidence citations. A narrow
+          pilot does not establish deployment reliability or a 10% reduction in
+          project costs [6]. Expert review and actual test results remain
+          outstanding.
+        </p>
+        <h2><strong>References</strong></h2>
+        <p>
+          <strong>[1]</strong> Hughes, N., Wells, M., Nutter, C. L., &amp; Zack,
+          J. G., Jr. (2013). *Impact &amp; Control of RFIs on Construction
+          Projects.* Navigant Construction Forum. See printed pp. 13–14 for
+          handling-cost estimates and p. 32 for schedule/cost links.
+          <a
+            href="https://www.cmaanet.org/sites/default/files/2018-04/NCF%20IMPACT%20%26%20CONTROL%20OF%20RFIs%20ON%20CONSTRUCTION%20PROJECTS.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Original report</a
+          >.
+        </p>
+        <p>
+          <strong>[2]</strong> Florida Department of Transportation. (2021,
+          September 27 revision). *Construction Project Administration Manual,
+          Section 8.11, Contractor Initiated Submittals.* See pp. 8-11-6–7 for
+          the priority and escalation matrices.
+          <a
+            href="https://fdotwww.blob.core.windows.net/sitefinity/docs/default-source/construction/manuals/cpam/newcleanchapters/chapter8s11.pdf?sfvrsn=3422a13e_2"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Original procedure</a
+          >.
+        </p>
+        <p>
+          <strong>[3]</strong> Federal Transit Administration. (2025). *Project
+          and Construction Management Guidelines.* See printed p. 77 for RFIs
+          and p. 143 for risk characteristics and schedule risk.
+          <a
+            href="https://www.transit.dot.gov/sites/fta.dot.gov/files/2025-02/Project-and-Construction-Management-Guidelines-January-2025.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Original guidelines</a
+          >.
+        </p>
+        <p>
+          <strong>[4]</strong> AIA Contract Documents. (n.d.). *Summary
+          G716–2004 Request for Information.* Synopsis and purpose.
+          <a
+            href="https://help.aiacontracts.com/hc/en-us/articles/1500009444782-Summary-G716-2004-Request-for-Information-RFI"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Official summary</a
+          >.
+        </p>
+        <p>
+          <strong>[5]</strong> Geifman, Y., &amp; El-Yaniv, R. (2017).
+          *Selective Classification for Deep Neural Networks.* Section 2, p. 3,
+          defines coverage and selective risk. Its algorithm-specific guarantees
+          do not transfer to our rubric.
+          <a
+            href="https://arxiv.org/pdf/1705.08500"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Original paper</a
+          >.
+        </p>
+        <p>
+          <strong>[6]</strong> National Institute of Standards and Technology.
+          (2024). *Artificial Intelligence Risk Management Framework Generative
+          Artificial Intelligence Profile.* NIST AI 600-1. See MS-2.5-001,
+          MS-2.5-003 and MS-2.5-005 for limits on extrapolation, citation
+          verification and provenance.
+          <a
+            href="https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Original profile</a
+          >.
+        </p>
+      </article>
+      <footer class="agent-footer">
+        <a href="docs/RFI-PRIORITY-CRITERIA-v0.3.md"
+          >Download original rubric text</a
+        ><a href="docs/DEMO2-SETUP.md">Agent setup</a>
+      </footer>
+    </main>
+  </body>
+</html>

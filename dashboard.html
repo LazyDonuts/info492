@@ -11,6 +11,8 @@
     <title>RFI Management Dashboard · INFO 492 Team 1</title>
     <link rel="stylesheet" href="css/style.css?v=20261007-2" />
     <link rel="stylesheet" href="css/dashboard.css?v=20261012-2" />
+    <link rel="stylesheet" href="css/demo-menu.css?v=20261016" />
+    <script type="module" src="js/demo-menu.js?v=20261016"></script>
     <script type="module" src="js/dashboard.js?v=20261012-2"></script>
   </head>
   <body class="dash">
@@ -18,6 +20,15 @@
     <header class="dash-header">
       <a class="brand" href="index.html">INFO 492 <span>·</span> Team 1</a>
       <nav aria-label="Dashboard navigation">
+        <div class="demo-menu" data-demo-menu>
+          <button class="demo-trigger" aria-expanded="false" aria-controls="demo-links">Demo Menu <span aria-hidden="true">⌄</span></button>
+          <div class="demo-panel" id="demo-links" data-demo-panel hidden>
+            <a href="dashboard.html" aria-current="page">Demo 1 — Structured RFI Dashboard</a>
+            <a href="demo2.html">Demo 2 — AI RFI Prioritization Agent</a>
+            <span class="future-demo" aria-disabled="true">Demo 3 — Risk-Based Prioritization<small>Coming soon</small></span>
+            <span class="future-demo" aria-disabled="true">Demo 4 — AI-Assisted Review Comparison<small>Coming soon</small></span>
+          </div>
+        </div>
         <a href="index.html">Team website <span aria-hidden="true">↗</span></a
         ><button id="data-info">Data &amp; methodology</button>
       </nav>

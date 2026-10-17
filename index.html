@@ -11,6 +11,8 @@
     <meta name="theme-color" content="#2468dc" />
     <title>INFO 492 · Team 1 | Prioritizing High-Risk RFIs with AI</title>
     <link rel="stylesheet" href="css/style.css?v=20261007-2" />
+    <link rel="stylesheet" href="css/demo-menu.css?v=20261016" />
+    <script type="module" src="js/demo-menu.js?v=20261016"></script>
     <script src="js/main.js?v=20261007-2" defer></script>
   </head>
 
@@ -21,8 +23,15 @@
         >INFO 492 <span class="brand-separator">·</span> Team 1</a
       >
       <nav aria-label="Main navigation">
-        <a href="dashboard.html">Demo 1 dashboard</a
-        ><a href="#research">The research</a
+        <div class="demo-menu" data-demo-menu>
+          <button class="demo-trigger" aria-expanded="false" aria-controls="demo-links">Demo Menu <span aria-hidden="true">⌄</span></button>
+          <div class="demo-panel" id="demo-links" data-demo-panel hidden>
+            <a href="dashboard.html">Demo 1 — Structured RFI Dashboard</a>
+            <a href="demo2.html">Demo 2 — AI RFI Prioritization Agent</a>
+            <span class="future-demo" aria-disabled="true">Demo 3 — Risk-Based Prioritization<small>Coming soon</small></span>
+            <span class="future-demo" aria-disabled="true">Demo 4 — AI-Assisted Review Comparison<small>Coming soon</small></span>
+          </div>
+        </div><a href="#research">The research</a
         ><a href="#experiments">Experiments</a><a href="#team">Our team</a>
       </nav>
       <a class="header-link" href="#prototype"
