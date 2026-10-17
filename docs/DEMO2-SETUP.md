@@ -21,7 +21,7 @@ cp .env.example .env
 npm run start:env
 ```
 
-Open http://127.0.0.1:4922/demo2.html. Without `.env`, `npm start` still serves the site and reports AI unconfigured. Never paste a provider key into the browser. Enter only the privately distributed team access token. The token gates a team pilot, not anonymous public AI access. It stays in DOM/tab memory, not localStorage, URLs or exports.
+Open http://127.0.0.1:4922/demo2.html. Without `.env`, `npm start` still serves the site and reports AI unconfigured. Never paste a provider key into the browser. Enter only the privately distributed team access token. The token gates a team pilot, not anonymous public AI access. By default, it is remembered in browser localStorage for this backend and filled automatically on later visits. Uncheck “Remember token on this browser” to keep it tab-only, or use “Clear saved token” to remove it. It is never included in URLs or exports. Provider API keys remain server-only.
 
 Choose a model available to your OpenAI project that supports the Responses API and strict JSON schema; set OPENAI_MODEL explicitly. No assumed model availability, free credits or provider-account entitlement. The app records the model and prompt/schema/rubric/engine hashes. No live call was verified during initial implementation because credentials were not supplied. Unit/integration mocks are tests only, not measured AI results.
 
@@ -76,7 +76,7 @@ Both file upload and pasted CSV/JSON use the same strict parser. A prepared huma
 
 Free services sleep after 15 minutes idle and may take about a minute to wake. The connection check allows 75 seconds and reports its waiting state; click Check connection again after a host wake-up timeout. See [Render free service limits](https://render.com/docs/free) and [Blueprint reference](https://render.com/docs/blueprint-spec).
 
-Once Render has assigned the actual HTTPS service URL, set `backend_origin` in `data/demo2-config.json` to that origin and republish Pages. This file is public: it contains the service URL only, never a key/token. Blank keeps same-origin local development working; users can manually enter an endpoint in Connection settings. The backend permits its own Render-provided RENDER_EXTERNAL_URL in addition to the explicit Pages origin. The team token remains private and is entered per browser tab.
+Once Render has assigned the actual HTTPS service URL, set `backend_origin` in `data/demo2-config.json` to that origin and republish Pages. This file is public: it contains the service URL only, never a key/token. Blank keeps same-origin local development working; users can manually enter an endpoint in Connection settings. The backend permits its own Render-provided RENDER_EXTERNAL_URL in addition to the explicit Pages origin. The team token remains private. Each browser needs it once; remembering is scoped to the backend origin, and can be disabled or cleared in Connection settings.
 
 Publish the reviewed source to main and the static site to the existing gh-page branch, preserving both histories. Verify public demo2.html, assets, /api/config CORS and one authorized development batch of ten synthetic inputs. Never report that batch as the formal real-RFI evaluation. The Render service can also serve the complete site at its own origin.
 
