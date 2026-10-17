@@ -123,8 +123,12 @@ async function connect() {
     )
       throw new Error("Backend contract/rubric mismatch.");
     state.config = c;
+    const publicAccess = c.access?.token_required === false;
+    for (const id of ["token-field", "token-preferences", "token-storage-status", "token-handling"])
+      $(id).hidden = publicAccess;
+    $("public-access-status").hidden = !publicAccess;
     $("connection-state").textContent = c.configured
-      ? `${c.metadata.provider} · ${c.metadata.model} · rubric v0.3 · ready for authorized requests`
+      ? `${c.metadata.provider} · ${c.metadata.model} · rubric v0.3 · ${publicAccess ? "public demo ready · no token needed" : "ready for authorized requests"}`
       : c.setup;
     if (c.metadata.execution_mode === "test_fixture")
       notice(
@@ -171,7 +175,7 @@ function controls() {
     state.selected.length === 10 &&
     $("consent").checked &&
     !!state.config?.configured &&
-    !!$("access-token").value.trim() &&
+    (state.config?.access?.token_required === false || !!$("access-token").value.trim()) &&
     !state.busy;
   $("analyze").disabled = !ready || state.mode !== "demo";
   $("freeze").disabled = !ready || !!state.study;
@@ -412,7 +416,9 @@ async function analyze(slot = null) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${$("access-token").value.trim()}`,
+        ...(config.access?.token_required === false ? {} : {
+          Authorization: `Bearer ${$("access-token").value.trim()}`,
+        }),
       },
       body: JSON.stringify({
         records,

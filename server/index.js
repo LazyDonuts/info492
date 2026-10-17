@@ -1,3 +1,4 @@
+import { publicDemoBudget } from "./public-demo.js";
 import http from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { resolve, extname, dirname } from "node:path";
@@ -10,6 +11,7 @@ export async function createServer({
   env = process.env,
   providerFetch = fetch,
   executionMode = "provider",
+  now = Date.now,
 } = {}) {
   const rubric = await readFile(
     resolve(root, "docs/RFI-PRIORITY-CRITERIA-v0.3.md"),
@@ -28,6 +30,13 @@ export async function createServer({
     const service = new URL(env.RENDER_EXTERNAL_URL);
     if (service.protocol === "https:") origins.push(service.origin);
   }
+  const publicDemo = env.DEMO2_PUBLIC_DEMO === "true";
+  const publicBudget = publicDemoBudget(now);
+  const config = () => ({ ...agent.config(), access: {
+    mode: publicDemo ? "public_demo" : "team_token",
+    token_required: !publicDemo,
+    ...(publicDemo ? { limits: publicBudget.status() } : {}),
+  } });
   const attempts = new Map();
   let globalCount = 0,
     windowStart = Date.now(),
@@ -61,7 +70,7 @@ export async function createServer({
     const path = new URL(req.url, "http://localhost").pathname;
     try {
       if (path === "/api/config" && req.method === "GET")
-        return json(200, agent.config());
+        return json(200, config());
       // Operator metadata lookup: no prompts, keys or provider response bodies
       // are returned. Use it to select an actually available Gemini model.
       if (path === "/api/models" && req.method === "GET") {
@@ -115,10 +124,10 @@ export async function createServer({
           return json(503, { error: agent.config().setup });
         const token = Buffer.from(req.headers.authorization || ""),
           expected = Buffer.from(`Bearer ${env.DEMO2_ACCESS_TOKEN}`);
-        if (
+        if (!publicDemo && (
           token.length !== expected.length ||
           !timingSafeEqual(token, expected)
-        )
+        ))
           return json(401, {
             error:
               "Enter a valid team access token. Never enter a provider API key in the browser.",
@@ -158,6 +167,13 @@ export async function createServer({
             error:
               "Another batch acquired the available slot. Keep your inputs and retry later.",
           });
+        if (publicDemo) {
+          const reservation = publicBudget.reserve();
+          if (!reservation.allowed) {
+            res.setHeader("Retry-After", String(reservation.retry_after));
+            return json(429, reservation);
+          }
+        }
         active++;
         globalCount++;
         let streaming = false,

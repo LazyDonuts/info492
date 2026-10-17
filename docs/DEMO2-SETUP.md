@@ -81,3 +81,12 @@ Once Render has assigned the actual HTTPS service URL, set `backend_origin` in `
 Publish the reviewed source to main and the static site to the existing gh-page branch, preserving both histories. Verify public demo2.html, assets, /api/config CORS and one authorized development batch of ten synthetic inputs. Never report that batch as the formal real-RFI evaluation. The Render service can also serve the complete site at its own origin.
 
 Model discovery is available to the authenticated team operator at GET /api/models. It returns only supported model IDs; no credentials or raw provider body. An absent/inaccessible model and authentication errors stop unstarted items. Listing is metadata availability; a real generation call is still required to establish usability. ThinkingBudget=0 is sent only for Gemini 2.5 model IDs; later models use provider defaults, recorded in metadata.
+
+
+## Public demonstration access
+
+The live deployment explicitly enables `DEMO2_PUBLIC_DEMO=true`. Visitors can analyze without a team token. Provider credentials stay server-only; `/api/models` still requires the private operator/team token. Default local/private deployments continue to require a token (`false` or unset). `/api/config` reports the actual access mode; the frontend never embeds a token or sends a saved token to public analysis.
+
+Public analysis shares a global allowance of 10 batches per UTC day, 3 per rolling hour, at least 60 seconds between batch starts, and one active batch. Each batch has exactly 10 records. Admitted requests consume allowance even if validation/provider processing later fails. HTTP 429 includes a safe message and Retry-After; no paid fallback or automatic retries are added. Unknown-origin browser requests remain blocked, but CORS is not authentication and does not prevent direct API calls.
+
+These counters are in memory on the current single service instance and reset when the process restarts/redeploys (including free-host lifecycle events). They are prototype abuse controls, **not** a durable daily or monetary cap. Provider quota remains independent; do not rely on these counters for paid billing protection. Multiple replicas or a strict cross-restart cap require a shared persistent store. No hosting plan or provider billing was enabled for this change.
