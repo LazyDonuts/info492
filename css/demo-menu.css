@@ -81,3 +81,24 @@
     right: auto;
   }
 }
+
+/* All top-level navigation items share a center line and hit area. */
+.site-header nav,
+.dash-header nav {
+  align-items: center;
+}
+.site-header nav > a,
+.dash-header nav > a,
+.demo-trigger {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  line-height: 1.3;
+  padding-block: 10px;
+  box-sizing: border-box;
+}
+.site-header .demo-trigger,
+.dash-header .demo-trigger {
+  margin: 0;
+  line-height: 1.3;
+}

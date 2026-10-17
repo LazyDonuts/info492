@@ -288,6 +288,80 @@ export function disposition(r) {
       ? "Excluded"
       : r.priority || "Needs Information";
 }
+// Development working queue, requested by the team. Never replaces v0.3
+// evidence decisions or the frozen evaluation metric.
+export function workingAssessment(result, record) {
+  if (
+    result.assessment_state === "excluded" ||
+    result.assessment_state === "assigned"
+  )
+    return {
+      ...result,
+      provisional: false,
+      needs_information_flag: !!result.missing_information?.length,
+      ai_review_failed: false,
+    };
+  const yes = (v) => /^(y|yes|true|1)$/i.test(String(v ?? "").trim());
+  const no = (v) => /^(n|no|false|0)$/i.test(String(v ?? "").trim());
+  const supportedExposure = result.mechanisms?.some(
+    (m) =>
+      !m.contradictions.length &&
+      ["U", "A", "M", "X"].every((k) => m.evidence[k].value === "Yes") &&
+      m.evidence.B.value !== "Yes",
+  );
+  const reportedExposure = [
+    record.contractor_claims_cost_impact,
+    record.contractor_claims_schedule_impact,
+    record.on_critical_path_at_submittal,
+  ].every(yes);
+  const reportedClarification =
+    [
+      record.contractor_claims_cost_impact,
+      record.contractor_claims_schedule_impact,
+      record.on_critical_path_at_submittal,
+    ].every(no) && /clarification|drawing reference/i.test(record.title || "");
+  const priority =
+    supportedExposure || reportedExposure
+      ? "P0"
+      : reportedClarification
+        ? "P2"
+        : "P1";
+  const basis = supportedExposure
+    ? "Cited cost exposure is time-sensitive; verify the remaining decision opportunity and protection."
+    : reportedExposure
+      ? "The submission reports cost impact, schedule impact and critical-path involvement. Verify these reported signals urgently; they are not proof of financial risk."
+      : reportedClarification
+        ? "The item is described as a clarification and the submitter reports no cost, schedule or critical-path impact. Confirm those claims before treating it as low priority."
+        : "P1 is the working review default while essential facts are unresolved; missing evidence does not establish low risk.";
+  return {
+    ...result,
+    validated_assessment_state: result.assessment_state,
+    validated_priority: result.priority,
+    validated_priority_reason: result.priority_reason || null,
+    validation_error: result.error || null,
+    assessment_state: "assigned",
+    priority,
+    provisional: true,
+    working_policy: "working-triage-0.4",
+    working_basis: supportedExposure
+      ? "validated_partial_evidence"
+      : "submission_rules_not_ai",
+    needs_information_flag: true,
+    ai_review_failed: result.assessment_state === "processing_error",
+    priority_reason: `Provisional ${priority}. ${basis}`,
+    missing_information: [
+      ...new Set([
+        ...(result.missing_information || []),
+        ...(result.assessment_state === "processing_error"
+          ? [
+              "AI evidence check failed. Review the original packet; this working priority is an input-rule suggestion, not a valid AI assessment.",
+            ]
+          : []),
+        "Confirm the added-cost mechanism, time exposure, remaining decision opportunity and effective protection before confirming priority.",
+      ]),
+    ],
+  };
+}
 export function sortAssessments(results, records) {
   const byId = new Map(records.map((r) => [r.rfi_id, r]));
   const cmp = (a, b) => (a && b ? a.localeCompare(b) : a ? -1 : b ? 1 : 0);

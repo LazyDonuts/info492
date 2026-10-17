@@ -117,3 +117,6 @@ Evaluation mode freezes the set, model/prompt/rubric/implementation hashes and p
 ### Gemini free-tier development deployment
 
 The live Demo 2 selects Google Gemini (`AI_PROVIDER=gemini`, model `gemini-3.1-flash-lite`) with a server-only `GEMINI_API_KEY`. The team v0.3 rubric and original Demo 1 are unchanged. The adapter uses stateless structured output, exact-source validation, one item at a time and conservative spacing. Free quota and data-use terms apply; use a free API project and synthetic cases for this pilot. No automatic provider fallback, billing upgrade or fake output. See the active-provider section of [setup](docs/DEMO2-SETUP.md). Tests include Gemini payload, keys, completion/safety handling, quota stopping and frozen model configuration.
+
+
+Development mode now displays provisional working P0/P1/P2 for incomplete cases, with independent missing-information/AI-failure flags. Confirmed v0.3 assessments are retained. Input-rule suggestions for failed AI responses are explicitly labeled; no invalid model output becomes evidence. Frozen evaluation/scoring stays on v0.3. See [working priority v0.4](docs/DEMO2-WORKING-PRIORITY.md).
