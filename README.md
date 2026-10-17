@@ -112,3 +112,8 @@ See [secure local/hosted setup and retention](docs/DEMO2-SETUP.md), [original v0
 Evidence extraction uses structured JSON with exact source-quote checks; a deterministic rule engine maps the team rubric to P0/P1/P2, Needs Information and exclusion states. Errors never count as valid abstentions. Ranked results use P0/P1/P2 then supported decision date, submission date and ID; the optional within-tier ID inspection view is explicitly labeled and does not change assessments. Detail views preserve the search/filter state.
 
 Evaluation mode freezes the set, model/prompt/rubric/implementation hashes and prospective threshold. Run twice with the same stateless agent, then the fixed keyword baseline. Import the prepared human answer key only afterward, locally. Inspect each run's cases to record observer failure groups and role-boundary violations separately; incomplete reviews are labeled incomplete. Export privately before leaving (tab-memory only). `/eval` contains honest NOT RUN templates; no real human reference, scores or savings have been fabricated.
+
+
+### Gemini free-tier development deployment
+
+The live Demo 2 selects Google Gemini (`AI_PROVIDER=gemini`, model `gemini-2.5-flash`) with a server-only `GEMINI_API_KEY`. The team v0.3 rubric and original Demo 1 are unchanged. The adapter uses stateless structured output, exact-source validation, one item at a time and conservative spacing. Free quota and data-use terms apply; use a free API project and synthetic cases for this pilot. No automatic provider fallback, billing upgrade or fake output. See the active-provider section of [setup](docs/DEMO2-SETUP.md). Tests include Gemini payload, keys, completion/safety handling, quota stopping and frozen model configuration.

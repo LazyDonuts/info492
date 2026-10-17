@@ -1,12 +1,22 @@
 # Demo 2 setup and data handling
 
+## Active Gemini configuration (October 17)
+
+The live deployment now explicitly selects `AI_PROVIDER=gemini`, `GEMINI_MODEL=gemini-2.5-flash`, private `GEMINI_API_KEY`, and `GEMINI_MIN_INTERVAL_MS=13000`. Existing OpenAI support is optional and never a fallback: it runs only if the operator explicitly selects `AI_PROVIDER=openai`. A provider/model/config change invalidates the frozen evaluation configuration. Configure only the chosen provider's key/model plus the team token. Missing settings are reported individually.
+
+Gemini uses the server-side REST generateContent endpoint with `x-goog-api-key` in a header, one fresh submission-only content message, a system instruction, JSON Schema, max 7000 output tokens and thinkingBudget=0. No chat history, tools, caching or stateful Interactions API is used. Local exact-evidence and rubric validation still applies. Gemini STOP is required; safety blocks, truncation, invalid JSON/citations and provider errors remain processing errors. Response IDs, actual model version and usage metadata are retained in private exports. Gemini starts at most one request at a time, spaced at least 13 seconds apart. This is conservative pacing, not a guarantee of sufficient account quota. The browser allows ten minutes for the batch; each provider item retains a 45-second timeout. Any 429 stops unstarted requests with an explicit error, with no automatic retry or paid fallback.
+
+**Free-tier account and data handling:** Google documents free input/output for selected models including 2.5 Flash, but actual eligibility and limits belong to the API project. Keep the project on the Free tier; do not enable Cloud Billing for a free-only pilot. Code cannot guarantee that an operator-supplied key belongs to a free project. Free-tier prompts/outputs may be used to improve Google products. Use synthetic development data; obtain appropriate permission and review terms before sending real correspondence. Stateless requests do not promise zero provider retention. See [pricing](https://ai.google.dev/gemini-api/docs/pricing), [structured output](https://ai.google.dev/gemini-api/docs/structured-output), [REST reference](https://ai.google.dev/api/generate-content), and [data terms](https://ai.google.dev/gemini-api/terms).
+
+Create a private key at https://aistudio.google.com/api-keys and enter `GEMINI_API_KEY` in the existing Render service Environment page. Never paste it in the site's team-token field or commit it. The instructions below retain optional OpenAI details for that explicit provider path.
+
 The existing static site stays on GitHub Pages. `demo2.html` calls a separate small Node.js service; no framework migration or public provider secret is needed. The same service can serve the site for local development. Node 20+ is recommended (18+ supports the core code; `--env-file` needs a newer Node). No npm packages are required.
 
 ## Local startup
 
 ```sh
 cp .env.example .env
-# Edit .env privately: OPENAI_API_KEY, OPENAI_MODEL, DEMO2_ACCESS_TOKEN
+# Edit .env privately: AI_PROVIDER, GEMINI_API_KEY, GEMINI_MODEL, DEMO2_ACCESS_TOKEN
 # Generate a random token, for example: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 npm run start:env
 ```
@@ -33,7 +43,7 @@ Accepted formats: UTF-8 CSV/JSON, exactly ten records, max 256 KB. JSON is an ar
 
 Dataset selection explicitly projects only dictionary-approved submission-time fields. It excludes actual status, outcomes, estimates marked N, CO data and ground-truth tiers. These historical synthetic records are assessed as submission-time questions, not as a live open-status feed. Uploaded date/work context must belong to the declared snapshot. The server also rejects unknown input keys; a reference answer cannot be included as a separate field. Human review is still needed to prevent future/outcome text being pasted into an allowed narrative field.
 
-Consent beside the exact payload is required before sending. Text is sent to the configured team backend, then OpenAI. The backend logs no packet bodies or tokens and writes no uploaded files. It holds requests/results in memory; responses use `store:false`, no tools or retrieval, and no conversation state. This does not promise zero retention by the provider or hosting platform: verify account policies, host access logs, provider terms and permissions before using real correspondence. See [OpenAI data controls](https://developers.openai.com/api/docs/guides/your-data). Browser results and human keys are transient tab memory; leaving loses them. Exported JSON includes full packets, prompt, raw responses and keys and should be stored privately. Do not commit confidential evaluation exports.
+Consent beside the exact payload is required before sending. Text is sent to the configured team backend, then its explicitly selected provider (Google Gemini on the live deployment). The backend logs no packet bodies or tokens and writes no uploaded files. It holds requests/results in memory; OpenAI responses use `store:false`; both adapters use no tools, retrieval or conversation state. Google data terms apply to Gemini. This does not promise zero retention by the provider or hosting platform: verify account policies, host access logs, provider terms and permissions before using real correspondence. See [OpenAI data controls](https://developers.openai.com/api/docs/guides/your-data). Browser results and human keys are transient tab memory; leaving loses them. Exported JSON includes full packets, prompt, raw responses and keys and should be stored privately. Do not commit confidential evaluation exports.
 
 ## Evidence and rule limitations
 

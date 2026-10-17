@@ -19,9 +19,13 @@ services:
         value: 0.0.0.0
       - key: ALLOWED_ORIGINS
         value: https://lazydonuts.github.io,http://127.0.0.1:4922,http://localhost:4922
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: OPENAI_MODEL
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_MIN_INTERVAL_MS
+        value: "13000"
+      - key: GEMINI_API_KEY
         sync: false
       - key: DEMO2_ACCESS_TOKEN
         generateValue: true
