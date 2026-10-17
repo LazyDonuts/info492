@@ -171,6 +171,39 @@ test("backend rate limits failed authentication without leaking configuration se
   assert.ok(!(await r.text()).includes(env.OPENAI_API_KEY));
 });
 
+test("provider quota stops remaining calls and reports only safe known error codes", async () => {
+  let calls = 0;
+  const a = makeAgent({
+    env,
+    rubric: "test",
+    providerFetch: async () => {
+      calls++;
+      return Response.json(
+        {
+          error: {
+            code: "insufficient_quota",
+            message: "private provider payload",
+          },
+        },
+        { status: 429 },
+      );
+    },
+  });
+  const run = await a.assess(
+    { records: ten(), config_hash: a.config().metadata.config_hash },
+    () => {},
+  );
+  assert.ok(calls <= 2);
+  assert.equal(run.results.length, 10);
+  assert.ok(
+    run.results.every(
+      (r) => r.assessment_state === "processing_error" && r.priority === null,
+    ),
+  );
+  assert.ok(run.results.every((r) => r.error.includes("insufficient_quota")));
+  assert.ok(!JSON.stringify(run).includes("private provider payload"));
+});
+
 test("Render-hosted UI allows only its own HTTPS origin and configured Pages origin", async (t) => {
   const server = await createServer({
     env: {
