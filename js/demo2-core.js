@@ -44,14 +44,16 @@ export function projectDataset(rows) {
     ),
   );
 }
-export function validateRecords(rows, { exactlyTen = true } = {}) {
+export function validateRecords(rows, { exactlyTen = false } = {}) {
   if (
     !Array.isArray(rows) ||
-    !rows.length ||
+    rows.length < 2 ||
     rows.length > 10 ||
     (exactlyTen && rows.length !== 10)
   )
-    throw new Error("Provide exactly 10 RFI records. No records were omitted.");
+    throw new Error(exactlyTen
+      ? "Provide exactly 10 RFI records for evaluation. No records were omitted."
+      : "Provide 2–10 RFI records. No records were omitted.");
   const ids = new Set();
   return rows.map((row, index) => {
     if (!row || typeof row !== "object" || Array.isArray(row))
@@ -111,10 +113,10 @@ export function validateRecords(rows, { exactlyTen = true } = {}) {
     return r;
   });
 }
-export function parseUpload(text, filename) {
+export function parseUpload(text, filename, options = {}) {
   if (new TextEncoder().encode(text).length > MAX_BYTES)
     throw new Error(
-      "File exceeds 256 KB. Split into a ten-record submission-only file.",
+      "File exceeds 256 KB. Split into a submission-only file of 2–10 records.",
     );
   const ext = filename.split(".").pop().toLowerCase();
   let rows;
@@ -136,7 +138,7 @@ export function parseUpload(text, filename) {
     throw new Error(
       "Use UTF-8 CSV or JSON. PDF, Word and Excel are not parsed by Demo 2.",
     );
-  return validateRecords(rows);
+  return validateRecords(rows, options);
 }
 export function seededSelection(rows, seed) {
   if (rows.length < 10)

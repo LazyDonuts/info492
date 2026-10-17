@@ -11,9 +11,9 @@
     <link rel="stylesheet" href="css/style.css?v=20261007-2" />
     <link rel="stylesheet" href="css/dashboard.css?v=20261012-2" />
     <link rel="stylesheet" href="css/demo-menu.css?v=20261017-align" />
-    <link rel="stylesheet" href="css/demo2.css?v=20261017-public" />
+    <link rel="stylesheet" href="css/demo2.css?v=20261017-batch-range" />
     <script type="module" src="js/demo-menu.js?v=20261016"></script>
-    <script type="module" src="js/demo2.js?v=20261017-public"></script>
+    <script type="module" src="js/demo2.js?v=20261017-batch-range"></script>
   </head>
   <body class="dash agent-page">
     <a class="skip-link" href="#workspace">Skip to agent</a>
@@ -107,7 +107,7 @@
             <label><input id="remember-token" type="checkbox" checked /> Remember token on this browser</label>
             <button id="forget-token" type="button">Clear saved token</button>
           </div>
-          <p id="public-access-status" hidden>No token needed. Shared allowance: 10 batches per UTC day, 3 per hour, one batch at a time. Each batch contains 10 RFIs. If the demo is busy or its allowance is used, keep your inputs and try later.</p>
+          <p id="public-access-status" hidden>No token needed. Shared allowance: 10 batches per UTC day, 3 per hour, one batch at a time. Each batch contains 2–10 RFIs. If the demo is busy or its allowance is used, keep your inputs and try later.</p>
           <p id="token-storage-status" role="status" aria-live="polite"></p>
           <p class="quiet" id="token-handling">
             Only the team token is remembered in this browser when enabled. Never enter a provider API key here. Uploads are sent to the
@@ -123,7 +123,7 @@
             <span>01</span>
             <div>
               <h2 id="input-title">Build your review set</h2>
-              <p>Exactly ten records. Submission-time evidence only.</p>
+              <p>Analyze 2–10 records per batch. Submission-time evidence only.</p>
             </div>
           </div>
           <div class="input-paths" role="group" aria-label="Input source">
@@ -165,7 +165,7 @@
           </div>
           <div id="upload-input" hidden>
             <p>
-              UTF-8 CSV or JSON · Exactly 10 records · Maximum 256 KB. Required:
+              UTF-8 CSV or JSON · 2–10 records · Maximum 256 KB. Required:
               rfi_id, title (or subject), description. Put actual supporting
               excerpts in supporting_text or review_context.
             </p>
@@ -189,7 +189,7 @@
                   id="paste-input"
                   rows="7"
                   maxlength="262144"
-                  placeholder="Paste ten submission records"
+                  placeholder="Paste 2–10 submission records"
                 ></textarea></label
               ><button id="import-text">Validate and import text</button>
             </details>
@@ -204,7 +204,7 @@
             <span>02</span>
             <div>
               <h2 id="selected-title">Confirm the evidence</h2>
-              <p id="selected-count" aria-live="polite">0 / 10 selected</p>
+              <p id="selected-count" aria-live="polite">0 selected · minimum 2, maximum 10</p>
             </div>
             <button id="clear-selection" class="text-button">Clear</button>
           </div>
@@ -213,7 +213,7 @@
           </p>
           <ol id="selected-list" class="selected-list"></ol>
           <p id="selection-empty" class="empty-note">
-            Choose ten RFIs to preview the exact information sent to the model.
+            Choose 2–10 RFIs to preview the exact information sent to the model.
           </p>
           <details id="payload-details">
             <summary>Exact AI input preview</summary>
@@ -232,7 +232,7 @@
           >
           <div id="demo-actions">
             <button id="analyze" class="primary" disabled>
-              Analyze 10 RFIs <span aria-hidden="true">↗</span>
+              Analyze selected RFIs <span aria-hidden="true">↗</span>
             </button>
           </div>
           <div class="run-progress" id="run-progress" hidden>
@@ -257,7 +257,7 @@
           <div>
             <h2 id="eval-title">Freeze, repeat, compare</h2>
             <p>
-              One primary metric: exact correct dispositions out of ten. Two AI
+              Evaluation requires exactly 10 records. One primary metric: exact correct dispositions out of ten. Two AI
               runs, reported separately, and one fixed keyword baseline.
             </p>
           </div>
@@ -426,7 +426,7 @@
       <h2 id="reset-title">Start a new study?</h2>
       <p>
         Export your study first. Continuing clears the runs and reference key
-        from this tab. Your ten input records stay selected.
+        from this tab. Your input records stay selected.
       </p>
       <button id="cancel-reset">Keep current study</button
       ><button id="confirm-reset">Clear study and start again</button>
