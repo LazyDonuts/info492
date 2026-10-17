@@ -13,7 +13,7 @@ import {
   csv,
   fingerprint,
   MAX_BYTES,
-} from "./demo2-core.js";
+} from "./demo2-core.js?v=20261017-working-2";
 const $ = (id) => document.getElementById(id);
 const esc = (value) =>
   String(value ?? "").replace(
