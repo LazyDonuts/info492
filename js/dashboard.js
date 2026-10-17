@@ -7,7 +7,8 @@ import {
   number,
   date,
   packageCounts,
-} from "./rfi-data.js?v=20261012-2";
+  compareCostRanking,
+} from "./rfi-data.js?v=20261014-2";
 const $ = (id) => document.getElementById(id);
 const escape = (value) =>
   String(value ?? "").replace(
@@ -185,6 +186,52 @@ function renderChart() {
     .join("");
   $("chart-caption").textContent = "Other filters applied · click a package to filter";
 }
+function rankingStatusLabel(status) {
+  return {
+    same: "Same rank",
+    shifted: "Rank differs",
+    missing: "Missing from current filters",
+  }[status];
+}
+function renderRanking(filters) {
+  const comparison = compareCostRanking(state.model.records, filters);
+  const same = comparison.identical;
+  const open = $("ranking-details").open;
+  $("ranking-caption").textContent = same
+    ? "Same order as recorded estimate · highest first"
+    : "Differs from recorded estimate · highest first";
+  $("ranking-summary").innerHTML = [
+    ["Ranking", same ? "Same" : "Different", "Current filters, Estimate · highest first vs Cost evidence · Recorded estimate (later)"],
+    ["Same rank", `${integer(comparison.sameRankCount)} / ${integer(comparison.goldCount)}`, "Position in both ranked lists"],
+    ["In current filters", `${integer(comparison.covered)} / ${integer(comparison.goldCount)}`, "Recorded-estimate RFIs still visible"],
+    ["Top 25 highest", `${integer(comparison.topCovered)} / ${integer(comparison.topK)}`, "Highest recorded estimates in view"],
+  ]
+    .map(
+      ([label, value, note]) =>
+        `<article><span>${escape(label)}</span><strong>${escape(value)}</strong><small>${escape(note)}</small></article>`,
+    )
+    .join("");
+  const differing = comparison.rows.filter((row) => row.status !== "same");
+  const matching = comparison.rows.filter((row) => row.status === "same");
+  const shown = [...differing, ...matching].slice(0, 40);
+  $("ranking-details-note").textContent = same
+    ? comparison.extraWithoutEstimate
+      ? `Recorded-estimate ranking matches. ${integer(comparison.extraWithoutEstimate)} RFIs without a recorded estimate are not in the cost ranking and sort after estimates.`
+      : "Current filters match the recorded-estimate ranking (Estimate · highest first)."
+    : `${integer(differing.length)} of ${integer(comparison.goldCount)} recorded-estimate RFIs have a different rank or are excluded by the current filters.${shown.length < comparison.rows.length ? ` Showing ${shown.length} of ${integer(comparison.rows.length)}.` : ""}`;
+  $("ranking-list").innerHTML =
+    !open
+      ? ""
+      : shown.length
+        ? shown
+            .map(
+              (row) =>
+                `<button type="button" class="ranking-rfi" data-rfi="${escape(row.record.id)}" aria-label="Open ${escape(row.record.id)}, ${rankingStatusLabel(row.status)}"><span class="ranking-rfi-id">${escape(row.record.id)}</span><strong>${escape(row.record.title)}</strong><span class="cell-sub">Cost rank ${row.costRank}${row.viewRank == null ? " · not in current filters" : ` · filter rank ${row.viewRank}`} · ${escape(estimate(row.record))} · ${rankingStatusLabel(row.status)}</span></button>`,
+            )
+            .join("")
+        : "<p class='quiet'>No recorded estimates are available to compare.</p>";
+  $("ranking-details").open = open;
+}
 function render() {
   if (!state.model) return;
   const focused = document.activeElement;
@@ -220,6 +267,7 @@ function render() {
   $("baseline-note").hidden = structured;
   document.querySelector(".filter-panel").hidden = !structured;
   document.querySelector(".distribution").hidden = !structured;
+  $("ranking-compare").hidden = !structured;
   $("metrics").hidden = !structured;
   $("summary-scope").hidden = !structured;
   document.querySelector(".workspace-layout").style.gridTemplateColumns =
@@ -248,6 +296,7 @@ function render() {
       );
     renderChips();
     renderChart();
+    renderRanking(state.filters);
     if (focusedPackage) {
       [...$("package-chart").querySelectorAll("button")].find((el) => el.dataset.package === focusedPackage)?.focus({preventScroll: true});
     } else if (focusedChip) $("search").focus({preventScroll: true});
@@ -419,6 +468,13 @@ $("chips").addEventListener("click", (e) => {
   else document.querySelector(`[data-filter="${key}"]`).value = "";
   state.page = 1;
   render();
+});
+$("ranking-details").addEventListener("toggle", () => {
+  if (state.model) renderRanking(state.filters);
+});
+$("ranking-list").addEventListener("click", (e) => {
+  const button = e.target.closest("[data-rfi]");
+  if (button) showDetail(button.dataset.rfi, button);
 });
 $("package-chart").addEventListener("click", (e) => {
   const packageId = e.target.closest("[data-package]")?.dataset.package;

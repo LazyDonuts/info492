@@ -10,8 +10,8 @@
     <meta name="theme-color" content="#2468dc" />
     <title>RFI Management Dashboard · INFO 492 Team 1</title>
     <link rel="stylesheet" href="css/style.css?v=20261007-2" />
-    <link rel="stylesheet" href="css/dashboard.css?v=20261012-2" />
-    <script type="module" src="js/dashboard.js?v=20261012-2"></script>
+    <link rel="stylesheet" href="css/dashboard.css?v=20261014-2" />
+    <script type="module" src="js/dashboard.js?v=20261014-2"></script>
   </head>
   <body class="dash">
     <a class="skip-link" href="#workspace">Skip to dashboard</a>
@@ -72,6 +72,24 @@
                 <span id="chart-caption" class="quiet">All records</span>
               </div>
               <div id="package-chart" class="package-chart"></div>
+            </section>
+            <section
+              class="distribution ranking-compare"
+              id="ranking-compare"
+              aria-labelledby="ranking-title"
+            >
+              <div class="panel-title">
+                <h2 id="ranking-title">Ranking vs recorded estimate</h2>
+                <span id="ranking-caption" class="quiet"
+                  >Estimate · highest first</span
+                >
+              </div>
+              <div id="ranking-summary" class="ranking-summary"></div>
+              <details id="ranking-details">
+                <summary>View specific RFIs</summary>
+                <p id="ranking-details-note" class="quiet"></p>
+                <div id="ranking-list" class="ranking-list"></div>
+              </details>
             </section>
             <section class="register" aria-labelledby="register-title">
               <div class="register-toolbar">
