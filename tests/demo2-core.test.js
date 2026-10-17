@@ -110,7 +110,7 @@ test("upload parses quoted CSV, BOM, aliases and rejects unsupported/duplicate/s
   );
   assert.equal(parseUpload(csv(rows), "sample.csv").length, 10);
   assert.throws(() => parseUpload("not json", "x.txt"), /CSV or JSON/);
-  assert.throws(() => validateRecords(rows.slice(0, 9)), /exactly 10/);
+  assert.throws(() => validateRecords(rows.slice(0, 9), { exactlyTen: true }), /exactly 10/);
   rows[1].rfi_id = rows[0].rfi_id.toLowerCase();
   assert.throws(() => validateRecords(rows), /Duplicate/);
   const bad = ten();

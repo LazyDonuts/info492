@@ -14,7 +14,7 @@ import {
   csv,
   fingerprint,
   MAX_BYTES,
-} from "./demo2-core.js?v=20261017-working-2";
+} from "./demo2-core.js?v=20261017-batch-range";
 const $ = (id) => document.getElementById(id);
 const esc = (value) =>
   String(value ?? "").replace(
@@ -172,13 +172,14 @@ function controls() {
     .querySelectorAll("[data-remove]")
     .forEach((el) => (el.disabled = locked));
   const ready =
-    state.selected.length === 10 &&
+    state.selected.length >= 2 && state.selected.length <= 10 &&
     $("consent").checked &&
     !!state.config?.configured &&
     (state.config?.access?.token_required === false || !!$("access-token").value.trim()) &&
     !state.busy;
   $("analyze").disabled = !ready || state.mode !== "demo";
-  $("freeze").disabled = !ready || !!state.study;
+  $("analyze").innerHTML = `Analyze ${state.selected.length} RFIs <span aria-hidden="true">↗</span>`;
+  $("freeze").disabled = !ready || state.selected.length !== 10 || !!state.study;
   $("consent").disabled = locked;
   $("eval-run1").disabled =
     !state.study || state.runs.length !== 0 || state.busy;
@@ -222,7 +223,7 @@ function selectionChanged() {
   state.resultRun = null;
   $("results").hidden = true;
   $("consent").checked = false;
-  $("selected-count").textContent = `${state.selected.length} / 10 selected`;
+  $("selected-count").textContent = `${state.selected.length} selected · minimum 2, maximum 10${state.mode === "eval" ? " · evaluation requires exactly 10" : ""}`;
   $("selected-list").innerHTML = state.selected
     .map(
       (r) =>
@@ -309,7 +310,7 @@ $("upload").onchange = async () => {
     state.selected = records;
     selectionChanged();
     notice(
-      "Imported exactly ten submission packets. Review the payload and provenance before sending.",
+      `Imported ${records.length} submission packets. Review the payload and provenance before sending.`,
     );
   } catch (e) {
     state.selected = [];
@@ -327,7 +328,7 @@ $("import-text").onclick = () => {
     );
     selectionChanged();
     notice(
-      "Imported exactly ten pasted submission packets. Review the exact payload before sending.",
+      `Imported ${state.selected.length} pasted submission packets. Review the exact payload before sending.`,
     );
   } catch (e) {
     state.selected = [];
@@ -364,6 +365,7 @@ function setMode(mode) {
   $("mode-demo").setAttribute("aria-pressed", String(mode === "demo"));
   $("mode-eval").setAttribute("aria-pressed", String(mode === "eval"));
   $("evaluation").hidden = mode !== "eval";
+  $("selected-count").textContent = `${state.selected.length} selected · minimum 2, maximum 10${mode === "eval" ? " · evaluation requires exactly 10" : ""}`;
   controls();
 }
 async function analyze(slot = null) {
@@ -372,6 +374,7 @@ async function analyze(slot = null) {
   try {
     records = validateRecords(
       state.study ? state.study.records : state.selected,
+      { exactlyTen: !!state.study },
     );
     if (!state.config?.configured)
       throw new Error("Backend is not configured.");
@@ -385,7 +388,8 @@ async function analyze(slot = null) {
   controls();
   $("run-progress").hidden = false;
   $("progress").value = 0;
-  $("progress-text").textContent = "Validating ten submission packets…";
+  $("progress").max = records.length;
+  $("progress-text").textContent = `Validating ${records.length} submission packets…`;
   state.results = [];
   state.resultRun = null;
   const started = new Date().toISOString();
@@ -473,10 +477,10 @@ async function analyze(slot = null) {
         state.resultRun = run;
         $("progress").value = received.size;
         $("progress-text").textContent =
-          `Received ${received.size} / 10 assessments (including explicit failures).`;
+          `Received ${received.size} / ${records.length} assessments (including explicit failures).`;
         renderResults();
       } else if (event.event === "completed") {
-        if (received.size !== 10) throw new Error("Incomplete response set.");
+        if (received.size !== records.length) throw new Error("Incomplete response set.");
         finished = true;
         run.completed_at = event.completed_at;
       } else if (event.event === "error") throw new Error(event.error);
@@ -503,7 +507,7 @@ async function analyze(slot = null) {
         ? run.kind === "development"
           ? `Completed with ${failures} AI check failures. Input-rule working priorities and the original errors are shown together.`
           : `Completed with ${failures} processing failures. These remain failures in the v0.3 evaluation. Export before retrying.`
-        : "Completed ten assessments. Review evidence and confirm every recommendation with the GC.",
+        : `Completed ${records.length} assessments. Review evidence and confirm every recommendation with the GC.`,
       !!failures,
     );
   } catch (e) {
@@ -579,7 +583,7 @@ function renderResults() {
     )
     .join("");
   $("run-caption").textContent =
-    `${state.resultRun.metadata?.execution_mode === "test_fixture" ? "DEVELOPMENT TEST FIXTURE · NO AI MODEL CALL · " : ""}${state.resultRun.kind} · ${state.resultRun.run_id} · ${state.resultRun.kind === "baseline" ? "Non-AI baseline" : `${state.resultRun.received_count ?? state.results.length} / 10 server outputs received`} · ${state.results.length} items accounted for · rubric v0.3. ${working ? "Working triage v0.4: incomplete cases receive provisional P0/P1/P2. Information and AI-error flags overlap priority counts; v0.3 checks remain available in details." : "v0.3 evaluation: Needs Information, exclusions and failures are unranked."}`;
+    `${state.resultRun.metadata?.execution_mode === "test_fixture" ? "DEVELOPMENT TEST FIXTURE · NO AI MODEL CALL · " : ""}${state.resultRun.kind} · ${state.resultRun.run_id} · ${state.resultRun.kind === "baseline" ? "Non-AI baseline" : `${state.resultRun.received_count ?? state.results.length} / ${(state.resultRun.records || state.selected).length} server outputs received`} · ${state.results.length} items accounted for · rubric v0.3. ${working ? "Working triage v0.4: incomplete cases receive provisional P0/P1/P2. Information and AI-error flags overlap priority counts; v0.3 checks remain available in details." : "v0.3 evaluation: Needs Information, exclusions and failures are unranked."}`;
   const query = $("result-search").value.trim().toLowerCase(),
     filter = $("result-filter").value;
   const records =
@@ -826,7 +830,7 @@ $("freeze").onclick = async () => {
       throw new Error(
         "The built-in dataset is synthetic. Upload permitted, documented packets for this track.",
       );
-    const records = validateRecords(state.selected);
+    const records = validateRecords(state.selected, { exactlyTen: true });
     state.study = {
       title,
       provenance,
@@ -1019,7 +1023,7 @@ async function init() {
     state.dataset = projectDataset(parseCSV(await res.text()));
     selectionChanged();
     notice(
-      `Ready · ${state.dataset.length.toLocaleString()} synthetic development records. Select ten or upload submission packets.`,
+      `Ready · ${state.dataset.length.toLocaleString()} synthetic development records. Select 2–10 RFIs or upload submission packets.`,
     );
   } catch (e) {
     notice(
