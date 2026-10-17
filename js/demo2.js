@@ -6,6 +6,7 @@ import {
   seededSelection,
   sortAssessments,
   disposition,
+  workingAssessment,
   baseline,
   parseAnswerKey,
   score,
@@ -444,7 +445,9 @@ async function analyze(slot = null) {
     ).length;
     notice(
       failures
-        ? `Completed with ${failures} processing failures. These are not Needs Information decisions. Export the run before retrying.`
+        ? run.kind === "development"
+          ? `Completed with ${failures} AI check failures. Input-rule working priorities and the original errors are shown together.`
+          : `Completed with ${failures} processing failures. These remain failures in the v0.3 evaluation. Export before retrying.`
         : "Completed ten assessments. Review evidence and confirm every recommendation with the GC.",
       !!failures,
     );
@@ -480,6 +483,13 @@ async function analyze(slot = null) {
   }
 }
 $("analyze").onclick = () => analyze();
+function displayedResults() {
+  if (state.resultRun?.kind !== "development") return state.results;
+  const records = state.resultRun.records || state.selected;
+  return state.results.map((r) =>
+    workingAssessment(r, records.find((x) => x.rfi_id === r.rfi_id) || {}),
+  );
+}
 function renderResults() {
   $("results").hidden = !state.resultRun;
   if (!state.resultRun) return;
@@ -491,21 +501,36 @@ function renderResults() {
     Excluded: 0,
     "Processing error": 0,
   };
-  state.results.forEach((r) => counts[disposition(r)]++);
+  const working = state.resultRun.kind === "development";
+  const visibleResults = displayedResults();
+  visibleResults.forEach((r) => {
+    if (r.priority) counts[r.priority]++;
+    else if (r.assessment_state === "excluded") counts.Excluded++;
+    if (
+      working
+        ? r.needs_information_flag
+        : r.assessment_state === "needs_information"
+    )
+      counts["Needs Information"]++;
+    if (
+      working ? r.ai_review_failed : r.assessment_state === "processing_error"
+    )
+      counts["Processing error"]++;
+  });
   $("result-cards").innerHTML = Object.entries(counts)
     .map(
       ([k, v]) =>
-        `<article><span>${esc(k)}</span><strong>${v}</strong></article>`,
+        `<article><span>${esc(working && k === "Needs Information" ? "Needs information · flag" : working && k === "Processing error" ? "AI check failed · flag" : k)}</span><strong>${v}</strong></article>`,
     )
     .join("");
   $("run-caption").textContent =
-    `${state.resultRun.metadata?.execution_mode === "test_fixture" ? "DEVELOPMENT TEST FIXTURE · NO AI MODEL CALL · " : ""}${state.resultRun.kind} · ${state.resultRun.run_id} · ${state.resultRun.kind === "baseline" ? "Non-AI baseline" : `${state.resultRun.received_count ?? state.results.length} / 10 server outputs received`} · ${state.results.length} items accounted for · rubric v0.3. Needs Information, exclusions and failures are unranked.`;
+    `${state.resultRun.metadata?.execution_mode === "test_fixture" ? "DEVELOPMENT TEST FIXTURE · NO AI MODEL CALL · " : ""}${state.resultRun.kind} · ${state.resultRun.run_id} · ${state.resultRun.kind === "baseline" ? "Non-AI baseline" : `${state.resultRun.received_count ?? state.results.length} / 10 server outputs received`} · ${state.results.length} items accounted for · rubric v0.3. ${working ? "Working triage v0.4: incomplete cases receive provisional P0/P1/P2. Information and AI-error flags overlap priority counts; v0.3 checks remain available in details." : "v0.3 evaluation: Needs Information, exclusions and failures are unranked."}`;
   const query = $("result-search").value.trim().toLowerCase(),
     filter = $("result-filter").value;
   const records =
       state.resultRun.records || state.study?.records || state.selected,
     byId = new Map(records.map((r) => [r.rfi_id, r]));
-  const list = sortAssessments(state.results, records).filter((r) =>
+  const list = sortAssessments(visibleResults, records).filter((r) =>
     [r.rfi_id, byId.get(r.rfi_id)?.title]
       .join(" ")
       .toLowerCase()
@@ -526,7 +551,7 @@ function renderResults() {
   } else
     $("order-note").textContent =
       "P0 → P1 → P2; supported decision date, submission time and ID within each tier. Unassigned queues have no rank.";
-  const groups = [
+  const strictGroups = [
     ["ranked", "Ranked review queue", (r) => !!r.priority],
     [
       "needs_information",
@@ -544,11 +569,37 @@ function renderResults() {
       (r) => r.assessment_state === "processing_error",
     ],
   ];
+  const groups = !working
+    ? strictGroups
+    : filter === "needs_information"
+      ? [
+          [
+            "needs_information",
+            "Needs information · working priority retained",
+            (r) => r.needs_information_flag,
+          ],
+        ]
+      : filter === "processing_error"
+        ? [
+            [
+              "processing_error",
+              "AI check failed · input-rule working priorities",
+              (r) => r.ai_review_failed,
+            ],
+          ]
+        : strictGroups.filter(([key]) => ["ranked", "excluded"].includes(key));
+  $("result-filter").querySelector('[value="needs_information"]').textContent =
+    working ? "Needs information · flagged" : "Needs Information · unranked";
+  $("result-filter").querySelector('[value="processing_error"]').textContent =
+    working ? "AI check failed · flagged" : "Processing errors";
+  if (working)
+    $("order-note").textContent =
+      "P0 → P1 → P2 working review order. Provisional ≠ confirmed. Missing-information and AI-error flags remain visible on the same row.";
   $("result-tables").innerHTML = groups
     .filter(([key]) => filter === "all" || filter === key)
     .map(([key, title, predicate]) => {
       const rows = list.filter(predicate);
-      return `<h3 class="queue-heading">${title} (${rows.length})</h3>${rows.length ? `<div class="agent-table-wrap" role="region" tabindex="0" aria-label="${title}"><table class="agent-table"><thead><tr><th scope="col">RFI / issue</th><th scope="col">Assigned priority</th><th scope="col">Evidence / reason</th><th scope="col">Potential cost mechanism</th><th scope="col">Status / details</th></tr></thead><tbody>${rows.map((r) => `<tr data-detail="${esc(r.rfi_id)}"><td><strong>${esc(r.rfi_id)}</strong><br>${esc(byId.get(r.rfi_id)?.title)}</td><td><span class="priority-badge ${r.priority || ""}">${esc(disposition(r))}</span>${r.mitigation_unverified ? "<p>Mitigation unverified</p>" : ""}${r.safety_escalation ? "<p>Safety · human review</p>" : ""}${r.expedited_verification ? "<p>Expedited verification</p>" : ""}</td><td>${esc(r.priority_reason || r.error)}${r.rule_branch ? `<small> ${esc(r.rule_branch)}</small>` : ""}</td><td>${esc(r.potential_cost_mechanism || "No assessed mechanism available")}</td><td>${r.assessment_state === "assigned" ? "Assessed" : esc(disposition(r))}<br><button data-detail="${esc(r.rfi_id)}">View details<span class="sr-only"> ${esc(r.rfi_id)}</span></button></td></tr>`).join("")}</tbody></table></div>` : '<p class="quiet">No items in this queue.</p>'}`;
+      return `<h3 class="queue-heading">${title} (${rows.length})</h3>${rows.length ? `<div class="agent-table-wrap" role="region" tabindex="0" aria-label="${title}"><table class="agent-table"><thead><tr><th scope="col">RFI / issue</th><th scope="col">Assigned priority</th><th scope="col">Evidence / reason</th><th scope="col">Potential cost mechanism</th><th scope="col">Status / details</th></tr></thead><tbody>${rows.map((r) => `<tr data-detail="${esc(r.rfi_id)}"><td><strong>${esc(r.rfi_id)}</strong><br>${esc(byId.get(r.rfi_id)?.title)}</td><td><span class="priority-badge ${r.priority || ""}">${esc(disposition(r))}</span>${r.provisional ? '<p class="working-label">Provisional · human review</p>' : ""}${r.needs_information_flag && working ? "<p>Needs information</p>" : ""}${r.ai_review_failed ? '<p class="error-label">AI check failed · input rules</p>' : ""}${r.mitigation_unverified ? "<p>Mitigation unverified</p>" : ""}${r.safety_escalation ? "<p>Safety · human review</p>" : ""}${r.expedited_verification ? "<p>Expedited verification</p>" : ""}</td><td>${esc(r.priority_reason || r.error)}${r.rule_branch ? `<small> ${esc(r.rule_branch)}</small>` : ""}</td><td>${esc(r.potential_cost_mechanism || "No assessed mechanism available")}</td><td>${r.provisional ? "Provisional · verify missing facts" : r.assessment_state === "assigned" ? "Evidence assessed" : esc(disposition(r))}<br><button data-detail="${esc(r.rfi_id)}">View details<span class="sr-only"> ${esc(r.rfi_id)}</span></button></td></tr>`).join("")}</tbody></table></div>` : '<p class="quiet">No items in this queue.</p>'}`;
     })
     .join("");
 }
@@ -564,7 +615,7 @@ $("result-tables").onclick = (e) => {
 };
 function openDetail(id) {
   detailId = id;
-  const result = state.results.find((r) => r.rfi_id === id),
+  const result = displayedResults().find((r) => r.rfi_id === id),
     record = (
       state.resultRun.records ||
       state.study?.records ||
@@ -576,7 +627,7 @@ function openDetail(id) {
       ? `<blockquote>“${esc(e.quote)}”<small>Source: ${esc(e.source)} · supplied statement, not independently verified</small></blockquote>`
       : '<p class="quiet">No supporting excerpt supplied.</p>';
   $("agent-detail-body").innerHTML =
-    `<section><h3>${esc(record.title)}</h3><p>${esc(record.description)}</p><details><summary>Full submitted packet</summary><pre>${esc(JSON.stringify(record, null, 2))}</pre></details></section><section><h3>Priority</h3><span class="priority-badge ${result.priority || ""}">${esc(disposition(result))}</span><p>${esc(result.priority_reason || result.error)}</p><p class="quiet">${esc(result.rule_branch || "No rule applied")} · rubric v0.3</p>${result.mitigation_unverified ? '<p class="agent-detail-flag">Protection is unknown. This P0 is precautionary review, not proof of ineffective mitigation or large loss.</p>' : ""}${result.safety_escalation ? '<p class="agent-detail-flag">Separate safety escalation: request immediate human review under site procedures.</p>' : ""}</section>
+    `<section><h3>${esc(record.title)}</h3><p>${esc(record.description)}</p><details><summary>Full submitted packet</summary><pre>${esc(JSON.stringify(record, null, 2))}</pre></details></section><section><h3>Priority</h3><span class="priority-badge ${result.priority || ""}">${esc(disposition(result))}</span>${result.provisional ? `<p class="agent-detail-flag">Provisional working priority · ${esc(result.working_policy)}. ${result.ai_review_failed ? "AI check failed: this suggestion comes only from submission rules." : "Incomplete evidence: human confirmation required."}</p><p>v0.3 evidence decision: ${esc(result.validated_assessment_state)}. ${esc(result.validated_priority_reason || result.validation_error || "")}</p>` : ""}<p>${esc(result.priority_reason || result.error)}</p><p class="quiet">${esc(result.rule_branch || "No rule applied")} · rubric v0.3</p>${result.mitigation_unverified ? '<p class="agent-detail-flag">Protection is unknown. This P0 is precautionary review, not proof of ineffective mitigation or large loss.</p>' : ""}${result.safety_escalation ? '<p class="agent-detail-flag">Separate safety escalation: request immediate human review under site procedures.</p>' : ""}</section>
  ${
    result.mechanisms
      ?.map(
@@ -660,6 +711,26 @@ function exportRows(run) {
     config_hash: metadata?.config_hash || "",
     observer_review: state.reviews[run.run_id]?.[result.rfi_id] || null,
     ...result,
+    ...(run.kind === "development"
+      ? (() => {
+          const view = workingAssessment(
+            result,
+            (run.records || state.selected).find(
+              (r) => r.rfi_id === result.rfi_id,
+            ) || {},
+          );
+          return {
+            working_priority: view.priority,
+            provisional: view.provisional,
+            working_policy: view.working_policy || "v0.3_confirmed",
+            working_basis: view.working_basis || "validated_evidence",
+            working_reason: view.priority_reason,
+            working_missing_information: view.missing_information || [],
+            needs_information_flag: view.needs_information_flag,
+            ai_review_failed: view.ai_review_failed,
+          };
+        })()
+      : {}),
   }));
 }
 $("export-results").onclick = () =>

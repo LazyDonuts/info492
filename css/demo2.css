@@ -613,3 +613,12 @@ progress {
 .agent-table button {
   position: relative;
 }
+
+.working-label {
+  color: #80540c;
+  font-weight: 600;
+}
+.error-label {
+  color: #a52c37;
+  font-weight: 600;
+}
