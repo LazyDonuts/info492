@@ -2,8 +2,8 @@
 
 Prepared October 17, 2026. Formal real-RFI evaluation is deferred by the team.
 
-- Source target: LazyDonuts/info492 main.
-- Website target: existing gh-page branch, repository root.
+- Source published: LazyDonuts/info492 main, commit e7991d9.
+- Website published: existing gh-page branch, repository root; release commit b34f492 preserves both histories. GitHub Pages workflow 39058930169 completed successfully.
 - Public route: https://lazydonuts.github.io/info492/demo2.html
 - Render preparation: render.yaml, Node 24.14.1, free Oregon service, manual deploys, test/build gate.
 - Backend service: pending account connection and creation; do not invent an assigned hostname.
@@ -14,3 +14,5 @@ Prepared October 17, 2026. Formal real-RFI evaluation is deferred by the team.
 After connecting Render, select the intended workspace, create the service from main, set secrets privately, verify /api/config and CORS, then set data/demo2-config.json backend_origin and republish. Run one ten-item synthetic development batch and retain real response IDs and errors privately. This is a live integration smoke test, not a formal evaluation score.
 
 No real-RFI answer key or formal scores have been created. Deployment does not make the current synthetic cases real or independently labeled.
+
+Verified online: demo2.html, dashboard.html, methodology.html, CSS, JS, dataset and public configuration returned HTTP 200 with appropriate content types. In-browser seeded selection produced exactly ten development records. AI remains explicitly unavailable until a real backend is configured. Automated regression result: 50 passed, 0 failed; static production validation passed.
