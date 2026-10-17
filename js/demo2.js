@@ -368,7 +368,7 @@ async function analyze(slot = null) {
         records,
         config_hash: state.config.metadata.config_hash,
       }),
-      signal: AbortSignal.timeout(250000),
+      signal: AbortSignal.timeout(600000),
     });
     if (!response.ok) {
       let msg = `Backend error (HTTP ${response.status}).`;

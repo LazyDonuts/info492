@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="css/demo-menu.css?v=20261016" />
     <link rel="stylesheet" href="css/demo2.css?v=20261016" />
     <script type="module" src="js/demo-menu.js?v=20261016"></script>
-    <script type="module" src="js/demo2.js?v=20261016"></script>
+    <script type="module" src="js/demo2.js?v=20261017-gemini"></script>
   </head>
   <body class="dash agent-page">
     <a class="skip-link" href="#workspace">Skip to agent</a>
@@ -76,6 +76,12 @@
       <section class="connection card" aria-labelledby="connection-title">
         <div>
           <h2 id="connection-title">AI connection</h2>
+          <p class="quiet">
+            Gemini free-tier inputs and outputs may be used by Google to improve
+            products. Use synthetic or appropriately permitted, sanitized
+            material. Free quota is limited; no paid provider is used
+            automatically.
+          </p>
           <p id="connection-state">Checking backend availability…</p>
         </div>
         <details id="connection-settings">
@@ -99,8 +105,8 @@
           </div>
           <p class="quiet">
             The token stays in this tab’s memory. Uploads are sent to the
-            configured backend and OpenAI only after you confirm the exact
-            payload.
+            configured backend and the selected AI provider only after you
+            confirm the exact payload.
             <a href="docs/DEMO2-SETUP.md">Setup and data handling ↗</a>
           </p>
         </details>
@@ -215,7 +221,8 @@
           </details>
           <label class="confirm-label"
             ><input id="consent" type="checkbox" />I reviewed the payload and
-            may send this material to the configured backend and OpenAI.</label
+            may send this material to the configured backend and its selected AI
+            provider.</label
           >
           <div id="demo-actions">
             <button id="analyze" class="primary" disabled>

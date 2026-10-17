@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { setTimeout as pause } from "node:timers/promises";
 import {
   validateRecords,
   assessExtraction,
@@ -24,13 +25,29 @@ export function makeAgent({
   executionMode = "provider",
 }) {
   const prompt = extractionPrompt(rubric);
+  const selectedProvider = env.AI_PROVIDER || "openai";
+  const gemini = selectedProvider === "gemini";
+  const model = (gemini ? env.GEMINI_MODEL : env.OPENAI_MODEL) || null;
+  const providerKey = gemini ? env.GEMINI_API_KEY : env.OPENAI_API_KEY;
+  const spacing = gemini
+    ? Math.min(
+        60000,
+        Math.max(0, Number(env.GEMINI_MIN_INTERVAL_MS ?? 13000) || 0),
+      )
+    : 0;
+  const validProvider = ["openai", "gemini"].includes(selectedProvider);
+  const validModel =
+    !!model && (!gemini || /^gemini-[A-Za-z0-9.-]+$/.test(model));
   const metadata = {
     provider:
       executionMode === "test_fixture"
         ? "DEVELOPMENT TEST FIXTURE — no AI model call"
-        : "OpenAI Responses API",
+        : gemini
+          ? "Google Gemini API"
+          : "OpenAI Responses API",
+    provider_id: selectedProvider,
     execution_mode: executionMode,
-    model: env.OPENAI_MODEL || null,
+    model,
     prompt_version: PROMPT_VERSION,
     rubric_version: RUBRIC_VERSION,
     engine_version: ENGINE_VERSION,
@@ -46,21 +63,32 @@ export function makeAgent({
     max_output_tokens: 7000,
     temperature: "not set",
     tools: "none",
-    store: false,
+    store: gemini
+      ? "Stateless generateContent; Google data terms apply"
+      : false,
+    thinking_budget: gemini ? 0 : "not set",
+    item_concurrency: gemini ? 1 : 2,
+    min_request_interval_ms: spacing,
+    item_timeout_ms: 45000,
   };
   metadata.config_hash = hash(metadata);
-  const configured = !!(
-    env.OPENAI_API_KEY &&
-    env.OPENAI_MODEL &&
-    env.DEMO2_ACCESS_TOKEN?.length >= 32
-  );
+  const missing = [];
+  if (!validProvider) missing.push("AI_PROVIDER must be openai or gemini");
+  if (!providerKey) missing.push(gemini ? "GEMINI_API_KEY" : "OPENAI_API_KEY");
+  if (!validModel)
+    missing.push(
+      gemini ? "GEMINI_MODEL (valid Gemini model ID)" : "OPENAI_MODEL",
+    );
+  if (!(env.DEMO2_ACCESS_TOKEN?.length >= 32))
+    missing.push("DEMO2_ACCESS_TOKEN (at least 32 characters)");
+  const configured = missing.length === 0;
   return {
     config: () => ({
       configured,
       metadata,
       setup: configured
         ? null
-        : "Configure server OPENAI_API_KEY, OPENAI_MODEL and a DEMO2_ACCESS_TOKEN of at least 32 characters. See docs/DEMO2-SETUP.md. No simulated analysis is used.",
+        : `Missing server configuration: ${missing.join(", ")}. See docs/DEMO2-SETUP.md. No simulated analysis is used.`,
     }),
     async assess(body, emit) {
       if (!configured)
@@ -97,6 +125,7 @@ export function makeAgent({
       const results = new Array(records.length);
       let next = 0;
       let providerBlocked = null;
+      let lastRequestStart = 0;
       const work = async () => {
         while (next < records.length) {
           const i = next++,
@@ -107,33 +136,69 @@ export function makeAgent({
               throw new Error(
                 `Not attempted after provider limit: ${providerBlocked}`,
               );
+            if (gemini && lastRequestStart)
+              await pause(
+                Math.max(0, spacing - (Date.now() - lastRequestStart)),
+              );
+            lastRequestStart = Date.now();
             const response = await providerFetch(
-              "https://api.openai.com/v1/responses",
+              gemini
+                ? `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
+                : "https://api.openai.com/v1/responses",
               {
                 method: "POST",
-                headers: {
-                  Authorization: `Bearer ${env.OPENAI_API_KEY}`,
-                  "Content-Type": "application/json",
-                },
-                signal: AbortSignal.timeout(45000),
-                body: JSON.stringify({
-                  model: env.OPENAI_MODEL,
-                  store: false,
-                  instructions: prompt,
-                  input: JSON.stringify(r),
-                  max_output_tokens: 7000,
-                  text: {
-                    format: {
-                      type: "json_schema",
-                      name: "rfi_evidence",
-                      strict: true,
-                      schema: EXTRACTION_SCHEMA,
+                headers: gemini
+                  ? {
+                      "x-goog-api-key": providerKey,
+                      "Content-Type": "application/json",
+                    }
+                  : {
+                      Authorization: `Bearer ${providerKey}`,
+                      "Content-Type": "application/json",
                     },
-                  },
-                }),
+                signal: AbortSignal.timeout(45000),
+                body: JSON.stringify(
+                  gemini
+                    ? {
+                        systemInstruction: { parts: [{ text: prompt }] },
+                        contents: [
+                          {
+                            role: "user",
+                            parts: [{ text: JSON.stringify(r) }],
+                          },
+                        ],
+                        generationConfig: {
+                          candidateCount: 1,
+                          maxOutputTokens: 7000,
+                          responseMimeType: "application/json",
+                          responseJsonSchema: EXTRACTION_SCHEMA,
+                          thinkingConfig: { thinkingBudget: 0 },
+                        },
+                      }
+                    : {
+                        model,
+                        store: false,
+                        instructions: prompt,
+                        input: JSON.stringify(r),
+                        max_output_tokens: 7000,
+                        text: {
+                          format: {
+                            type: "json_schema",
+                            name: "rfi_evidence",
+                            strict: true,
+                            schema: EXTRACTION_SCHEMA,
+                          },
+                        },
+                      },
+                ),
               },
             );
             if (response.status === 429) {
+              if (gemini) {
+                providerBlocked =
+                  "Gemini free-tier quota/rate limit reached (HTTP 429). Check AI Studio limits and retry later; no paid-provider fallback is used.";
+                throw new Error(providerBlocked);
+              }
               let code;
               try {
                 code = (await response.json()).error?.code;
@@ -155,11 +220,47 @@ export function makeAgent({
             }
             if (!response.ok)
               throw new Error(
-                response.status === 401
+                [401, 403].includes(response.status)
                   ? "Provider authentication failed. Ask the operator to check server credentials."
                   : `Provider request failed (HTTP ${response.status}).`,
               );
-            const data = await response.json();
+            let data = await response.json();
+            if (gemini) {
+              const candidate = data.candidates?.[0];
+              if (
+                data.promptFeedback?.blockReason ||
+                data.candidates?.length !== 1 ||
+                candidate.finishReason !== "STOP"
+              )
+                throw new Error(
+                  "Gemini blocked or incomplete output; no assessment was assigned.",
+                );
+              const parts = candidate.content?.parts;
+              if (
+                !Array.isArray(parts) ||
+                parts.some((p) => typeof p.text !== "string")
+              )
+                throw new Error("Gemini returned unexpected non-text output.");
+              data = {
+                status: "completed",
+                id: data.responseId || null,
+                model: data.modelVersion || model,
+                usage: data.usageMetadata || null,
+                output: [
+                  {
+                    content: [
+                      {
+                        type: "output_text",
+                        text: parts
+                          .filter((p) => !p.thought)
+                          .map((p) => p.text)
+                          .join(""),
+                      },
+                    ],
+                  },
+                ],
+              };
+            }
             if (data.status !== "completed")
               throw new Error(
                 `Provider output incomplete (${data.status || "unknown"}); not a valid Needs Information assessment.`,
@@ -179,7 +280,7 @@ export function makeAgent({
                 ...assessExtraction(r, extraction),
                 raw_output: raw,
                 provider_response_id: data.id || null,
-                provider_model: data.model || env.OPENAI_MODEL,
+                provider_model: data.model || model,
                 usage: data.usage || null,
               };
             } catch (err) {
@@ -207,7 +308,7 @@ export function makeAgent({
           emit({ event: "item", result });
         }
       };
-      await Promise.all([work(), work()]);
+      await Promise.all(gemini ? [work()] : [work(), work()]);
       const completed = {
         event: "completed",
         run_id: run.run_id,
