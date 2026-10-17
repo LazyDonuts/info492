@@ -19,6 +19,16 @@ const citation = (props) =>
 const evidence = citation({
   value: { type: "string", enum: ["Yes", "No", "Unknown"] },
 });
+const narrativeEvidence = {
+  ...evidence,
+  properties: {
+    ...evidence.properties,
+    source: {
+      type: ["string", "null"],
+      enum: ["title", "description", "supporting_text", "review_context", null],
+    },
+  },
+};
 const flag = citation({ value: { type: "boolean" } });
 const quote = object({
   quote: string,
@@ -28,10 +38,13 @@ const mechanism = object({
   description: string,
   evidence: object(
     Object.fromEntries(
-      ["U", "A", "M", "X", "D", "B"].map((k) => [k, evidence]),
+      ["U", "A", "M", "X", "D", "B"].map((k) => [
+        k,
+        k === "A" ? evidence : narrativeEvidence,
+      ]),
     ),
   ),
-  bounded_clarification: evidence,
+  bounded_clarification: narrativeEvidence,
   contradictions: {
     type: "array",
     items: object({

@@ -8,3 +8,5 @@ The client previews the exact records. The provider also receives the frozen ins
 
 
 Gemini adapter addition October 17: the same rubric/extraction prompt and schema now support stateless Google generateContent. Provider ID, concurrency, pacing and thinking budget are captured in the config hash. Gemini settings: one item at a time, 13-second minimum start interval, 7000 output-token cap, provider-default thinking for 3.1 Flash-Lite (thinkingBudget=0 only for 2.5 IDs), no explicit temperature, no tools/history. This changes implementation/config hashes; freeze a new study after changing providers. The OpenAI store flag is not claimed for Gemini. Returned source evidence is validated locally for either provider.
+
+Prompt extract-1.1 adds an explicit exact-field citation contract and schema enums for source names. This addresses human-readable source labels and JSON-fragment quotes observed during synthetic development. The normative rubric is unchanged; output-schema and prompt hashes change. A new frozen evaluation study is required after this change.
