@@ -37,8 +37,11 @@ test("reported compound exposure can prioritize human verification but never cla
   assert.equal(v.working_basis, "submission_rules_not_ai");
   assert.equal(v.provisional, true);
   assert.equal(
-    workingAssessment(missing, { ...r, on_critical_path_at_submittal: "" })
-      .priority,
+    workingAssessment(missing, {
+      ...r,
+      contractor_claims_schedule_impact: "",
+      on_critical_path_at_submittal: "",
+    }).priority,
     "P1",
   );
 });
@@ -94,4 +97,22 @@ test("validated partial exposure supports provisional P0 with explicit remaining
   assert.equal(v.priority, "P0");
   assert.equal(v.working_basis, "validated_partial_evidence");
   assert.equal(v.provisional, true);
+});
+
+test("urgency alone is not P0; financial-plus-urgency and schedule-plus-critical signals are explicit provisional routes", () => {
+  const r = { ...packet(1), contractor_priority_flag: "Urgent" };
+  assert.equal(workingAssessment(missing, r).priority, "P1");
+  assert.equal(
+    workingAssessment(missing, { ...r, contractor_claims_cost_impact: "Y" })
+      .priority,
+    "P0",
+  );
+  assert.equal(
+    workingAssessment(missing, {
+      ...r,
+      contractor_claims_schedule_impact: "Y",
+      on_critical_path_at_submittal: "Y",
+    }).priority,
+    "P0",
+  );
 });

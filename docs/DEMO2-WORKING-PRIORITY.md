@@ -6,7 +6,7 @@ Rules, applied without mutating original evidence results:
 
 1. A v0.3 assigned P0/P1/P2 is retained. Resolved/out-of-scope exclusions remain excluded.
 2. Validated partial U/A/M/X Yes with no known effective protection gives provisional P0 for urgent human verification of the remaining opportunity/protection.
-3. If the submission reports all three of cost impact, schedule impact and critical-path involvement, give provisional P0. These are reported indicators, not proof of additional cost. Contractor urgency alone is insufficient.
+3. If the submission reports cost impact together with schedule impact, critical-path involvement or an urgent/expedited request, give provisional P0. Reported schedule impact together with critical-path involvement also gives provisional P0 for early verification. These are reported indicators, not proof of additional cost. Contractor urgency alone is insufficient.
 4. A described clarification with explicit negative cost, schedule and critical-path flags gets provisional P2, with a missing-information flag and instructions to verify the submitter's claims.
 5. Other incomplete cases default to provisional P1. Missing information alone does not justify low priority.
 
@@ -16,4 +16,4 @@ The raw result's assessment_state and priority are retained in application state
 
 All provisional suggestions require GC review through the existing contractual process. No design, work, cost or time authorization is created. This policy does not amend the Google Doc rubric automatically; any formal evaluation change must be frozen prospectively with a matching human answer key.
 
-Validation: six new unit scenarios cover missing-data defaults, compound reported exposure, explicit-negative clarification routing, retained errors/no invalid-output reuse, confirmed/excluded preservation and validated partial exposure. Total 62 tests passed; build passed. Browser transport fixtures verified combined working grades/flags, error detail preservation and filtering. These fixture checks are not live AI evaluation scores. Homepage navigation items measured equal 44px height and an identical center line in the browser.
+Validation: seven new unit scenarios cover missing-data defaults, compound reported exposure, explicit-negative clarification routing, retained errors/no invalid-output reuse, confirmed/excluded preservation and validated partial exposure. Total 63 tests passed; build passed. Browser transport fixtures verified combined working grades/flags, error detail preservation and filtering. These fixture checks are not live AI evaluation scores. Homepage navigation items measured equal 44px height and an identical center line in the browser.

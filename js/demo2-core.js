@@ -309,11 +309,14 @@ export function workingAssessment(result, record) {
       ["U", "A", "M", "X"].every((k) => m.evidence[k].value === "Yes") &&
       m.evidence.B.value !== "Yes",
   );
-  const reportedExposure = [
-    record.contractor_claims_cost_impact,
-    record.contractor_claims_schedule_impact,
-    record.on_critical_path_at_submittal,
-  ].every(yes);
+  const cost = yes(record.contractor_claims_cost_impact);
+  const schedule = yes(record.contractor_claims_schedule_impact);
+  const critical = yes(record.on_critical_path_at_submittal);
+  const urgent = /^(urgent|expedite|expedited)$/i.test(
+    String(record.contractor_priority_flag || "").trim(),
+  );
+  const reportedExposure =
+    (cost && (schedule || critical || urgent)) || (schedule && critical);
   const reportedClarification =
     [
       record.contractor_claims_cost_impact,
@@ -329,7 +332,7 @@ export function workingAssessment(result, record) {
   const basis = supportedExposure
     ? "Cited cost exposure is time-sensitive; verify the remaining decision opportunity and protection."
     : reportedExposure
-      ? "The submission reports cost impact, schedule impact and critical-path involvement. Verify these reported signals urgently; they are not proof of financial risk."
+      ? `Reported signals: ${[cost && "cost impact", schedule && "schedule impact", critical && "critical-path involvement", urgent && "urgent/expedited request"].filter(Boolean).join(", ")}. Multiple indicators warrant early human verification; they are not proof of financial risk.`
       : reportedClarification
         ? "The item is described as a clarification and the submitter reports no cost, schedule or critical-path impact. Confirm those claims before treating it as low priority."
         : "P1 is the working review default while essential facts are unresolved; missing evidence does not establish low risk.";
