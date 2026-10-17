@@ -79,7 +79,7 @@ export function makeAgent({
     missing.push(
       gemini ? "GEMINI_MODEL (valid Gemini model ID)" : "OPENAI_MODEL",
     );
-  if (!(env.DEMO2_ACCESS_TOKEN?.length >= 32))
+  if (env.DEMO2_PUBLIC_DEMO !== "true" && !(env.DEMO2_ACCESS_TOKEN?.length >= 32))
     missing.push("DEMO2_ACCESS_TOKEN (at least 32 characters)");
   const configured = missing.length === 0;
   return {

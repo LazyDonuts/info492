@@ -27,5 +27,7 @@ services:
         value: "13000"
       - key: GEMINI_API_KEY
         sync: false
+      - key: DEMO2_PUBLIC_DEMO
+        value: "true"
       - key: DEMO2_ACCESS_TOKEN
         generateValue: true
