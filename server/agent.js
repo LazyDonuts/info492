@@ -218,12 +218,17 @@ export function makeAgent({
                   : "Provider quota/rate limit (HTTP 429). Check API billing and project limits before retrying.";
               throw new Error(providerBlocked);
             }
-            if (!response.ok)
-              throw new Error(
-                [401, 403].includes(response.status)
+            if (!response.ok) {
+              const failure = [401, 403].includes(response.status)
                   ? "Provider authentication failed. Ask the operator to check server credentials."
-                  : `Provider request failed (HTTP ${response.status}).`,
-              );
+                  : response.status === 404
+                    ? "Configured provider model is unavailable (HTTP 404). Operator must select an available model before retrying."
+                    : `Provider request failed (HTTP ${response.status}).`,
+                error = new Error(failure);
+              if ([401, 403, 404].includes(response.status))
+                providerBlocked = failure;
+              throw error;
+            }
             let data = await response.json();
             if (gemini) {
               const candidate = data.candidates?.[0];

@@ -62,6 +62,41 @@ export async function createServer({
     try {
       if (path === "/api/config" && req.method === "GET")
         return json(200, agent.config());
+      // Operator metadata lookup: no prompts, keys or provider response bodies
+      // are returned. Use it to select an actually available Gemini model.
+      if (path === "/api/models" && req.method === "GET") {
+        if (env.AI_PROVIDER !== "gemini" || !env.GEMINI_API_KEY)
+          return json(503, { error: "Gemini configuration required." });
+        const token = Buffer.from(req.headers.authorization || "");
+        const expected = Buffer.from(`Bearer ${env.DEMO2_ACCESS_TOKEN || ""}`);
+        if (
+          !(env.DEMO2_ACCESS_TOKEN?.length >= 32) ||
+          token.length !== expected.length ||
+          !timingSafeEqual(token, expected)
+        )
+          return json(401, { error: "Team access token required." });
+        const response = await providerFetch(
+          "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000",
+          {
+            headers: { "x-goog-api-key": env.GEMINI_API_KEY },
+            signal: AbortSignal.timeout(15000),
+          },
+        );
+        if (!response.ok)
+          return json(502, {
+            error: `Gemini model discovery failed (HTTP ${response.status}).`,
+          });
+        const data = await response.json();
+        return json(200, {
+          models: (data.models || [])
+            .filter((m) =>
+              m.supportedGenerationMethods?.includes("generateContent"),
+            )
+            .map((m) => m.name)
+            .filter((name) => /^models\/gemini-[A-Za-z0-9.-]+$/.test(name)),
+          truncated: !!data.nextPageToken,
+        });
+      }
       if (path === "/api/assess" && req.method === "POST") {
         const current = Date.now();
         if (current - windowStart > 3600000) {
