@@ -66,7 +66,7 @@ export function makeAgent({
     store: gemini
       ? "Stateless generateContent; Google data terms apply"
       : false,
-    thinking_budget: gemini ? 0 : "not set",
+    thinking_budget: gemini && model?.startsWith("gemini-2.5-") ? 0 : "not set",
     item_concurrency: gemini ? 1 : 2,
     min_request_interval_ms: spacing,
     item_timeout_ms: 45000,
@@ -172,7 +172,9 @@ export function makeAgent({
                           maxOutputTokens: 7000,
                           responseMimeType: "application/json",
                           responseJsonSchema: EXTRACTION_SCHEMA,
-                          thinkingConfig: { thinkingBudget: 0 },
+                          ...(model.startsWith("gemini-2.5-")
+                            ? { thinkingConfig: { thinkingBudget: 0 } }
+                            : {}),
                         },
                       }
                     : {
