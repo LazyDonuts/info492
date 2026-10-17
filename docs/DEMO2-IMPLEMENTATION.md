@@ -14,9 +14,9 @@ Implementation October 16–17, 2026; final regression checks October 17 (local 
 
 ## External blockers
 
-**Live provider validation is NOT complete.** OPENAI_API_KEY, OPENAI_MODEL and a team token are not configured in the environment. Set them privately as documented. The backend returns explicit configuration/503 errors; the Analyze button remains disabled when unconfigured. Unit and browser transport fixtures never establish a real model call.
+**Live provider status (supersedes initial credential blocker):** the hosted service now selects Google Gemini, with a privately configured GEMINI_API_KEY and team token. Unit/transport fixtures remain distinct from actual provider calls. See the deployment report for measured live-integration status; formal reference-based evaluation is still pending.
 
-**Public AI endpoint is NOT deployed.** GitHub Pages cannot run the Node service. Deploy one HTTPS Node instance with secret environment configuration and CORS allowlist, then enter its origin in Demo 2. No new infrastructure account, paid plan, provider entitlement or secret was assumed. Memory-based limits are pilot controls, not durable/distributed billing caps.
+**Public AI endpoint deployed:** https://info492-demo2.onrender.com, one free Oregon Node instance in the user-confirmed My Workspace. Pages uses this HTTPS origin. Secrets stay in the service environment. Explicit Gemini selection has no automatic OpenAI or paid-model fallback. Account free-tier eligibility and quota must be maintained by the operator. Memory-based limits are pilot controls, not durable/distributed billing caps.
 
 **Formal course evaluation is NOT run.** Ten real submission packets (or explicit synthetic permission), two independent humans and adjudication, threshold approval and team freeze remain outstanding. Existing synthetic source labels are not used as an answer key. GC validation and actual savings remain unmeasured. The spec's deadline should be confirmed in Canvas.
 
@@ -24,7 +24,7 @@ Implementation October 16–17, 2026; final regression checks October 17 (local 
 
 Commands actually executed: `npm test`, `npm run build`, `node --check` for the new browser/server entrypoints, `git diff --check`. The static validator checks all four HTML pages and their local assets/links and still reconciles 1,370 source RFIs.
 
-Final automated result: **50 tests passed, 0 failed** (including the original 24 Demo 1 tests and menu component tests). Coverage includes prior Demo 1 dataset/filter/join tests; all 729 U/A/M/X/D/B combinations; normative critical/protection/unknown/Low/contradiction/multiple-mechanism/scope/safety branches; CSV/JSON parsing and schema/ID/size validation; submission-only projection; exact citation/schema validation; legitimate short contradiction excerpts versus invalid flag-only cost evidence; prevention of fabricated deadline dates; deterministic sorting; scoring and formula-safe exports; mocked real-adapter request shape; partial provider failure, quota, missing config, config changes, key leakage protection; HTTP auth/CORS/static allowlist; rate limits; request-size limits and simultaneous-batch race prevention.
+Final automated result: **56 tests passed, 0 failed** (including the original 24 Demo 1 tests and menu component tests). Coverage includes prior Demo 1 dataset/filter/join tests; all 729 U/A/M/X/D/B combinations; normative critical/protection/unknown/Low/contradiction/multiple-mechanism/scope/safety branches; CSV/JSON parsing and schema/ID/size validation; submission-only projection; exact citation/schema validation; legitimate short contradiction excerpts versus invalid flag-only cost evidence; prevention of fabricated deadline dates; deterministic sorting; scoring and formula-safe exports; mocked real-adapter request shape; partial provider failure, quota, missing config, config changes, key leakage protection; HTTP auth/CORS/static allowlist; rate limits; request-size limits and simultaneous-batch race prevention.
 
 The provider transport in integration tests is mocked and explicitly named. There is no configured lint/type-check tool in the original plain-JavaScript repository; no unsupported claim of lint or TypeScript passes.
 
@@ -57,3 +57,7 @@ New tests: `tests/demo-menu.test.js`, `tests/demo2-core.test.js`, `tests/demo2-s
 ## October 17 deployment preparation
 
 User authorized live integration and publication separately from formal evaluation. Added a Render free-service Blueprint, public origin-only frontend configuration, 75-second cold-start connection check and tested Render same-origin CORS handling. Real provider credentials and a connected Render workspace are still required. Publication state is tracked in docs/DEMO2-DEPLOYMENT.md.
+
+## Gemini adapter refinement
+
+Added stateless Google generateContent support with the same input whitelist, extraction schema and deterministic rubric. Provider/model/pacing/thinking settings are included in frozen metadata. Protected /api/models supports operator discovery without returning credentials. Google errors, unavailable models, incomplete/safety-blocked responses and invalid evidence fail explicitly. A development format failure led to prompt extract-1.1 and schema-enumerated source field names; no citation validator or priority rule was weakened. Known evidence values must still have actual exact excerpts; unsupported values remain Unknown. Tests now include both provider payloads, safe quota stopping, completion handling, model metadata and authenticated model discovery. Demo 1 files/data/rules remain unchanged.

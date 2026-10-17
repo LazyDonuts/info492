@@ -149,3 +149,50 @@ test("Gemini config requires its own key and model; provider/model changes alter
     false,
   );
 });
+
+test("operator model discovery requires auth and returns only supported model IDs", async (t) => {
+  const { createServer } = await import("../server/index.js");
+  let calls = 0;
+  const server = await createServer({
+    env,
+    providerFetch: async (url, opts) => {
+      calls++;
+      assert.equal(
+        url,
+        "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000",
+      );
+      assert.equal(opts.headers["x-goog-api-key"], env.GEMINI_API_KEY);
+      return Response.json({
+        models: [
+          {
+            name: "models/gemini-3.8-flash",
+            supportedGenerationMethods: ["generateContent"],
+            privateField: "hidden",
+          },
+          {
+            name: "models/embedding",
+            supportedGenerationMethods: ["embedContent"],
+          },
+        ],
+      });
+    },
+  });
+  server.listen(0, "127.0.0.1");
+  await new Promise((r) => server.once("listening", r));
+  t.after(() => {
+    server.closeAllConnections();
+    server.close();
+  });
+  const base = `http://127.0.0.1:${server.address().port}`;
+  assert.equal((await fetch(base + "/api/models")).status, 401);
+  assert.equal(calls, 0);
+  const data = await fetch(base + "/api/models", {
+    headers: { Authorization: `Bearer ${env.DEMO2_ACCESS_TOKEN}` },
+  }).then((r) => r.json());
+  assert.deepEqual(data, {
+    models: ["models/gemini-3.8-flash"],
+    truncated: false,
+  });
+  assert.equal(calls, 1);
+  assert.ok(!JSON.stringify(data).includes("hidden"));
+});

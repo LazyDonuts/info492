@@ -283,7 +283,10 @@ test("deadline citations cannot promote submission timestamps into decision dead
     quote: "2026-10-01",
     source: "submitted_date",
   };
-  assert.throws(() => validateExtraction(x, packet(1)), /narrative/);
+  assert.throws(
+    () => validateExtraction(x, packet(1)),
+    /narrative|invalid enum/,
+  );
   x.decision_date = {
     value: "2026-10-02",
     quote: "Release date: 2026-10-02.",
@@ -313,5 +316,8 @@ test("short flag excerpts can document contradictions but cannot establish monet
     quote: "Y",
     source: "contractor_claims_cost_impact",
   };
-  assert.throws(() => validateExtraction(x, r), /narrative evidence/);
+  assert.throws(
+    () => validateExtraction(x, r),
+    /narrative evidence|invalid enum/,
+  );
 });
