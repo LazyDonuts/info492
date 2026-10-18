@@ -45,6 +45,13 @@ test('public API analyzes without authorization, keeps admin protected and rejec
   assert.equal(c.access.token_required,false);
   assert.equal((await fetch(base+'/api/models')).status,401);
   const opts = {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({records:Array.from({length:10},(_,i)=>packet(i+1)), config_hash:c.metadata.config_hash})};
+  const bad = {...opts, body:JSON.stringify({records:[packet(1)], config_hash:c.metadata.config_hash})};
+  assert.equal((await fetch(base+'/api/assess',bad)).status,400);
+  const stale = {...opts,body:JSON.stringify({records:[packet(1),packet(2)],config_hash:'stale'})};
+  assert.equal((await fetch(base+'/api/assess',stale)).status,409);
+  const afterInvalid=await fetch(base+'/api/config').then(r=>r.json());
+  assert.equal(afterInvalid.access.limits.daily_batches_remaining,10);
+  assert.equal(calls,0);
   const res = await fetch(base+'/api/assess',opts);
   assert.equal(res.status,200);
   const events = (await res.text()).trim().split('\n').map(JSON.parse);

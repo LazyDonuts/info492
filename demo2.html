@@ -11,9 +11,9 @@
     <link rel="stylesheet" href="css/style.css?v=20261007-2" />
     <link rel="stylesheet" href="css/dashboard.css?v=20261012-2" />
     <link rel="stylesheet" href="css/demo-menu.css?v=20261017-align" />
-    <link rel="stylesheet" href="css/demo2.css?v=20261017-batch-range" />
+    <link rel="stylesheet" href="css/demo2.css?v=20261018-refine" />
     <script type="module" src="js/demo-menu.js?v=20261016"></script>
-    <script type="module" src="js/demo2.js?v=20261017-batch-range"></script>
+    <script type="module" src="js/demo2.js?v=20261018-refine"></script>
   </head>
   <body class="dash agent-page">
     <a class="skip-link" href="#workspace">Skip to agent</a>
@@ -82,6 +82,7 @@
             material. Free quota is limited; no paid provider is used
             automatically.
           </p>
+          <p id="allowance-status" aria-live="polite"></p><button id="refresh-allowance" type="button">Refresh allowance</button>
           <p id="connection-state">Checking backend availability…</p>
         </div>
         <details id="connection-settings">
@@ -117,6 +118,9 @@
           </p>
         </details>
       </section>
+      <p class="quiet">Development uses working triage v0.4 (provisional grades where evidence is incomplete). Evaluation lets you freeze v0.3 evidence criteria or v0.4 working triage before running. Prepare human labels for the selected policy; AI failures always remain failures. <a href="docs/DEMO2-WORKING-PRIORITY.md">Read the policy</a></p>
+      <p id="recovery-status" role="status">Development inputs and completed results can recover after refreshing this tab. Export before closing.</p>
+      <button id="clear-recovery" type="button">Clear saved recovery copy</button>
       <div class="input-layout">
         <section class="card input-panel" aria-labelledby="input-title">
           <div class="step-heading">
@@ -297,7 +301,7 @@
               id="study-provenance"
               placeholder="Document provenance or permission reference"
               maxlength="1000" /></label
-          ><label
+          ><label>Evaluation policy (freeze before running)<select id="study-policy"><option value="v0.3">v0.3 · evidence decision</option><option value="working-triage-0.4">v0.4 · working review priority</option></select></label><label
             >Success target (set before running)<input
               id="study-threshold"
               type="number"
@@ -319,7 +323,7 @@
           ><button id="eval-baseline" disabled>Run 3 · keyword baseline</button
           ><button id="new-study" hidden>Start a new study</button>
         </div>
-        <div id="evaluation-results" aria-live="polite"></div>
+        <p id="stability-results"></p><div id="evaluation-results" aria-live="polite"></div>
         <label class="upload-label"
           >Import human answer key after all runs<input
             id="answer-key"
@@ -363,8 +367,11 @@
             </h2>
             <p id="run-caption"></p>
           </div>
+          <button id="retry-failed" hidden>Retry failed RFIs only</button>
+          <button id="export-run-json">Export run JSON</button>
           <button id="export-results">Export results CSV</button>
         </div>
+        <details id="retry-preview" hidden><summary>Exact failed-only retry payload</summary><p>Only these failed records will be resent. Successful records remain unchanged. A retry uses one batch of the shared allowance.</p><pre id="retry-payload"></pre></details>
         <div id="result-cards" class="agent-metrics"></div>
         <div class="card results-panel">
           <div class="result-tools">

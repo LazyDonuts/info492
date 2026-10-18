@@ -44,16 +44,16 @@ export function projectDataset(rows) {
     ),
   );
 }
-export function validateRecords(rows, { exactlyTen = false } = {}) {
+export function validateRecords(rows, { exactlyTen = false, minimum = 2 } = {}) {
   if (
     !Array.isArray(rows) ||
-    rows.length < 2 ||
+    rows.length < minimum ||
     rows.length > 10 ||
     (exactlyTen && rows.length !== 10)
   )
     throw new Error(exactlyTen
       ? "Provide exactly 10 RFI records for evaluation. No records were omitted."
-      : "Provide 2–10 RFI records. No records were omitted.");
+      : `Provide ${minimum}–10 RFI records. No records were omitted.`);
   const ids = new Set();
   return rows.map((row, index) => {
     if (!row || typeof row !== "object" || Array.isArray(row))
@@ -239,7 +239,8 @@ export function assessExtraction(record, x) {
       : decision.priority
         ? "assigned"
         : "needs_information";
-  const missing = [...new Set(x.missing_information)];
+  const requiredMissing = [];
+  const missing = requiredMissing;
   const questions = {
     U: "What question remains unresolved at this decision time?",
     A: "Which specific work, commitment or paid resource is affected?",
@@ -268,7 +269,9 @@ export function assessExtraction(record, x) {
     potential_cost_mechanism: x.mechanisms
       .map((m) => m.description)
       .join(" · "),
-    missing_information: [...new Set(missing)],
+    required_missing_information: [...new Set(requiredMissing)],
+    suggested_followups: [...new Set(x.missing_information)],
+    missing_information: [...new Set([...missing, ...x.missing_information])],
     safety_escalation: x.safety.value,
     safety_evidence: x.safety,
     expedited_verification: x.expedited_verification.value,
@@ -293,6 +296,7 @@ export function disposition(r) {
 // Development working queue, requested by the team. Never replaces v0.3
 // evidence decisions or the frozen evaluation metric.
 export function workingAssessment(result, record) {
+  if (result.not_attempted) return {...result, provisional:false, ai_review_failed:true, needs_information_flag:false};
   if (
     result.assessment_state === "excluded" ||
     result.assessment_state === "assigned"
@@ -468,4 +472,28 @@ export async function fingerprint(value) {
   return [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))]
     .map((n) => n.toString(16).padStart(2, "0"))
     .join("");
+}
+
+// Evaluate the selected policy without counting transport/model failures as success.
+export function evaluationResults(run, policy = "v0.3") {
+  if (policy !== "working-triage-0.4" || run.kind === "baseline") return run.results;
+  return run.results.map(r => r.assessment_state === "processing_error" ? r :
+    workingAssessment(r, (run.records || []).find(x=>x.rfi_id===r.rfi_id) || {}));
+}
+export function compareRuns(a, b) {
+  const byId = new Map(b.results.map(r=>[r.rfi_id,r]));
+  const changed = [];
+  let eligible=0, priorityMatches=0, missingMatches=0;
+  for(const r of a.results) {
+    const other=byId.get(r.rfi_id);
+    if(!other || r.assessment_state==='processing_error' || other.assessment_state==='processing_error') continue;
+    eligible++;
+    const samePriority=disposition(r)===disposition(other);
+    const normalized=x=>[...new Set((x.missing_information||[]).map(q=>q.trim().toLowerCase()))].sort().join('\n');
+    const sameMissing=normalized(r)===normalized(other);
+    if(samePriority) priorityMatches++;
+    if(sameMissing) missingMatches++;
+    if(!samePriority || !sameMissing) changed.push(r.rfi_id);
+  }
+  return {eligible, priorityMatches, missingMatches, changed};
 }

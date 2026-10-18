@@ -1,3 +1,4 @@
+import { snapshotStore, mergeRetry } from "./demo2-recovery.js";
 import { teamTokenStorage } from "./demo2-auth.js";
 import { parseCSV } from "./rfi-data.js";
 import {
@@ -8,13 +9,15 @@ import {
   sortAssessments,
   disposition,
   workingAssessment,
+  evaluationResults,
+  compareRuns,
   baseline,
   parseAnswerKey,
   score,
   csv,
   fingerprint,
   MAX_BYTES,
-} from "./demo2-core.js?v=20261017-batch-range";
+} from "./demo2-core.js?v=20261018-refine";
 const $ = (id) => document.getElementById(id);
 const esc = (value) =>
   String(value ?? "").replace(
@@ -39,6 +42,30 @@ const state = {
   resultRun: null,
   reviews: {},
 };
+function savedWorkspace() { return snapshotStore(() => window.sessionStorage, endpoint()); }
+function persistWorkspace() {
+  if (initializing || state.study || state.mode !== "demo") return;
+  let saved = false;
+  try { saved = savedWorkspace().save({selected:state.selected, source:state.source, resultRun:state.resultRun, reviews:state.reviews}); } catch { /* Invalid endpoint: do not persist under another backend. */ }
+  $("recovery-status").textContent = saved
+    ? "Development work saved for refresh recovery in this tab (24 hours). Export before closing the tab."
+    : "Browser recovery unavailable or full. Export results before leaving.";
+}
+async function refreshAllowance() {
+  try {
+    const c = await fetch(endpoint()+"/api/config", {cache:"no-store",signal:AbortSignal.timeout(75000)}).then(r=>r.json());
+    const limits = c.access?.limits;
+    $("allowance-status").textContent = limits
+      ? `Shared allowance: ${limits.daily_batches_remaining}/${limits.daily_batch_limit} batches left today; ${limits.hourly_batches_remaining}/${limits.hourly_batch_limit} this hour. Day resets at ${new Date(limits.resets_at).toLocaleString()}. Counts reset if the free server restarts.`
+      : "Team connection; public demo allowance does not apply.";
+  } catch { $("allowance-status").textContent = "Allowance unavailable. Check connection before trying again."; }
+}
+$("refresh-allowance").onclick = refreshAllowance;
+$("clear-recovery").onclick = () => {
+  savedWorkspace().clear();
+  $("recovery-status").textContent = "Saved recovery copy cleared. Current results remain available for export.";
+};
+let initializing = true;
 let detailOpener;
 let detailId;
 const notice = (message, error = false) => {
@@ -123,6 +150,7 @@ async function connect() {
     )
       throw new Error("Backend contract/rubric mismatch.");
     state.config = c;
+    refreshAllowance();
     const publicAccess = c.access?.token_required === false;
     for (const id of ["token-field", "token-preferences", "token-storage-status", "token-handling"])
       $(id).hidden = publicAccess;
@@ -141,7 +169,7 @@ async function connect() {
   controls();
 }
 function controls() {
-  const locked = state.busy || !!state.study;
+  const locked = initializing || state.busy || !!state.study;
   for (const id of [
     "selector-search",
     "random-seed",
@@ -179,6 +207,8 @@ function controls() {
     !state.busy;
   $("analyze").disabled = !ready || state.mode !== "demo";
   $("analyze").innerHTML = `Analyze ${state.selected.length} RFIs <span aria-hidden="true">↗</span>`;
+  $("retry-failed").disabled = locked || !$("consent").checked || !state.config?.configured;
+  $("retry-failed").hidden = state.resultRun?.kind !== "development" || !state.results.some(r => r.assessment_state === "processing_error");
   $("freeze").disabled = !ready || state.selected.length !== 10 || !!state.study;
   $("consent").disabled = locked;
   $("eval-run1").disabled =
@@ -238,6 +268,7 @@ function selectionChanged() {
       : "Uploaded submission packet · provenance supplied by user";
   renderCandidates();
   controls();
+  persistWorkspace();
 }
 function source(path) {
   if (state.study || state.busy) return;
@@ -368,16 +399,18 @@ function setMode(mode) {
   $("selected-count").textContent = `${state.selected.length} selected · minimum 2, maximum 10${mode === "eval" ? " · evaluation requires exactly 10" : ""}`;
   controls();
 }
-async function analyze(slot = null) {
+async function analyze(slot = null, retry = false) {
+  const previous = retry ? structuredClone(state.resultRun) : null;
   if (state.busy) return;
   let records;
   try {
     records = validateRecords(
-      state.study ? state.study.records : state.selected,
-      { exactlyTen: !!state.study },
+      retry ? previous.records.filter(r => previous.results.some(x => x.rfi_id === r.rfi_id && x.assessment_state === "processing_error")) : state.study ? state.study.records : state.selected,
+      { exactlyTen: !!state.study, minimum: retry ? 1 : 2 },
     );
     if (!state.config?.configured)
       throw new Error("Backend is not configured.");
+    if (retry && previous.metadata.config_hash !== state.config.metadata.config_hash) throw new Error("Model configuration changed. Start a new analysis instead of merging old results.");
     if (!$("consent").checked)
       throw new Error("Review and confirm the exact payload first.");
   } catch (e) {
@@ -398,6 +431,7 @@ async function analyze(slot = null) {
     started_at: started,
     metadata: state.config.metadata,
     kind: slot === null ? "development" : `ai-${slot + 1}`,
+    policy: slot === null ? "working-triage-0.4" : state.study.policy,
     results: [],
     received_count: 0,
   };
@@ -427,6 +461,7 @@ async function analyze(slot = null) {
       body: JSON.stringify({
         records,
         config_hash: state.config.metadata.config_hash,
+        ...(retry ? {retry_failed:true} : {}),
       }),
       signal: AbortSignal.timeout(600000),
     });
@@ -523,10 +558,12 @@ async function analyze(slot = null) {
           assessment_state: "processing_error",
           priority: null,
           error: `No validated assessment received: ${e.message}`,
+          not_attempted: true,
         });
   } finally {
     run.completed_at ||= new Date().toISOString();
     run.records = structuredClone(records);
+    if (retry) run = mergeRetry(previous, run);
     state.results = run.results;
     state.resultRun = run;
     if (slot !== null) {
@@ -539,11 +576,14 @@ async function analyze(slot = null) {
       : "Request stopped. Missing outputs are labeled processing errors.";
     controls();
     renderResults();
+    persistWorkspace();
+    refreshAllowance();
   }
 }
+$("retry-failed").onclick = () => analyze(null, true);
 $("analyze").onclick = () => analyze();
 function displayedResults() {
-  if (state.resultRun?.kind !== "development") return state.results;
+  if (state.resultRun?.kind !== "development") return evaluationResults(state.resultRun, state.resultRun?.policy);
   const records = state.resultRun.records || state.selected;
   return state.results.map((r) =>
     workingAssessment(r, records.find((x) => x.rfi_id === r.rfi_id) || {}),
@@ -552,6 +592,9 @@ function displayedResults() {
 function renderResults() {
   $("results").hidden = !state.resultRun;
   if (!state.resultRun) return;
+  const retryRecords = (state.resultRun.records || state.selected).filter(r => state.results.some(x=>x.rfi_id===r.rfi_id && x.assessment_state==="processing_error"));
+  $("retry-preview").hidden = state.resultRun.kind !== "development" || !retryRecords.length;
+  $("retry-payload").textContent = JSON.stringify(retryRecords, null, 2);
   const counts = {
     P0: 0,
     P1: 0,
@@ -560,7 +603,7 @@ function renderResults() {
     Excluded: 0,
     "Processing error": 0,
   };
-  const working = state.resultRun.kind === "development";
+  const working = state.resultRun.kind === "development" || state.resultRun.policy === "working-triage-0.4";
   const visibleResults = displayedResults();
   visibleResults.forEach((r) => {
     if (r.priority) counts[r.priority]++;
@@ -572,7 +615,7 @@ function renderResults() {
     )
       counts["Needs Information"]++;
     if (
-      working ? r.ai_review_failed : r.assessment_state === "processing_error"
+      working ? (r.ai_review_failed || r.assessment_state === "processing_error") : r.assessment_state === "processing_error"
     )
       counts["Processing error"]++;
   });
@@ -643,10 +686,10 @@ function renderResults() {
             [
               "processing_error",
               "AI check failed · input-rule working priorities",
-              (r) => r.ai_review_failed,
+              (r) => r.ai_review_failed || r.assessment_state === "processing_error",
             ],
           ]
-        : strictGroups.filter(([key]) => ["ranked", "excluded"].includes(key));
+        : strictGroups.map(([key,title,predicate]) => key === "processing_error" ? [key,"No AI assessment received · retry required",r=>r.not_attempted || (state.resultRun.kind !== "development" && r.assessment_state === "processing_error")] : [key,title,predicate]).filter(([key]) => ["ranked", "excluded", "processing_error"].includes(key));
   $("result-filter").querySelector('[value="needs_information"]').textContent =
     working ? "Needs information · flagged" : "Needs Information · unranked";
   $("result-filter").querySelector('[value="processing_error"]').textContent =
@@ -704,7 +747,7 @@ function openDetail(id) {
      )
      .join("") || ""
  }
- <section><h3>Potential Impact</h3><p>${esc(result.potential_cost_mechanism || "Not assessed. No dollar estimate has been generated.")}</p><p>Decision date: ${esc(result.decision_date || "Not established")}</p>${result.decision_date ? citation(result.decision_date_evidence) : ""}${(result.schedule_considerations || []).map(citation).join("")}${result.safety_escalation ? citation(result.safety_evidence) : ""}</section><section><h3>Missing Information</h3>${result.missing_information?.length ? `<ul>${result.missing_information.map((q) => `<li>${esc(q)}</li>`).join("")}</ul>` : "<p>No follow-up questions returned. This is not a guarantee of completeness.</p>"}</section><section><h3>GC Review</h3><p>${esc(result.suggested_gc_review_action || "No valid assessment. Check the processing error before retrying.")}</p><p>Supplied reviewer: ${esc(record.assigned_reviewer || "Not recorded; GC to verify routing.")}</p>${result.expedited_verification ? citation(result.expedited_evidence) : ""}</section><details><summary>Run and raw output</summary><pre>${esc(JSON.stringify({ metadata: state.resultRun.metadata, raw_output: result.raw_output, provider_response_id: result.provider_response_id }, null, 2))}</pre></details>`;
+ <section><h3>Potential Impact</h3><p>${esc(result.potential_cost_mechanism || "Not assessed. No dollar estimate has been generated.")}</p><p>Decision date: ${esc(result.decision_date || "Not established")}</p>${result.decision_date ? citation(result.decision_date_evidence) : ""}${(result.schedule_considerations || []).map(citation).join("")}${result.safety_escalation ? citation(result.safety_evidence) : ""}</section><section><h3>Evidence completeness</h3><p>Required checks are derived from Unknown evidence fields. Additional model suggestions may vary between runs.</p>${result.required_missing_information?.length ? `<h4>Required evidence checks</h4><ul>${result.required_missing_information.map(q=>`<li>${esc(q)}</li>`).join("")}</ul>` : "<p>No Unknown checks returned for extracted mechanisms. This does not prove every mechanism was identified.</p>"}<h3>All follow-up information</h3>${result.missing_information?.length ? `<ul>${result.missing_information.map((q) => `<li>${esc(q)}</li>`).join("")}</ul>` : "<p>No follow-up questions returned. This is not a guarantee of completeness.</p>"}</section><section><h3>GC Review</h3><p>${esc(result.suggested_gc_review_action || "No valid assessment. Check the processing error before retrying.")}</p><p>Supplied reviewer: ${esc(record.assigned_reviewer || "Not recorded; GC to verify routing.")}</p>${result.expedited_verification ? citation(result.expedited_evidence) : ""}</section><details><summary>Run and raw output</summary><pre>${esc(JSON.stringify({ metadata: state.resultRun.metadata, raw_output: result.raw_output, provider_response_id: result.provider_response_id }, null, 2))}</pre></details>`;
   if (state.study && state.runs.includes(state.resultRun)) {
     const review = state.reviews[state.resultRun.run_id]?.[id] || {};
     $("agent-detail-body").insertAdjacentHTML(
@@ -736,6 +779,7 @@ $("agent-detail-body").addEventListener("input", (e) => {
     reviewed: $("observer-reviewed").checked,
   };
   renderEvaluation();
+  persistWorkspace();
 });
 function reviewStats(run) {
   const reviews = Object.values(state.reviews[run.run_id] || {}).filter(
@@ -744,7 +788,7 @@ function reviewStats(run) {
   return {
     reviewed_cases: reviews.length,
     boundary_violations_observed: reviews.filter((r) => r.boundary).length,
-    boundary_review_complete: reviews.length === 10,
+    boundary_review_complete: reviews.length === run.results.length && run.results.length > 0,
   };
 }
 function download(name, value, type = "application/json") {
@@ -762,6 +806,8 @@ function exportRows(run) {
   return run.results.map((result) => ({
     run_id: run.run_id,
     run_kind: run.kind,
+    assessment_policy: run.policy || "v0.3",
+    source_run_id: result.source_run_id || run.run_id,
     execution_mode:
       run.kind === "baseline" ? "non_ai_baseline" : metadata?.execution_mode,
     study_execution_mode: metadata?.execution_mode,
@@ -770,14 +816,10 @@ function exportRows(run) {
     config_hash: metadata?.config_hash || "",
     observer_review: state.reviews[run.run_id]?.[result.rfi_id] || null,
     ...result,
-    ...(run.kind === "development"
+    ...((run.kind === "development" || run.policy === "working-triage-0.4")
       ? (() => {
-          const view = workingAssessment(
-            result,
-            (run.records || state.selected).find(
-              (r) => r.rfi_id === result.rfi_id,
-            ) || {},
-          );
+          const view = run.kind !== "development" && result.assessment_state === "processing_error"
+            ? result : workingAssessment(result, (run.records || state.selected).find(r=>r.rfi_id===result.rfi_id) || {});
           return {
             working_priority: view.priority,
             provisional: view.provisional,
@@ -792,6 +834,7 @@ function exportRows(run) {
       : {}),
   }));
 }
+$("export-run-json").onclick = () => download("demo2-development-run.json", JSON.stringify(state.resultRun, null, 2));
 $("export-results").onclick = () =>
   download(
     `demo2-${state.resultRun.run_id}.csv`,
@@ -833,6 +876,7 @@ $("freeze").onclick = async () => {
     const records = validateRecords(state.selected, { exactlyTen: true });
     state.study = {
       title,
+      policy: $("study-policy").value,
       provenance,
       threshold,
       track,
@@ -847,7 +891,7 @@ $("freeze").onclick = async () => {
       seed: state.source === "dataset" ? $("random-seed").value : null,
     };
     $("frozen-summary").textContent =
-      `Frozen ${state.study.frozen_at} · ${track} · input SHA-256 ${state.study.input_hash} · target ${threshold}/10. Input, configuration and threshold stay locked. Starting a new study clears tab memory; export first.`;
+      `Frozen ${state.study.frozen_at} · ${track} · input SHA-256 ${state.study.input_hash} · policy ${state.study.policy} · target ${threshold}/10. Input, configuration and threshold stay locked. Starting a new study clears tab memory; export first.`;
     notice(
       track === "synthetic_development"
         ? "Frozen development set. These are not formal real-item evaluation results."
@@ -864,6 +908,7 @@ $("eval-baseline").onclick = () => {
   if (state.runs.length !== 2 || state.busy) return;
   state.runs.push({
     kind: "baseline",
+    policy: state.study.policy,
     run_id: crypto.randomUUID(),
     completed_at: new Date().toISOString(),
     metadata: { baseline_version: "keyword-1" },
@@ -884,6 +929,10 @@ $("confirm-reset").onclick = () => {
   state.resultRun = null;
   $("key-text").value = "";
   $("answer-key").value = "";
+  const agreement = state.runs.length >= 2 ? compareRuns(state.runs[0],state.runs[1]) : null;
+  $("stability-results").textContent = agreement
+    ? agreement.eligible === 0 ? "Repeated-run consistency: N/A — no paired valid AI results. Failures remain in the accuracy denominator." : `Repeated-run check (raw v0.3 outputs): ${agreement.priorityMatches}/${agreement.eligible} matching decisions; ${agreement.missingMatches}/${agreement.eligible} matching missing-information lists. Failures excluded from agreement, retained in accuracy denominator. Changed cases: ${agreement.changed.join(", ") || "none"}. Matching text does not prove correctness.`
+    : "Complete two AI runs to compare priority and missing-information consistency.";
   $("evaluation-results").innerHTML = "";
   $("consent").checked = false;
   $("results").hidden = true;
@@ -895,15 +944,20 @@ $("confirm-reset").onclick = () => {
   $("study-title").focus();
 };
 function renderEvaluation() {
+  if (!state.study) return;
+  const agreement = state.runs.length >= 2 ? compareRuns(state.runs[0],state.runs[1]) : null;
+  $("stability-results").textContent = agreement
+    ? agreement.eligible === 0 ? "Repeated-run consistency: N/A — no paired valid AI results. Failures remain in the accuracy denominator." : `Repeated-run check (raw v0.3 outputs): ${agreement.priorityMatches}/${agreement.eligible} matching decisions; ${agreement.missingMatches}/${agreement.eligible} matching missing-information lists. Failures excluded from agreement, retained in accuracy denominator. Changed cases: ${agreement.changed.join(", ") || "none"}. Matching text does not prove correctness.`
+    : "Complete two AI runs to compare priority and missing-information consistency.";
   $("evaluation-results").innerHTML =
     `${state.study.metadata.execution_mode === "test_fixture" ? '<p class="source-warning"><strong>DEVELOPMENT TRANSPORT FIXTURES ONLY</strong> · Scores below test the interface, not an AI model.</p>' : ""}<div class="eval-scores">${state.runs
       .map((run, i) => {
-        const s = state.key ? score(run.results, state.key) : null;
+        const s = state.key ? score(evaluationResults(run, state.study.policy), state.key) : null;
         return `<article><h3>${i < 2 ? `AI run ${i + 1}` : "Keyword baseline"}</h3><strong>${s ? `${s.matches} / ${s.total}` : "Not scored"}</strong><p>${run.results.length} outputs · ${run.results.filter((r) => r.assessment_state === "processing_error").length} failures</p>${s ? `<p>${s.matches >= state.study.threshold ? "Meets" : "Below"} target · P0 recall ${s.highRecall.denominator ? `${s.highRecall.numerator}/${s.highRecall.denominator}` : "N/A"} · coverage ${s.coverage}/10</p>` : ""}<p>Role-boundary review: ${reviewStats(run).reviewed_cases}/10 reviewed; ${reviewStats(run).boundary_violations_observed} observed${reviewStats(run).boundary_review_complete ? "" : " · incomplete"}.</p><button data-run-view="${i}">Inspect this run</button><button data-run-export="${i}">Export CSV</button></article>`;
       })
       .join(
         "",
-      )}</div>${state.runs.length === 2 || state.runs.length === 3 ? `<p>AI disposition agreement: ${state.runs[0].results.filter((r) => disposition(r) === disposition(state.runs[1].results.find((b) => b.rfi_id === r.rfi_id))).length}/10. Shared processing failures are not evidence of reliability.</p>` : ""}`;
+      )}</div>`;
 }
 $("evaluation-results").onclick = (e) => {
   if (e.target.dataset.runView !== undefined) {
@@ -963,7 +1017,8 @@ $("export-study").onclick = () =>
         scores: state.key
           ? state.runs.map((r) => ({
               kind: r.kind,
-              ...score(r.results, state.key),
+              policy: state.study.policy,
+              ...score(evaluationResults(r, state.study.policy), state.key),
             }))
           : null,
       },
@@ -977,12 +1032,13 @@ $("export-scores").onclick = () =>
     csv(
       state.runs.map((r) => ({
         kind: r.kind,
+        policy: state.study.policy,
         track: state.study.track,
         execution_mode: state.study.metadata.execution_mode,
         input_hash: state.study.input_hash,
         config_hash: state.study.metadata.config_hash,
         ...reviewStats(r),
-        ...score(r.results, state.key),
+        ...score(evaluationResults(r, state.study.policy), state.key),
       })),
     ),
     "text/csv",
@@ -1032,5 +1088,28 @@ async function init() {
     );
   }
   await connect();
+  initializing = false;
+  try {
+    const saved = savedWorkspace().load();
+    if (saved?.selected?.length) {
+      const selected = validateRecords(saved.selected, {minimum:1});
+      state.selected = selected; state.source = saved.source === "upload" ? "upload" : "dataset";
+      $("source-dataset").setAttribute("aria-pressed", String(state.source === "dataset"));
+      $("source-upload").setAttribute("aria-pressed", String(state.source === "upload"));
+      $("dataset-input").hidden = state.source !== "dataset";
+      $("upload-input").hidden = state.source !== "upload";
+      selectionChanged();
+      if (saved.resultRun?.kind === "development" && Array.isArray(saved.resultRun.results)) {
+        state.resultRun = saved.resultRun;
+        state.results = saved.resultRun.results;
+        state.reviews = saved.reviews || {};
+        renderResults();
+      }
+      $("consent").checked = false;
+      notice("Previous development work restored. Review the payload and confirm consent before sending again.");
+      persistWorkspace(); controls();
+    }
+  } catch { $("recovery-status").textContent = "Saved work could not be restored. Import your source or exported records."; }
+  controls();
 }
 init();

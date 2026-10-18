@@ -161,6 +161,8 @@ export async function createServer({
         } catch {
           return json(400, { error: "Invalid UTF-8 JSON request." });
         }
+        try { agent.validateRequest(body); }
+        catch (error) { return json(error.status || 400, {error:error.message}); }
         // Body reads yield: recheck atomically before reserving a provider batch.
         if (globalCount >= 20 || active >= 1)
           return json(429, {

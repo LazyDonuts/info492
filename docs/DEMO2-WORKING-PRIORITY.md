@@ -17,3 +17,12 @@ The raw result's assessment_state and priority are retained in application state
 All provisional suggestions require GC review through the existing contractual process. No design, work, cost or time authorization is created. This policy does not amend the Google Doc rubric automatically; any formal evaluation change must be frozen prospectively with a matching human answer key.
 
 Validation: seven new unit scenarios cover missing-data defaults, compound reported exposure, explicit-negative clarification routing, retained errors/no invalid-output reuse, confirmed/excluded preservation and validated partial exposure. Total 63 tests passed; build passed. Browser transport fixtures verified combined working grades/flags, error detail preservation and filtering. These fixture checks are not live AI evaluation scores. Homepage navigation items measured equal 44px height and an identical center line in the browser.
+
+
+## Evaluation policy selection and refinement
+
+New studies can prospectively freeze `v0.3` (default evidence decisions) or `working-triage-0.4` (the development working priority policy). The same ten inputs, metadata and success target remain frozen. Human reference labels must be prepared for the chosen policy; do not reuse labels from another policy or choose policy after seeing results. This feature does not update external Google Docs or establish instructor approval.
+
+Under v0.4 evaluation, valid needs-information evidence outputs receive the same provisional working grades as development. Processing/transport errors remain unranked failures for scoring; input-rule fallback grades from failed AI calls cannot inflate accuracy. Original evidence results stay in run JSON, while policy-tagged CSV adds working grades. The keyword baseline is unchanged. Scores and study exports include the frozen policy. The two-run consistency panel separately reports raw decision agreement and exact normalized missing-information agreement, excludes failures from agreement, and lists changed cases. Agreement is not accuracy.
+
+Extraction prompt extract-1.2 requests systematic enumeration of all stated mechanisms, including secondary idle-resource costs, even after a P0 mechanism is found. Required follow-ups are computed from Unknown evidence/contradictions and separated from additional model suggestions. This improves auditability; it does not guarantee semantic completeness or eliminate model variability. Real human-labelled regression cases remain required before claiming accuracy or cost savings.
