@@ -82,15 +82,7 @@ export function makeAgent({
   if (env.DEMO2_PUBLIC_DEMO !== "true" && !(env.DEMO2_ACCESS_TOKEN?.length >= 32))
     missing.push("DEMO2_ACCESS_TOKEN (at least 32 characters)");
   const configured = missing.length === 0;
-  return {
-    config: () => ({
-      configured,
-      metadata,
-      setup: configured
-        ? null
-        : `Missing server configuration: ${missing.join(", ")}. See docs/DEMO2-SETUP.md. No simulated analysis is used.`,
-    }),
-    async assess(body, emit) {
+  function validateRequest(body) {
       if (!configured)
         throw Object.assign(
           new Error("AI backend is not configured. See docs/DEMO2-SETUP.md."),
@@ -98,7 +90,7 @@ export function makeAgent({
         );
       if (
         !body ||
-        Object.keys(body).some((k) => !["records", "config_hash"].includes(k))
+        Object.keys(body).some((k) => !["records", "config_hash", "retry_failed"].includes(k))
       )
         throw Object.assign(
           new Error(
@@ -113,7 +105,22 @@ export function makeAgent({
           ),
           { status: 409 },
         );
-      const records = validateRecords(body.records);
+      if (body.retry_failed !== undefined && body.retry_failed !== true)
+        throw Object.assign(new Error("retry_failed must be true when present."), {status:400});
+      try { return validateRecords(body.records, {minimum:body.retry_failed === true ? 1 : 2}); }
+      catch (error) { throw Object.assign(error, {status:400}); }
+  }
+  return {
+    validateRequest,
+    config: () => ({
+      configured,
+      metadata,
+      setup: configured
+        ? null
+        : `Missing server configuration: ${missing.join(", ")}. See docs/DEMO2-SETUP.md. No simulated analysis is used.`,
+    }),
+    async assess(body, emit) {
+      const records = validateRequest(body);
       const run = {
         run_id: randomUUID(),
         started_at: new Date().toISOString(),
