@@ -11,9 +11,9 @@
     <link rel="stylesheet" href="css/style.css?v=20261007-2" />
     <link rel="stylesheet" href="css/dashboard.css?v=20261012-2" />
     <link rel="stylesheet" href="css/demo-menu.css?v=20261017-align" />
-    <link rel="stylesheet" href="css/demo2.css?v=20261018-refine" />
+    <link rel="stylesheet" href="css/demo2.css?v=20261020-tiered" />
     <script type="module" src="js/demo-menu.js?v=20261016"></script>
-    <script type="module" src="js/demo2.js?v=20261018-refine"></script>
+    <script type="module" src="js/demo2.js?v=20261020-tiered"></script>
   </head>
   <body class="dash agent-page">
     <a class="skip-link" href="#workspace">Skip to agent</a>
@@ -272,6 +272,7 @@
           evaluation. Reference answers are imported only after all three runs
           and never sent to the model.
         </p>
+        <p class="source-warning">RFIs are not created to a standard that guarantees all priority-criteria data is included. Needs Information and low-confidence results may be common because of input data quality; they do not by themselves indicate an agent failure.</p>
         <p class="quiet">
           Freeze policy: P0, P1, P2, Needs Information and Excluded are distinct
           dispositions. Screen out ineligible cases before freezing; any later
@@ -366,6 +367,7 @@
               Evidence first. Priority explained.
             </h2>
             <p id="run-caption"></p>
+          <p class="source-warning" id="input-quality-notice">RFIs are not created to a standard that guarantees all priority-criteria data is included. Needs Information and low-confidence results may be common because of input data quality; they do not by themselves indicate an agent failure.</p>
           </div>
           <button id="retry-failed" hidden>Retry failed RFIs only</button>
           <button id="export-run-json">Export run JSON</button>
