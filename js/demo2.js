@@ -17,16 +17,17 @@ import {
   csv,
   fingerprint,
   MAX_BYTES,
-} from "./demo2-core.js?v=20261018-refine";
+} from "./demo2-core.js?v=20261020-tiered";
 const $ = (id) => document.getElementById(id);
 const esc = (value) =>
   String(value ?? "").replace(
     /[&<>"']/g,
     (c) =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
-        c
+      c
       ],
   );
+const INPUT_QUALITY_NOTICE = "RFIs are not created to a standard that guarantees all priority-criteria data is included. Needs Information and low-confidence results may be common because of input data quality; they do not by themselves indicate an agent failure.";
 const state = {
   dataset: [],
   selected: [],
@@ -46,14 +47,14 @@ function savedWorkspace() { return snapshotStore(() => window.sessionStorage, en
 function persistWorkspace() {
   if (initializing || state.study || state.mode !== "demo") return;
   let saved = false;
-  try { saved = savedWorkspace().save({selected:state.selected, source:state.source, resultRun:state.resultRun, reviews:state.reviews}); } catch { /* Invalid endpoint: do not persist under another backend. */ }
+  try { saved = savedWorkspace().save({ selected: state.selected, source: state.source, resultRun: state.resultRun, reviews: state.reviews }); } catch { /* Invalid endpoint: do not persist under another backend. */ }
   $("recovery-status").textContent = saved
     ? "Development work saved for refresh recovery in this tab (24 hours). Export before closing the tab."
     : "Browser recovery unavailable or full. Export results before leaving.";
 }
 async function refreshAllowance() {
   try {
-    const c = await fetch(endpoint()+"/api/config", {cache:"no-store",signal:AbortSignal.timeout(75000)}).then(r=>r.json());
+    const c = await fetch(endpoint() + "/api/config", { cache: "no-store", signal: AbortSignal.timeout(75000) }).then(r => r.json());
     const limits = c.access?.limits;
     $("allowance-status").textContent = limits
       ? `Shared allowance: ${limits.daily_batches_remaining}/${limits.daily_batch_limit} batches left today; ${limits.hourly_batches_remaining}/${limits.hourly_batch_limit} this hour. Day resets at ${new Date(limits.resets_at).toLocaleString()}. Counts reset if the free server restarts.`
@@ -110,7 +111,7 @@ function restoreToken() {
     $("token-storage-status").textContent = !saved.available
       ? "Browser storage is unavailable. Enter the token for this tab."
       : saved.token ? "Saved token filled automatically for this backend."
-      : "Enter your team token once to remember it on this browser.";
+        : "Enter your team token once to remember it on this browser.";
   } catch {
     tokenOrigin = null;
     $("token-storage-status").textContent = "Enter a valid backend URL before saving a token.";
@@ -126,7 +127,7 @@ function saveToken() {
       : remember && $("access-token").value.trim()
         ? "Token remembered on this browser for this backend."
         : remember ? "Enter your team token once to remember it on this browser."
-        : "Token will not be remembered after this tab closes.";
+          : "Token will not be remembered after this tab closes.";
   } catch { /* Invalid endpoints cannot receive or store a credential. */ }
   controls();
 }
@@ -461,7 +462,7 @@ async function analyze(slot = null, retry = false) {
       body: JSON.stringify({
         records,
         config_hash: state.config.metadata.config_hash,
-        ...(retry ? {retry_failed:true} : {}),
+        ...(retry ? { retry_failed: true } : {}),
       }),
       signal: AbortSignal.timeout(600000),
     });
@@ -469,7 +470,7 @@ async function analyze(slot = null, retry = false) {
       let msg = `Backend error (HTTP ${response.status}).`;
       try {
         msg = (await response.json()).error || msg;
-      } catch {}
+      } catch { }
       throw new Error(msg);
     }
     if (!response.headers.get("Content-Type")?.includes("application/x-ndjson"))
@@ -558,6 +559,18 @@ async function analyze(slot = null, retry = false) {
           assessment_state: "processing_error",
           priority: null,
           error: `No validated assessment received: ${e.message}`,
+          failure_type: "AI check failed",
+          confidence: null,
+          basis: null,
+          matched_examples: [],
+          data_completeness: {
+            criteria: {},
+            found: [],
+            missing: ["U", "A", "M", "X", "D", "B"],
+            signal_groups_found: 0,
+            signal_group_threshold: 2,
+          },
+          rationale: `Technical assessment failure: no validated assessment received: ${e.message}`,
           not_attempted: true,
         });
   } finally {
@@ -592,7 +605,7 @@ function displayedResults() {
 function renderResults() {
   $("results").hidden = !state.resultRun;
   if (!state.resultRun) return;
-  const retryRecords = (state.resultRun.records || state.selected).filter(r => state.results.some(x=>x.rfi_id===r.rfi_id && x.assessment_state==="processing_error"));
+  const retryRecords = (state.resultRun.records || state.selected).filter(r => state.results.some(x => x.rfi_id === r.rfi_id && x.assessment_state === "processing_error"));
   $("retry-preview").hidden = state.resultRun.kind !== "development" || !retryRecords.length;
   $("retry-payload").textContent = JSON.stringify(retryRecords, null, 2);
   const counts = {
@@ -630,7 +643,7 @@ function renderResults() {
   const query = $("result-search").value.trim().toLowerCase(),
     filter = $("result-filter").value;
   const records =
-      state.resultRun.records || state.study?.records || state.selected,
+    state.resultRun.records || state.study?.records || state.selected,
     byId = new Map(records.map((r) => [r.rfi_id, r]));
   const list = sortAssessments(visibleResults, records).filter((r) =>
     [r.rfi_id, byId.get(r.rfi_id)?.title]
@@ -675,21 +688,21 @@ function renderResults() {
     ? strictGroups
     : filter === "needs_information"
       ? [
-          [
-            "needs_information",
-            "Needs information · working priority retained",
-            (r) => r.needs_information_flag,
-          ],
-        ]
+        [
+          "needs_information",
+          "Needs information · working priority retained",
+          (r) => r.needs_information_flag,
+        ],
+      ]
       : filter === "processing_error"
         ? [
-            [
-              "processing_error",
-              "AI check failed · input-rule working priorities",
-              (r) => r.ai_review_failed || r.assessment_state === "processing_error",
-            ],
-          ]
-        : strictGroups.map(([key,title,predicate]) => key === "processing_error" ? [key,"No AI assessment received · retry required",r=>r.not_attempted || (state.resultRun.kind !== "development" && r.assessment_state === "processing_error")] : [key,title,predicate]).filter(([key]) => ["ranked", "excluded", "processing_error"].includes(key));
+          [
+            "processing_error",
+            "AI check failed · input-rule working priorities",
+            (r) => r.ai_review_failed || r.assessment_state === "processing_error",
+          ],
+        ]
+        : strictGroups.map(([key, title, predicate]) => key === "processing_error" ? [key, "No AI assessment received · retry required", r => r.not_attempted || (state.resultRun.kind !== "development" && r.assessment_state === "processing_error")] : [key, title, predicate]).filter(([key]) => ["ranked", "excluded", "processing_error"].includes(key));
   $("result-filter").querySelector('[value="needs_information"]').textContent =
     working ? "Needs information · flagged" : "Needs Information · unranked";
   $("result-filter").querySelector('[value="processing_error"]').textContent =
@@ -731,25 +744,29 @@ function openDetail(id) {
         ? `<p class="agent-detail-flag">Source field: ${esc(e.source)}. This is submission-provided information, not independently verified.</p>`
         : '<p class="quiet">No supporting excerpt supplied.</p>';
   $("agent-detail-body").innerHTML =
-    `<section><h3>${esc(record.title)}</h3><p>${esc(record.description)}</p><details><summary>Full submitted packet</summary><pre>${esc(JSON.stringify(record, null, 2))}</pre></details></section><section><h3>Priority</h3><span class="priority-badge ${result.priority || ""}">${esc(disposition(result))}</span>${result.provisional ? `<p class="agent-detail-flag">Provisional working priority · ${esc(result.working_policy)}. ${result.ai_review_failed ? "AI check failed: this suggestion comes only from submission rules." : "Incomplete evidence: human confirmation required."}</p><p>v0.3 evidence decision: ${esc(result.validated_assessment_state)}. ${esc(result.validated_priority_reason || result.validation_error || "")}</p>` : ""}<p>${esc(result.priority_reason || result.error)}</p><p class="quiet">${esc(result.rule_branch || "No rule applied")} · rubric v0.3</p>${result.mitigation_unverified ? '<p class="agent-detail-flag">Protection is unknown. This P0 is precautionary review, not proof of ineffective mitigation or large loss.</p>' : ""}${result.safety_escalation ? '<p class="agent-detail-flag">Separate safety escalation: request immediate human review under site procedures.</p>' : ""}</section>
- ${
-   result.mechanisms
-     ?.map(
-       (m, i) =>
-         `<section><h3>Evidence · mechanism ${i + 1}</h3><p>${esc(m.description)}</p>${Object.entries(
-           m.evidence,
-         )
-           .map(
-             ([k, e]) =>
-               `<div class="evidence-item"><strong>${k} · ${esc(e.value)}</strong>${citation(e)}</div>`,
-           )
-           .join(
-             "",
-           )}<div class="evidence-item"><strong>Bounded clarification · ${esc(m.bounded_clarification.value)}</strong>${citation(m.bounded_clarification)}</div>${m.contradictions.map((c) => `<p class="agent-detail-flag">${esc(c.explanation)}</p>${c.evidence.map(citation).join("")}`).join("")}</section>`,
-     )
-     .join("") || ""
- }
- <section><h3>Potential Impact</h3><p>${esc(result.potential_cost_mechanism || "Not assessed. No dollar estimate has been generated.")}</p><p>Decision date: ${esc(result.decision_date || "Not established")}</p>${result.decision_date ? citation(result.decision_date_evidence) : ""}${(result.schedule_considerations || []).map(citation).join("")}${result.safety_escalation ? citation(result.safety_evidence) : ""}</section><section><h3>Evidence completeness</h3><p>Required checks are derived from Unknown evidence fields. Additional model suggestions may vary between runs.</p>${result.required_missing_information?.length ? `<h4>Required evidence checks</h4><ul>${result.required_missing_information.map(q=>`<li>${esc(q)}</li>`).join("")}</ul>` : "<p>No Unknown checks returned for extracted mechanisms. This does not prove every mechanism was identified.</p>"}<h3>All follow-up information</h3>${result.missing_information?.length ? `<ul>${result.missing_information.map((q) => `<li>${esc(q)}</li>`).join("")}</ul>` : "<p>No follow-up questions returned. This is not a guarantee of completeness.</p>"}</section><section><h3>GC Review</h3><p>${esc(result.suggested_gc_review_action || "No valid assessment. Check the processing error before retrying.")}</p><p>Supplied reviewer: ${esc(record.assigned_reviewer || "Not recorded; GC to verify routing.")}</p>${result.expedited_verification ? citation(result.expedited_evidence) : ""}</section><details><summary>Run and raw output</summary><pre>${esc(JSON.stringify({ metadata: state.resultRun.metadata, raw_output: result.raw_output, provider_response_id: result.provider_response_id }, null, 2))}</pre></details>`;
+    `<section><h3>${esc(record.title)}</h3><p>${esc(record.description)}</p><details><summary>Full submitted packet</summary><pre>${esc(JSON.stringify(record, null, 2))}</pre></details></section><section><h3>Priority</h3><span class="priority-badge ${result.priority || ""}">${esc(disposition(result))}</span>${result.provisional ? `<p class="agent-detail-flag">Provisional working priority · ${esc(result.working_policy)}. ${result.ai_review_failed ? "AI check failed: this suggestion comes only from submission rules." : "Incomplete evidence: human confirmation required."}</p><p>v0.3 evidence decision: ${esc(result.validated_assessment_state)}. ${esc(result.validated_priority_reason || result.validation_error || "")}</p>` : ""}<p><strong>Confidence:</strong> ${esc(result.confidence || "Unavailable")} · <strong>Basis:</strong> ${esc(result.basis || "Unavailable")}</p><p><strong>Matched boundary examples:</strong> ${esc(result.matched_examples?.join(", ") || "None")}</p><p>${esc(result.rationale || result.priority_reason || result.error)}</p><p class="quiet">${esc(result.rule_branch || "No rule applied")} · rubric v0.3</p>${completeness ? `<p><strong>Data completeness:</strong> found ${esc(completeness.found.join(", ") || "none")}; missing ${esc(completeness.missing.join(", ") || "none")}. Signal groups ${esc(completeness.signal_groups_found)}/3.</p>` : ""}${result.mitigation_unverified ? '<p class="agent-detail-flag">Protection is unknown. This P0 is precautionary review, not proof of ineffective mitigation or large loss.</p>' : ""}${result.safety_escalation ? '<p class="agent-detail-flag">Separate safety escalation: request immediate human review under site procedures.</p>' : ""}</section>
+ ${result.mechanisms
+      ?.map(
+        (m, i) =>
+          `<section><h3>Evidence · mechanism ${i + 1}</h3><p>${esc(m.description)}</p>${Object.entries(
+            m.evidence,
+          )
+            .map(
+              ([k, e]) =>
+                `<div class="evidence-item"><strong>${k} · ${esc(e.value)}</strong>${citation(e)}</div>`,
+            )
+            .join(
+              "",
+            )}<div class="evidence-item"><strong>Bounded clarification · ${esc(m.bounded_clarification.value)}</strong>${citation(m.bounded_clarification)}</div>${m.contradictions.map((c) => `<p class="agent-detail-flag">${esc(c.explanation)}</p>${c.evidence.map(citation).join("")}`).join("")}</section>`,
+      )
+      .join("") || ""
+    }
+ <section><h3>Potential Impact</h3><p>${esc(result.potential_cost_mechanism || "Not assessed. No dollar estimate has been generated.")}</p><p>Decision date: ${esc(result.decision_date || "Not established")}</p>${result.decision_date ? citation(result.decision_date_evidence) : ""}${(result.schedule_considerations || []).map(citation).join("")}${result.safety_escalation ? citation(result.safety_evidence) : ""}</section><section><h3>Evidence completeness</h3><p>Required checks are derived from Unknown evidence fields. Additional model suggestions may vary between runs.</p>${result.required_missing_information?.length ? `<h4>Required evidence checks</h4><ul>${result.required_missing_information.map(q => `<li>${esc(q)}</li>`).join("")}</ul>` : "<p>No Unknown checks returned for extracted mechanisms. This does not prove every mechanism was identified.</p>"}<h3>All follow-up information</h3>${result.missing_information?.length ? `<ul>${result.missing_information.map((q) => `<li>${esc(q)}</li>`).join("")}</ul>` : "<p>No follow-up questions returned. This is not a guarantee of completeness.</p>"}</section><section><h3>GC Review</h3><p>${esc(result.suggested_gc_review_action || "No valid assessment. Check the processing error before retrying.")}</p><p>Supplied reviewer: ${esc(record.assigned_reviewer || "Not recorded; GC to verify routing.")}</p>${result.expedited_verification ? citation(result.expedited_evidence) : ""}</section><details><summary>Run and raw output</summary><pre>${esc(JSON.stringify({ metadata: state.resultRun.metadata, raw_output: result.raw_output, provider_response_id: result.provider_response_id }, null, 2))}</pre></details>`;
+  if (result.ai_review_failed || result.assessment_state === "processing_error")
+    $("agent-detail-body").insertAdjacentHTML(
+      "afterbegin",
+      `<p class="agent-detail-flag">${esc(result.failure_type || "AI check failed")}${result.not_attempted ? " · retry required" : " · failed-only retry available"}</p>`,
+    );
   if (state.study && state.runs.includes(state.resultRun)) {
     const review = state.reviews[state.resultRun.run_id]?.[id] || {};
     $("agent-detail-body").insertAdjacentHTML(
@@ -765,8 +782,8 @@ $("agent-detail").onclose = () => {
   const target = detailOpener?.isConnected
     ? detailOpener
     : [...document.querySelectorAll("button[data-detail]")].find(
-        (b) => b.dataset.detail === detailId,
-      );
+      (b) => b.dataset.detail === detailId,
+    );
   (target || $("results-title")).focus();
 };
 $("agent-detail-body").addEventListener("input", (e) => {
@@ -816,27 +833,28 @@ function exportRows(run) {
     track: state.study?.track || "development",
     input_hash: run.input_hash || state.study?.input_hash || "",
     config_hash: metadata?.config_hash || "",
+    input_quality_notice: INPUT_QUALITY_NOTICE,
     observer_review: state.reviews[run.run_id]?.[result.rfi_id] || null,
     ...result,
     ...((run.kind === "development" || run.policy === "working-triage-0.4")
       ? (() => {
-          const view = run.kind !== "development" && result.assessment_state === "processing_error"
-            ? result : workingAssessment(result, (run.records || state.selected).find(r=>r.rfi_id===result.rfi_id) || {});
-          return {
-            working_priority: view.priority,
-            provisional: view.provisional,
-            working_policy: view.working_policy || "v0.3_confirmed",
-            working_basis: view.working_basis || "validated_evidence",
-            working_reason: view.priority_reason,
-            working_missing_information: view.missing_information || [],
-            needs_information_flag: view.needs_information_flag,
-            ai_review_failed: view.ai_review_failed,
-          };
-        })()
+        const view = run.kind !== "development" && result.assessment_state === "processing_error"
+          ? result : workingAssessment(result, (run.records || state.selected).find(r => r.rfi_id === result.rfi_id) || {});
+        return {
+          working_priority: view.priority,
+          provisional: view.provisional,
+          working_policy: view.working_policy || "v0.3_confirmed",
+          working_basis: view.working_basis || "validated_evidence",
+          working_reason: view.priority_reason,
+          working_missing_information: view.missing_information || [],
+          needs_information_flag: view.needs_information_flag,
+          ai_review_failed: view.ai_review_failed,
+        };
+      })()
       : {}),
   }));
 }
-$("export-run-json").onclick = () => download("demo2-development-run.json", JSON.stringify(state.resultRun, null, 2));
+$("export-run-json").onclick = () => download("demo2-development-run.json", JSON.stringify({ ...state.resultRun, input_quality_notice: INPUT_QUALITY_NOTICE }, null, 2));
 $("export-results").onclick = () =>
   download(
     `demo2-${state.resultRun.run_id}.csv`,
@@ -931,7 +949,7 @@ $("confirm-reset").onclick = () => {
   state.resultRun = null;
   $("key-text").value = "";
   $("answer-key").value = "";
-  const agreement = state.runs.length >= 2 ? compareRuns(state.runs[0],state.runs[1]) : null;
+  const agreement = state.runs.length >= 2 ? compareRuns(state.runs[0], state.runs[1]) : null;
   $("stability-results").textContent = agreement
     ? agreement.eligible === 0 ? "Repeated-run consistency: N/A — no paired valid AI results. Failures remain in the accuracy denominator." : `Repeated-run check (raw v0.3 outputs): ${agreement.priorityMatches}/${agreement.eligible} matching decisions; ${agreement.missingMatches}/${agreement.eligible} matching missing-information lists. Failures excluded from agreement, retained in accuracy denominator. Changed cases: ${agreement.changed.join(", ") || "none"}. Matching text does not prove correctness.`
     : "Complete two AI runs to compare priority and missing-information consistency.";
@@ -947,7 +965,7 @@ $("confirm-reset").onclick = () => {
 };
 function renderEvaluation() {
   if (!state.study) return;
-  const agreement = state.runs.length >= 2 ? compareRuns(state.runs[0],state.runs[1]) : null;
+  const agreement = state.runs.length >= 2 ? compareRuns(state.runs[0], state.runs[1]) : null;
   $("stability-results").textContent = agreement
     ? agreement.eligible === 0 ? "Repeated-run consistency: N/A — no paired valid AI results. Failures remain in the accuracy denominator." : `Repeated-run check (raw v0.3 outputs): ${agreement.priorityMatches}/${agreement.eligible} matching decisions; ${agreement.missingMatches}/${agreement.eligible} matching missing-information lists. Failures excluded from agreement, retained in accuracy denominator. Changed cases: ${agreement.changed.join(", ") || "none"}. Matching text does not prove correctness.`
     : "Complete two AI runs to compare priority and missing-information consistency.";
@@ -1018,10 +1036,10 @@ $("export-study").onclick = () =>
         observer_reviews: state.reviews,
         scores: state.key
           ? state.runs.map((r) => ({
-              kind: r.kind,
-              policy: state.study.policy,
-              ...score(evaluationResults(r, state.study.policy), state.key),
-            }))
+            kind: r.kind,
+            policy: state.study.policy,
+            ...score(evaluationResults(r, state.study.policy), state.key),
+          }))
           : null,
       },
       null,
@@ -1094,7 +1112,7 @@ async function init() {
   try {
     const saved = savedWorkspace().load();
     if (saved?.selected?.length) {
-      const selected = validateRecords(saved.selected, {minimum:1});
+      const selected = validateRecords(saved.selected, { minimum: 1 });
       state.selected = selected; state.source = saved.source === "upload" ? "upload" : "dataset";
       $("source-dataset").setAttribute("aria-pressed", String(state.source === "dataset"));
       $("source-upload").setAttribute("aria-pressed", String(state.source === "upload"));
