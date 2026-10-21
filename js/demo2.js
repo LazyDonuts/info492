@@ -17,7 +17,7 @@ import {
   csv,
   fingerprint,
   MAX_BYTES,
-} from "./demo2-core.js?v=20261020-tiered";
+} from "./demo2-core.js?v=20261018-refine";
 const $ = (id) => document.getElementById(id);
 const esc = (value) =>
   String(value ?? "").replace(
@@ -27,7 +27,6 @@ const esc = (value) =>
         c
       ],
   );
-const INPUT_QUALITY_NOTICE = "RFIs are not created to a standard that guarantees all priority-criteria data is included. Needs Information and low-confidence results may be common because of input data quality; they do not by themselves indicate an agent failure.";
 const state = {
   dataset: [],
   selected: [],
@@ -559,18 +558,6 @@ async function analyze(slot = null, retry = false) {
           assessment_state: "processing_error",
           priority: null,
           error: `No validated assessment received: ${e.message}`,
-          failure_type: "AI check failed",
-          confidence: null,
-          basis: null,
-          matched_examples: [],
-          data_completeness: {
-            criteria: {},
-            found: [],
-            missing: ["U", "A", "M", "X", "D", "B"],
-            signal_groups_found: 0,
-            signal_group_threshold: 2,
-          },
-          rationale: `Technical assessment failure: no validated assessment received: ${e.message}`,
           not_attempted: true,
         });
   } finally {
@@ -714,7 +701,7 @@ function renderResults() {
     .filter(([key]) => filter === "all" || filter === key)
     .map(([key, title, predicate]) => {
       const rows = list.filter(predicate);
-      return `<h3 class="queue-heading">${title} (${rows.length})</h3>${rows.length ? `<div class="agent-table-wrap" role="region" tabindex="0" aria-label="${title}"><table class="agent-table"><thead><tr><th scope="col">RFI / issue</th><th scope="col">Assigned priority</th><th scope="col">Evidence / reason</th><th scope="col">Potential cost mechanism</th><th scope="col">Status / details</th></tr></thead><tbody>${rows.map((r) => `<tr data-detail="${esc(r.rfi_id)}"><td><strong>${esc(r.rfi_id)}</strong><br>${esc(byId.get(r.rfi_id)?.title)}</td><td><span class="priority-badge ${r.priority || ""}">${esc(disposition(r))}</span>${r.confidence ? `<p>${esc(r.confidence)} confidence</p>` : ""}${r.provisional ? '<p class="working-label">Provisional · human review</p>' : ""}${r.needs_information_flag && working ? "<p>Needs information</p>" : ""}${r.ai_review_failed || r.assessment_state === "processing_error" ? `<p class="error-label">${r.not_attempted ? 'No AI assessment received · retry required' : 'AI check failed · retry available'}</p>` : ""}${r.mitigation_unverified ? "<p>Mitigation unverified</p>" : ""}${r.safety_escalation ? "<p>Safety · human review</p>" : ""}${r.expedited_verification ? "<p>Expedited verification</p>" : ""}</td><td>${esc(r.rationale || r.priority_reason || r.error)}${r.rule_branch ? `<small> ${esc(r.rule_branch)}</small>` : ""}</td><td>${esc(r.potential_cost_mechanism || "No assessed mechanism available")}</td><td>${r.provisional ? "Provisional · verify missing facts" : r.assessment_state === "assigned" ? "Evidence assessed" : esc(disposition(r))}<br><button data-detail="${esc(r.rfi_id)}">View details<span class="sr-only"> ${esc(r.rfi_id)}</span></button></td></tr>`).join("")}</tbody></table></div>` : '<p class="quiet">No items in this queue.</p>'}`;
+      return `<h3 class="queue-heading">${title} (${rows.length})</h3>${rows.length ? `<div class="agent-table-wrap" role="region" tabindex="0" aria-label="${title}"><table class="agent-table"><thead><tr><th scope="col">RFI / issue</th><th scope="col">Assigned priority</th><th scope="col">Evidence / reason</th><th scope="col">Potential cost mechanism</th><th scope="col">Status / details</th></tr></thead><tbody>${rows.map((r) => `<tr data-detail="${esc(r.rfi_id)}"><td><strong>${esc(r.rfi_id)}</strong><br>${esc(byId.get(r.rfi_id)?.title)}</td><td><span class="priority-badge ${r.priority || ""}">${esc(disposition(r))}</span>${r.provisional ? '<p class="working-label">Provisional · human review</p>' : ""}${r.needs_information_flag && working ? "<p>Needs information</p>" : ""}${r.ai_review_failed ? `<p class="error-label">${r.not_attempted ? 'No AI assessment received · retry required' : 'AI check failed · input rules'}</p>` : ""}${r.mitigation_unverified ? "<p>Mitigation unverified</p>" : ""}${r.safety_escalation ? "<p>Safety · human review</p>" : ""}${r.expedited_verification ? "<p>Expedited verification</p>" : ""}</td><td>${esc(r.priority_reason || r.error)}${r.rule_branch ? `<small> ${esc(r.rule_branch)}</small>` : ""}</td><td>${esc(r.potential_cost_mechanism || "No assessed mechanism available")}</td><td>${r.provisional ? "Provisional · verify missing facts" : r.assessment_state === "assigned" ? "Evidence assessed" : esc(disposition(r))}<br><button data-detail="${esc(r.rfi_id)}">View details<span class="sr-only"> ${esc(r.rfi_id)}</span></button></td></tr>`).join("")}</tbody></table></div>` : '<p class="quiet">No items in this queue.</p>'}`;
     })
     .join("");
 }
@@ -741,9 +728,8 @@ function openDetail(id) {
     e?.quote
       ? `<blockquote>“${esc(e.quote)}”<small>Source: ${esc(e.source)} · supplied statement, not independently verified</small></blockquote>`
       : '<p class="quiet">No supporting excerpt supplied.</p>';
-  const completeness = result.data_completeness;
   $("agent-detail-body").innerHTML =
-    `<section><h3>${esc(record.title)}</h3><p>${esc(record.description)}</p><details><summary>Full submitted packet</summary><pre>${esc(JSON.stringify(record, null, 2))}</pre></details></section><section><h3>Priority</h3><span class="priority-badge ${result.priority || ""}">${esc(disposition(result))}</span>${result.provisional ? `<p class="agent-detail-flag">Provisional working priority · ${esc(result.working_policy)}. ${result.ai_review_failed ? "AI check failed: this suggestion comes only from submission rules." : "Incomplete evidence: human confirmation required."}</p><p>v0.3 evidence decision: ${esc(result.validated_assessment_state)}. ${esc(result.validated_priority_reason || result.validation_error || "")}</p>` : ""}<p><strong>Confidence:</strong> ${esc(result.confidence || "Unavailable")} · <strong>Basis:</strong> ${esc(result.basis || "Unavailable")}</p><p><strong>Matched boundary examples:</strong> ${esc(result.matched_examples?.join(", ") || "None")}</p><p>${esc(result.rationale || result.priority_reason || result.error)}</p><p class="quiet">${esc(result.rule_branch || "No rule applied")} · rubric v0.3</p>${completeness ? `<p><strong>Data completeness:</strong> found ${esc(completeness.found.join(", ") || "none")}; missing ${esc(completeness.missing.join(", ") || "none")}. Signal groups ${esc(completeness.signal_groups_found)}/3.</p>` : ""}${result.mitigation_unverified ? '<p class="agent-detail-flag">Protection is unknown. This P0 is precautionary review, not proof of ineffective mitigation or large loss.</p>' : ""}${result.safety_escalation ? '<p class="agent-detail-flag">Separate safety escalation: request immediate human review under site procedures.</p>' : ""}</section>
+    `<section><h3>${esc(record.title)}</h3><p>${esc(record.description)}</p><details><summary>Full submitted packet</summary><pre>${esc(JSON.stringify(record, null, 2))}</pre></details></section><section><h3>Priority</h3><span class="priority-badge ${result.priority || ""}">${esc(disposition(result))}</span>${result.provisional ? `<p class="agent-detail-flag">Provisional working priority · ${esc(result.working_policy)}. ${result.ai_review_failed ? "AI check failed: this suggestion comes only from submission rules." : "Incomplete evidence: human confirmation required."}</p><p>v0.3 evidence decision: ${esc(result.validated_assessment_state)}. ${esc(result.validated_priority_reason || result.validation_error || "")}</p>` : ""}<p>${esc(result.priority_reason || result.error)}</p><p class="quiet">${esc(result.rule_branch || "No rule applied")} · rubric v0.3</p>${result.mitigation_unverified ? '<p class="agent-detail-flag">Protection is unknown. This P0 is precautionary review, not proof of ineffective mitigation or large loss.</p>' : ""}${result.safety_escalation ? '<p class="agent-detail-flag">Separate safety escalation: request immediate human review under site procedures.</p>' : ""}</section>
  ${
    result.mechanisms
      ?.map(
@@ -762,11 +748,6 @@ function openDetail(id) {
      .join("") || ""
  }
  <section><h3>Potential Impact</h3><p>${esc(result.potential_cost_mechanism || "Not assessed. No dollar estimate has been generated.")}</p><p>Decision date: ${esc(result.decision_date || "Not established")}</p>${result.decision_date ? citation(result.decision_date_evidence) : ""}${(result.schedule_considerations || []).map(citation).join("")}${result.safety_escalation ? citation(result.safety_evidence) : ""}</section><section><h3>Evidence completeness</h3><p>Required checks are derived from Unknown evidence fields. Additional model suggestions may vary between runs.</p>${result.required_missing_information?.length ? `<h4>Required evidence checks</h4><ul>${result.required_missing_information.map(q=>`<li>${esc(q)}</li>`).join("")}</ul>` : "<p>No Unknown checks returned for extracted mechanisms. This does not prove every mechanism was identified.</p>"}<h3>All follow-up information</h3>${result.missing_information?.length ? `<ul>${result.missing_information.map((q) => `<li>${esc(q)}</li>`).join("")}</ul>` : "<p>No follow-up questions returned. This is not a guarantee of completeness.</p>"}</section><section><h3>GC Review</h3><p>${esc(result.suggested_gc_review_action || "No valid assessment. Check the processing error before retrying.")}</p><p>Supplied reviewer: ${esc(record.assigned_reviewer || "Not recorded; GC to verify routing.")}</p>${result.expedited_verification ? citation(result.expedited_evidence) : ""}</section><details><summary>Run and raw output</summary><pre>${esc(JSON.stringify({ metadata: state.resultRun.metadata, raw_output: result.raw_output, provider_response_id: result.provider_response_id }, null, 2))}</pre></details>`;
-  if (result.ai_review_failed || result.assessment_state === "processing_error")
-    $("agent-detail-body").insertAdjacentHTML(
-      "afterbegin",
-      `<p class="agent-detail-flag">${esc(result.failure_type || "AI check failed")}${result.not_attempted ? " · retry required" : " · failed-only retry available"}</p>`,
-    );
   if (state.study && state.runs.includes(state.resultRun)) {
     const review = state.reviews[state.resultRun.run_id]?.[id] || {};
     $("agent-detail-body").insertAdjacentHTML(
@@ -833,7 +814,6 @@ function exportRows(run) {
     track: state.study?.track || "development",
     input_hash: run.input_hash || state.study?.input_hash || "",
     config_hash: metadata?.config_hash || "",
-    input_quality_notice: INPUT_QUALITY_NOTICE,
     observer_review: state.reviews[run.run_id]?.[result.rfi_id] || null,
     ...result,
     ...((run.kind === "development" || run.policy === "working-triage-0.4")
@@ -854,7 +834,7 @@ function exportRows(run) {
       : {}),
   }));
 }
-$("export-run-json").onclick = () => download("demo2-development-run.json", JSON.stringify({ ...state.resultRun, input_quality_notice: INPUT_QUALITY_NOTICE }, null, 2));
+$("export-run-json").onclick = () => download("demo2-development-run.json", JSON.stringify(state.resultRun, null, 2));
 $("export-results").onclick = () =>
   download(
     `demo2-${state.resultRun.run_id}.csv`,

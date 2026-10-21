@@ -1,11 +1,8 @@
 import { parseCSV, date } from "./rfi-data.js";
 export const RUBRIC_VERSION = "v0.3";
-export const ENGINE_VERSION = "demo2-1.1";
+export const ENGINE_VERSION = "demo2-1.0";
 export const INPUT_VERSION = "submission-1";
 export const MAX_BYTES = 256 * 1024;
-// Minimum evidence threshold for using boundary examples on otherwise unresolved cases.
-// Groups are an identifiable issue, affected scope, and an impact/exposure cue.
-export const MIN_EVALUATION_SIGNAL_GROUPS = 2;
 export const LABELS = ["P0", "P1", "P2", "Needs Information", "Excluded"];
 export const FIELDS = [
   "rfi_id",
@@ -236,13 +233,12 @@ export function assessExtraction(record, x) {
                 : "MULTIPLE_UNRESOLVED",
           }
         : decisions.find((d) => d.priority === "P1") || decisions[0]);
-  let state =
+  const state =
     decision.branch === "EXCLUDED"
       ? "excluded"
       : decision.priority
         ? "assigned"
         : "needs_information";
-  const completeness = {};
   const requiredMissing = [];
   const missing = requiredMissing;
   const questions = {
@@ -254,72 +250,10 @@ export function assessExtraction(record, x) {
     B: "Is effective protection implemented through the review window, and does it create other costs?",
   };
   for (const m of x.mechanisms) {
-    for (const [k, v] of Object.entries(m.evidence)) {
+    for (const [k, v] of Object.entries(m.evidence))
       if (v.value === "Unknown") missing.push(questions[k]);
-      const count = (completeness[k] ||= { found: 0, missing: 0 });
-      count[v.value === "Unknown" ? "missing" : "found"]++;
-    }
     for (const c of m.contradictions)
       missing.push(`Clarify contradiction: ${c.explanation}`);
-  }
-  const combinedText = [
-    record.title,
-    record.description,
-    record.supporting_text,
-    record.review_context,
-  ].join(" ").toLowerCase();
-  const signalGroups = [
-    /\b(conflict|discrepan|clarif|question|dimension|drawing|reference|design|utility|support|panel|material|rental|installed|fabricat|work|scope)\b/.test(combinedText),
-    /\b(panel|support|utility|rental|material|fabricat|installed|conduit|pipe|beam|concrete|equipment|trade|location|work)\b/.test(combinedText),
-    /\b(cost|charge|extra|additional|replace|rework|scrap|delay|schedule|hold|paused|production|accru|expense|impact|off hire|continuing|urgent|asap)\b/.test(combinedText),
-  ].filter(Boolean).length;
-  let basis = "decision_rules", matchedExamples = [];
-  let confidence = Object.values(completeness).reduce((n, v) => n + v.found, 0) >= 5 ? "High" : "Medium";
-  let rationale = branchReasons[decision.branch] || "Priority assigned from the available rule-relevant evidence.";
-  const hasMaterialContradiction = decisions.some(
-    (d) => d.branch === "MATERIAL_CONTRADICTION",
-  );
-  if (
-    !decision.priority &&
-    decision.branch !== "EXCLUDED" &&
-    !hasMaterialContradiction &&
-    signalGroups >= MIN_EVALUATION_SIGNAL_GROUPS
-  ) {
-    const example = matchBoundaryExample(combinedText);
-    if (example) {
-      decision = { priority: example.priority, branch: `BOUNDARY_${example.id}` };
-      state = example.priority ? "assigned" : "needs_information";
-      basis = Object.values(completeness).some((v) => v.found)
-        ? "mixed"
-        : "boundary_example_match";
-      matchedExamples = [example.id];
-      confidence = "Low";
-      rationale = `${basis === "mixed" ? "Available decision-rule evidence was combined with " : ""}partial evidence most closely matches boundary example ${example.id}: ${example.label}.${example.priority ? " Missing rule data was not treated as negative evidence." : " That example does not support assigning a priority from the available evidence."}`;
-    } else {
-      basis = Object.values(completeness).some((v) => v.found)
-        ? "mixed"
-        : "boundary_example_match";
-      confidence = "Low";
-      rationale = "The available partial details were compared with the boundary examples, but none provided a sufficiently close priority match.";
-    }
-  } else if (
-    decision.priority &&
-    Object.values(completeness).some((v) => v.missing)
-  ) {
-    basis = "mixed";
-    confidence = "Medium";
-    rationale = `${rationale} Available rule evidence set the tier; the remaining partial evidence was checked against the boundary examples.`;
-  }
-  if (
-    !decision.priority &&
-    decision.branch !== "EXCLUDED" &&
-    !hasMaterialContradiction &&
-    signalGroups < MIN_EVALUATION_SIGNAL_GROUPS
-  ) {
-    decision = { priority: null, branch: "INSUFFICIENT_SIGNAL" };
-    state = "needs_information";
-    confidence = "Low";
-    rationale = `Fewer than ${MIN_EVALUATION_SIGNAL_GROUPS} of 3 issue, affected-scope, and impact signal groups were identifiable; example matching would be speculative.`;
   }
   return {
     rfi_id: record.rfi_id,
@@ -327,18 +261,7 @@ export function assessExtraction(record, x) {
     priority: decision.priority,
     rubric_version: RUBRIC_VERSION,
     rule_branch: decision.branch,
-    priority_reason: branchReasons[decision.branch] || rationale,
-    confidence,
-    basis,
-    matched_examples: matchedExamples,
-    data_completeness: {
-      criteria: completeness,
-      found: Object.keys(completeness).filter((k) => completeness[k].found),
-      missing: Object.keys(completeness).filter((k) => completeness[k].missing),
-      signal_groups_found: signalGroups,
-      signal_group_threshold: MIN_EVALUATION_SIGNAL_GROUPS,
-    },
-    rationale,
+    priority_reason: branchReasons[decision.branch],
     mitigation_unverified:
       decisions.some((d) => d.branch === "P0_MITIGATION_UNVERIFIED") &&
       decision.priority === "P0",
@@ -362,91 +285,6 @@ export function assessExtraction(record, x) {
         ? "Review the exclusion through the existing project process."
         : "Verify the cited evidence and missing facts, then coordinate with the supplied reviewer through normal contractual channels. No work or payment is authorized.",
   };
-}
-
-const BOUNDARY_EXAMPLES = [
-  {
-    id: "E1",
-    label: "continuing fabrication with an unresolved dimensional conflict",
-    priority: "P0",
-    pattern: /fabricat|panel|dimension|production/,
-  },
-  {
-    id: "E2",
-    label: "continuing fabrication with protection undocumented",
-    priority: "P0",
-    pattern: /fabricat|panel|dimension|hold/,
-  },
-  {
-    id: "E3",
-    label: "urgent utility conflict without a stated impact",
-    priority: null,
-    pattern: /urgent|asap|utility/,
-  },
-  {
-    id: "E4",
-    label: "an accruing rental or paid resource affected by a paused work decision",
-    priority: "P0",
-    pattern: /rental|off hire|accru|paused/,
-  },
-  {
-    id: "E5a",
-    label: "installed replacement work protected through review",
-    priority: "P1",
-    pattern: /support|replacement/,
-  },
-  {
-    id: "E5b",
-    label: "bounded drawing clarification with no demolition",
-    priority: "P2",
-    pattern: /drawing reference|no demolition/,
-  },
-  {
-    id: "E6",
-    label: "past loss with additional similar work still in production",
-    priority: "P0",
-    pattern: /scrap|already|additional|production/,
-  },
-  {
-    id: "E7",
-    label: "conflicting cost assertion and described extra materials",
-    priority: null,
-    pattern: /no cost|additional material|extra material/,
-  },
-];
-function matchBoundaryExample(text) {
-  const scored = BOUNDARY_EXAMPLES.map((example) => ({
-    example,
-    score: (text.match(new RegExp(example.pattern.source, "gi")) || []).length,
-  }));
-  scored.sort((a, b) => b.score - a.score);
-  if (!scored[0]?.score) return null;
-  const example = { ...scored[0].example };
-  const protectedThroughReview =
-    /effective hold|hold.{0,24}(covers|through|until)|protected through review/.test(
-      text,
-    ) && !/no effective hold|hold (is )?(unavailable|not available)|no hold/.test(text);
-  if (example.id === "E1" && protectedThroughReview) example.priority = "P1";
-  if (
-    example.id === "E4" &&
-    /\b(off hire|off-hire|no longer accruing)\b/.test(text) &&
-    !/not off hire|not off-hire/.test(text)
-  )
-    example.priority = "P1";
-  if (
-    example.id === "E5a" &&
-    !(/\b(protected|covered|hold)\b/.test(text) &&
-      !/not protected|no protection|no hold/.test(text))
-  )
-    example.priority = null;
-  if (
-    example.id === "E6" &&
-    !/additional.{0,30}(part|material|identical|production)|production.{0,30}additional/.test(
-      text,
-    )
-  )
-    example.priority = null;
-  return example;
 }
 export function disposition(r) {
   return r.assessment_state === "processing_error"
@@ -559,20 +397,14 @@ export function baseline(records) {
     const t = (r.title + " " + r.description)
       .toLowerCase()
       .replace(/\s+/g, " ");
-    const priority = /\bdemolish\b|\bremove and replace\b/.test(t)
-      ? "P0"
-      : /\badditional work\b|\brelocate\b/.test(t)
-        ? "P1"
-        : "P2";
     return {
       rfi_id: r.rfi_id,
       assessment_state: "assigned",
-      priority,
-      confidence: "Low",
-      basis: "decision_rules",
-      matched_examples: [],
-      data_completeness: { criteria: {}, found: [], missing: ["U", "A", "M", "X", "D", "B"], signal_groups_found: 0, signal_group_threshold: MIN_EVALUATION_SIGNAL_GROUPS },
-      rationale: `Non-AI keyword baseline assigned ${priority}; it does not extract or verify the rubric evidence fields.`,
+      priority: /\bdemolish\b|\bremove and replace\b/.test(t)
+        ? "P0"
+        : /\badditional work\b|\brelocate\b/.test(t)
+          ? "P1"
+          : "P2",
       rule_branch: "FROZEN_KEYWORD_BASELINE",
     };
   });
