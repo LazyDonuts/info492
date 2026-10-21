@@ -90,13 +90,13 @@ test("confirmed priorities and exclusions remain intact", () => {
   assert.equal(ex.priority, null);
   assert.equal(ex.assessment_state, "excluded");
 });
-test("validated partial exposure supports provisional P0 with explicit remaining uncertainty", () => {
+test("validated partial exposure uses the boundary example without a provisional fallback", () => {
   const r = assessExtraction(packet(1), extraction("TEST-1", { D: "Unknown" }));
   const v = workingAssessment(r, packet(1));
-  assert.equal(r.priority, null);
+  assert.equal(r.priority, "P0");
+  assert.ok(r.matched_examples.includes("E1"));
   assert.equal(v.priority, "P0");
-  assert.equal(v.working_basis, "validated_partial_evidence");
-  assert.equal(v.provisional, true);
+  assert.equal(v.provisional, false);
 });
 
 test("urgency alone is not P0; financial-plus-urgency and schedule-plus-critical signals are explicit provisional routes", () => {

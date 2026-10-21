@@ -18,6 +18,20 @@ const hash = (value) =>
   createHash("sha256")
     .update(typeof value === "string" ? value : JSON.stringify(value))
     .digest("hex");
+const failedAssessmentFields = (message) => ({
+  failure_type: "AI check failed",
+  confidence: null,
+  basis: null,
+  matched_examples: [],
+  data_completeness: {
+    criteria: {},
+    found: [],
+    missing: ["U", "A", "M", "X", "D", "B"],
+    signal_groups_found: 0,
+    signal_group_threshold: 2,
+  },
+  rationale: `Technical assessment failure: ${message}`,
+});
 export function makeAgent({
   env = process.env,
   rubric,
@@ -303,6 +317,7 @@ export function makeAgent({
                 assessment_state: "processing_error",
                 priority: null,
                 error: `Output validation failed: ${err.message}`,
+                ...failedAssessmentFields(`output validation failed: ${err.message}`),
                 raw_output: raw,
                 provider_response_id: data.id || null,
               };
@@ -316,6 +331,11 @@ export function makeAgent({
                 err.name === "TimeoutError"
                   ? "Provider request timed out; no assessment was assigned."
                   : err.message,
+              ...failedAssessmentFields(
+                err.name === "TimeoutError"
+                  ? "provider request timed out"
+                  : err.message,
+              ),
             };
           }
           results[i] = result;
