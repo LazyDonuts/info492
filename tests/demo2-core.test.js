@@ -28,41 +28,11 @@ test("rubric critical branches and Unknown protection are explicit", () => {
   assert.equal(assess({ X: "Unknown", D: "Unknown", B: "Yes" }).priority, "P1");
   assert.equal(assess({ D: "No" }).rule_branch, "P1_NO_REMAINING_OPPORTUNITY");
 });
-test("tiered evaluation uses rules for complete evidence and boundary examples for partial packets", () => {
-  const rich = assessExtraction(packet(1), extraction());
-  assert.equal(rich.priority, "P0");
-  assert.equal(rich.basis, "decision_rules");
-  assert.ok(["High", "Medium"].includes(rich.confidence));
-  assert.ok(rich.data_completeness.found.includes("U"));
-
-  const partialRecord = {
-    ...packet(2), title: "Panel dimension clarification",
-    description: "Panels are still being fabricated while a dimension clarification remains unresolved. Production continues pending an answer.",
-    supporting_text: "", review_context: "",
-  };
-  const partial = extraction("TEST-2", { M: "Unknown", X: "Unknown", D: "Unknown", B: "Unknown" });
-  const ranked = assessExtraction(partialRecord, partial);
-  assert.equal(ranked.priority, "P0");
-  assert.equal(ranked.confidence, "Low");
-  assert.ok(["mixed", "boundary_example_match"].includes(ranked.basis));
-  assert.ok(ranked.matched_examples.includes("E1"));
-});
-test("very sparse information stays Needs Information under documented threshold", () => {
-  const record = { ...packet(3), title: "Question", description: "Please clarify.", supporting_text: "", review_context: "" };
-  const x = extraction("TEST-3", { U: "Unknown", A: "Unknown", M: "Unknown", X: "Unknown", D: "Unknown", B: "Unknown" });
-  x.scope = { value: "unknown", quote: null, source: null };
-  const r = assessExtraction(record, x);
-  assert.equal(r.assessment_state, "needs_information");
-  assert.equal(r.priority, null);
-  assert.equal(r.rule_branch, "INSUFFICIENT_SIGNAL");
-  assert.equal(r.confidence, "Low");
-});
-test("partial rule facts can use a boundary example, while contradictions remain unassigned", () => {
+test("missing essentials, X/D unknown and contradictions never become routine", () => {
   for (const k of ["U", "A", "M", "X", "D"]) {
     const r = assess({ [k]: "Unknown" });
-    assert.equal(r.priority, "P0");
-    assert.equal(r.assessment_state, "assigned");
-    assert.ok(r.matched_examples.length);
+    assert.equal(r.priority, null);
+    assert.equal(r.assessment_state, "needs_information");
     assert.ok(r.missing_information.length);
   }
   const x = extraction();
@@ -80,7 +50,7 @@ test("bounded Low needs affirmative evidence and absent monetary mechanism", () 
   };
   assert.equal(assessExtraction(packet(1), x).priority, "P2");
   x.mechanisms[0].bounded_clarification.value = "Unknown";
-  assert.equal(assessExtraction(packet(1), x).priority, "P0");
+  assert.equal(assessExtraction(packet(1), x).priority, null);
 });
 test("ordinary blueprint correction wording can support a cited clarification without rubric terminology", () => {
   const record = {
@@ -119,7 +89,7 @@ test("multiple mechanisms preserve supported P0 and unresolved questions", () =>
   assert.equal(r.priority, "P0");
   assert.ok(r.missing_information.some((q) => q.includes("normal review")));
   x.mechanisms[0] = extraction("TEST-1", { X: "No" }).mechanisms[0];
-  assert.equal(assessExtraction(packet(1), x).priority, "P0");
+  assert.equal(assessExtraction(packet(1), x).priority, null);
   x.mechanisms.pop();
   assert.equal(assessExtraction(packet(1), x).priority, "P1");
 });
@@ -136,10 +106,10 @@ test("resolved, out-of-scope, scope uncertainty and safety remain distinct", () 
     source: "supporting_text",
   };
   const r = assessExtraction(packet(1), x);
-  assert.equal(r.priority, "P0");
+  assert.equal(r.priority, null);
   assert.equal(r.safety_escalation, true);
   x.scope.value = "unknown";
-  assert.equal(assessExtraction(packet(1), x).priority, "P0");
+  assert.equal(assessExtraction(packet(1), x).rule_branch, "SCOPE_UNKNOWN");
 });
 test("all 729 predicate combinations have coherent states; P0 never lacks required Yes evidence", () => {
   const vs = ["Yes", "No", "Unknown"];
@@ -154,7 +124,7 @@ test("all 729 predicate combinations have coherent states; P0 never lacks requir
               assert.ok(
                 ["assigned", "needs_information"].includes(r.assessment_state),
               );
-              if (r.priority === "P0" && r.basis === "decision_rules")
+              if (r.priority === "P0")
                 assert.deepEqual([U, A, M, X, D], Array(5).fill("Yes"));
               if (r.assessment_state === "needs_information")
                 assert.equal(r.priority, null);

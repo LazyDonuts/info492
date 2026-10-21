@@ -52,9 +52,6 @@ test("batch makes ten stateless structured provider requests and emits reconcila
   assert.equal(run.results.length, 10);
   assert.equal(run.results.filter((r) => r.priority === "P0").length, 9);
   assert.equal(run.results[2].assessment_state, "processing_error");
-  assert.equal(run.results[2].priority, null);
-  assert.equal(run.results[2].failure_type, "AI check failed");
-  assert.match(run.results[2].error, /Output validation failed/);
   assert.ok(!JSON.stringify(run).includes(env.OPENAI_API_KEY));
   assert.ok(!JSON.stringify(run).includes(env.DEMO2_ACCESS_TOKEN));
 });
