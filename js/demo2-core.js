@@ -1,19 +1,26 @@
 import { parseCSV, date } from "./rfi-data.js";
 export const RUBRIC_VERSION = "v0.3";
-export const ENGINE_VERSION = "demo2-1.0";
-export const INPUT_VERSION = "submission-1";
+export const ENGINE_VERSION = "demo2-1.2";
+export const INPUT_VERSION = "submission-3";
 export const MAX_BYTES = 256 * 1024;
 export const LABELS = ["P0", "P1", "P2", "Needs Information", "Excluded"];
 export const FIELDS = [
   "rfi_id",
+  "project",
+  "contractor",
   "title",
   "description",
+  "content_category_code",
+  "content_category",
+  "discipline",
   "submitted_date",
   "decision_time",
   "package_id",
   "location",
   "spec_section",
   "assigned_reviewer",
+  "submitted_by",
+  "num_reviewers",
   "contractor_priority_flag",
   "contractor_claims_cost_impact",
   "contractor_claims_schedule_impact",
@@ -239,6 +246,12 @@ export function assessExtraction(record, x) {
       : decision.priority
         ? "assigned"
         : "needs_information";
+  const reportedEvidenceUsed = x.mechanisms.some((m) =>
+    [
+      ["M", ["contractor_claims_cost_impact"]],
+      ["X", ["contractor_claims_schedule_impact", "on_critical_path_at_submittal"]],
+    ].some(([key, sources]) => sources.includes(m.evidence[key].source)),
+  );
   const requiredMissing = [];
   const missing = requiredMissing;
   const questions = {
@@ -261,7 +274,7 @@ export function assessExtraction(record, x) {
     priority: decision.priority,
     rubric_version: RUBRIC_VERSION,
     rule_branch: decision.branch,
-    priority_reason: branchReasons[decision.branch],
+    priority_reason: `${branchReasons[decision.branch]}${reportedEvidenceUsed ? " Cost/schedule evidence includes submitter claims and is not independently verified." : ""}`,
     mitigation_unverified:
       decisions.some((d) => d.branch === "P0_MITIGATION_UNVERIFIED") &&
       decision.priority === "P0",

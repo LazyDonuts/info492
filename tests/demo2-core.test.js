@@ -16,7 +16,7 @@ import {
   csv,
 } from "../js/demo2-core.js";
 import { parseCSV } from "../js/rfi-data.js";
-import { validateExtraction } from "../server/extraction.js";
+import { extractionPrompt, validateExtraction } from "../server/extraction.js";
 import { packet, extraction, narrative } from "./demo2-fixtures.js";
 const ten = () => Array.from({ length: 10 }, (_, i) => packet(i + 1));
 const assess = (v) => assessExtraction(packet(1), extraction("TEST-1", v));
@@ -51,6 +51,36 @@ test("bounded Low needs affirmative evidence and absent monetary mechanism", () 
   assert.equal(assessExtraction(packet(1), x).priority, "P2");
   x.mechanisms[0].bounded_clarification.value = "Unknown";
   assert.equal(assessExtraction(packet(1), x).priority, null);
+});
+test("ordinary blueprint correction wording can support a cited clarification without rubric terminology", () => {
+  const record = {
+    ...packet(1),
+    title: "Blueprint callout conflict at north wall",
+    description: "Requesting correction or information about intended blueprint: sheet A-202 identifies the north wall as WT-2 in plan and WT-3 in elevation; please confirm which callout controls before finishes are ordered.",
+  };
+  const x = extraction("TEST-1", {
+    U: "Unknown",
+    A: "Unknown",
+    X: "Unknown",
+    D: "Unknown",
+    B: "Unknown",
+  });
+  const excerpt = "Requesting correction or information about intended blueprint: sheet A-202 identifies the north wall as WT-2 in plan and WT-3 in elevation; please confirm which callout controls before finishes are ordered.";
+  x.scope = { value: "active", quote: excerpt, source: "description" };
+  x.mechanisms[0].description = "Resolve which existing blueprint callout applies to the north wall before ordering finishes.";
+  x.mechanisms[0].evidence.M = { value: "No", quote: excerpt, source: "description" };
+  x.mechanisms[0].bounded_clarification = {
+    value: "Yes",
+    quote: excerpt,
+    source: "description",
+  };
+  assert.ok(validateExtraction(x, record));
+  assert.equal(assessExtraction(record, x).priority, "P2");
+
+  const prompt = extractionPrompt("rubric text");
+  assert.match(prompt, /Do not require submitters to use rubric terms/);
+  assert.match(prompt, /Do not infer M No from silence/);
+  assert.match(prompt, /intended blueprint/);
 });
 test("multiple mechanisms preserve supported P0 and unresolved questions", () => {
   const x = extraction();
@@ -119,6 +149,9 @@ test("upload parses quoted CSV, BOM, aliases and rejects unsupported/duplicate/s
   const future = ten();
   future[0].true_priority_tier = "P1";
   assert.throws(() => validateRecords(future), /unsupported fields/);
+  const retrospectiveEstimate = ten();
+  retrospectiveEstimate[0].contractor_est_cost_low_usd = "1250";
+  assert.throws(() => validateRecords(retrospectiveEstimate), /unsupported fields/);
   const aliases = ten().map(({ title, ...r }) => ({ ...r, subject: title }));
   assert.equal(
     validateRecords(aliases)[0].title,
@@ -153,11 +186,15 @@ test("source projection whitelists submission evidence and excludes every later 
   for (const r of projected)
     for (const k of Object.keys(r))
       assert.ok(
-        !/(true_priority|impact_score|est_cost|closed|response_date|linked_|status|actual)/.test(
+        !/(true_priority|impact_score|closed|response_date|linked_|status|actual)/.test(
           k,
         ),
       );
   assert.equal(projected[0].attachments, rows[0].attachments);
+  for (const field of ["project", "contractor", "content_category_code", "content_category", "discipline", "submitted_by", "num_reviewers"])
+    assert.equal(projected[0][field], rows[0][field]);
+  assert.equal("contractor_est_cost_low_usd" in projected[0], false);
+  assert.equal("contractor_est_cost_high_usd" in projected[0], false);
   assert.ok(projected[0].provenance.includes("Synthetic"));
 });
 test("seeded selection is exact, unique and reproducible without modifying dataset", () => {
@@ -192,6 +229,39 @@ test("evidence citations require exact submitted excerpts, known fields and vali
   const c = extraction();
   c.mechanisms[0].contradictions = [{ explanation: "conflict", evidence: [] }];
   assert.throws(() => validateExtraction(c, packet(1)), /two cited/);
+});
+test("matching submission flags can support their reported predicates without narrative quotes", () => {
+  const record = {
+    ...packet(1),
+    contractor_claims_cost_impact: "Y",
+    contractor_claims_schedule_impact: "Y",
+    on_critical_path_at_submittal: "Y",
+    contractor_priority_flag: "Urgent",
+  };
+  const x = extraction("TEST-1");
+  x.mechanisms[0].evidence.M = {
+    value: "Yes",
+    quote: null,
+    source: "contractor_claims_cost_impact",
+  };
+  x.mechanisms[0].evidence.X = {
+    value: "Yes",
+    quote: null,
+    source: "contractor_claims_schedule_impact",
+  };
+  x.expedited_verification = {
+    value: true,
+    quote: null,
+    source: "contractor_priority_flag",
+  };
+  assert.ok(validateExtraction(x, record));
+  const reportedPriority = assessExtraction(record, x);
+  assert.equal(reportedPriority.priority, "P0");
+  assert.match(reportedPriority.priority_reason, /not independently verified/);
+  x.mechanisms[0].evidence.X.source = "on_critical_path_at_submittal";
+  assert.ok(validateExtraction(x, record));
+  x.mechanisms[0].evidence.M.source = "contractor_est_cost_low_usd";
+  assert.throws(() => validateExtraction(x, record), /invalid enum/);
 });
 test("sorting prioritizes tiers, supported dates, timestamp and stable IDs; unknown is unranked", () => {
   const records = ten();
@@ -318,6 +388,6 @@ test("short flag excerpts can document contradictions but cannot establish monet
   };
   assert.throws(
     () => validateExtraction(x, r),
-    /narrative evidence|invalid enum/,
+    /narrative excerpt or its matching submission flag|invalid enum/,
   );
 });

@@ -121,7 +121,7 @@ The attached/team-authored **`RFI Priority Criteria` v0.3** is the authoritative
 | **D** | Still-available decision or action could change remaining exposure | Yes / No / Unknown |
 | **B** | Effective protection already implemented, covering the relevant exposure without substitute cost | Yes / No / Unknown |
 
-Preserve the meanings of Yes/No/Unknown. **Absence of evidence is Unknown, not No.** A category name, bare impact flag or “ASAP” alone does not prove a cost mechanism/time-sensitive exposure. A suggested hold is not proof it is implemented. Where timing depends on an undocumented normal review window, mark X Unknown rather than inventing one. Capture exact source quotes and locations.
+Preserve the meanings of Yes/No/Unknown. **Absence of evidence is Unknown, not No.** A cost-impact or schedule-impact flag can evidence the submitter's corresponding reported assertion without a narrative quote; it does not independently verify actual consequences or establish a dollar amount, remaining decision opportunity, or effective protection. Urgent/Expedite can support routing for verification, not cost, schedule or safety exposure. A suggested hold is not proof it is implemented. Where timing depends on an undocumented normal review window, mark X Unknown rather than inventing one. Record the exact field source for metadata evidence and exact source quotes for narrative evidence.
 
 ### Decision rules
 
@@ -143,7 +143,7 @@ Required backend behavior:
 
 - Validate client input, max record count and payload sizes; parse text safely; return actionable upload errors.
 - Apply authentication/rate limits or a similarly appropriate abuse/cost control for a publicly reachable endpoint.
-- Send **only submission-time fields**, the frozen rubric/version, and necessary evidence to the model. Do not send outcome-derived labels, final costs, realized delays, change-order approvals, or the evaluation Answer Key.
+- Send only fields available at submittal and necessary evidence to the model. Exclude contractor estimate ranges because the data dictionary marks them unavailable at submittal, as well as outcome-derived labels, final costs, realized delays, change-order approvals, and the evaluation Answer Key.
 - Set a controlled model/prompt configuration and log it for reproducibility. Give the team an explicit place to configure environment variables without committing secrets.
 - Use a constrained JSON schema; validate responses; detect missing/invalid evidence citations; show partial failures distinctly. Keep source text stable and escape any untrusted content in the UI.
 - Do not silently continue with simulated results on provider timeout/quota failure. Synthetic fixtures are allowed only in an explicitly labeled **development preview** mode.
