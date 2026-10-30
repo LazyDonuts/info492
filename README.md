@@ -107,7 +107,7 @@ npm test
 npm run build
 ```
 
-`build` validates CSVs and all local HTML references. This is a static site, so it does not emit a bundle: the repository files are the production artifacts. Keep HTML, CSS, JS and `data/` together. GitHub Pages uses **`gh-page` / root**; pushing only `main` does not publish changes. Update the publication branch too and verify its Pages deployment succeeds. Increment asset version query strings after CSS/JS changes to avoid stale caches.
+`build` validates CSVs and all local HTML references. This is a static site, so it does not emit a bundle: the repository files are the production artifacts. Keep HTML, CSS, JS and `data/` together. The active GitHub Pages deployment uses **`fixed` / root** (verified October 30, 2026); `gh-page` is an older publication branch. Pushing only `main` does not publish changes. Update the publication branch too and verify its Pages deployment succeeds. Increment asset version query strings after CSS/JS changes to avoid stale caches.
 
 ## Assignment materials
 
