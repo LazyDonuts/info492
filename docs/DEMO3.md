@@ -14,7 +14,7 @@ This local-browser prototype turns Demo 2 development results into a GC review p
 
 - P0/High, P1/Medium and P2/Low reflect Demo 2 working triage; provisional and missing-information flags remain visible.
 - Failed AI checks/input-rule fallbacks, unattempted records, and exclusions are shown under items needing attention; they are not recommended as valid AI assessments.
-- Due/overdue decision dates and due follow-ups come first, followed by priority, known date and RFI ID. Missing dates are not invented from historical submissions. AI decision dates need human verification. A GC may enter a separate planning override.
+- Priority comes first (High → Medium → Low), with known needed-by dates and RFI ID breaking ties within each priority. Overdue and follow-up dates remain visible for human judgment. Missing dates are not invented from historical submissions. AI decision dates need human verification. A GC may enter a separate planning override.
 - Imported historical synthetic RFIs are exercises, not a claimed live open-project feed. Source outcomes/closed status remain excluded from the Demo 2 submission contract. An actual open-RFI feed is future work.
 - Task identity includes backend, package and RFI ID. Older/equal analysis timestamps do not overwrite newer results. Refreshed results do not silently reset the human plan.
 - Capacity is a soft preference, not a hard limit. Additions are unique. Search and package filters do not delete or reorder hidden tasks.
@@ -42,3 +42,9 @@ The activity export captures additions, manual moves, snoozes, review outcomes a
 - Desktop and 390px mobile layout inspected; no horizontal overflow in the tested mobile view.
 
 - Follow-up browser QA replaced inconsistent native HTML dragging with pointer-based handles; actual Chrome dragging and Undo were verified. Arrow controls remain available.
+
+## Priority-first plan generation
+
+Generate Today’s Plan selects up to the chosen capacity from eligible suggested and planned records in the selected project scope. Search does not limit generation. Existing plans require an explicit replacement confirmation; Undo restores the previous board. Snoozed, reviewed, excluded and failed assessments are not selected. Cards compare current user order with the current eligible-pool suggested rank, which may change as assessments arrive or tasks are reviewed. AI updates never automatically regenerate the plan.
+
+Validation: 85 unit tests passed; browser integration verified priority-first generation, canceling replacement, and existing bidirectional Demo 2 workflow.
