@@ -40,3 +40,5 @@ The activity export captures additions, manual moves, snoozes, review outcomes a
 - Static page/link/data validation passed for 1,370 dataset records.
 - Isolated Chrome browser test: sample loading, persistence after reload, manual reorder, snooze, review, Demo 2 → Demo 3 → Demo 2 analysis → Demo 3, and retained personal order. API responses were mocked for browser integration; this does not measure live AI quality.
 - Desktop and 390px mobile layout inspected; no horizontal overflow in the tested mobile view.
+
+- Follow-up browser QA replaced inconsistent native HTML dragging with pointer-based handles; actual Chrome dragging and Undo were verified. Arrow controls remain available.
