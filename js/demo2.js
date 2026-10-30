@@ -1,3 +1,4 @@
+import { INBOX_KEY, RETURN_KEY, envelope } from './demo3-core.js?v=20261030';
 import { snapshotStore, mergeRetry } from "./demo2-recovery.js";
 import { teamTokenStorage } from "./demo2-auth.js";
 import { parseCSV } from "./rfi-data.js";
@@ -169,6 +170,7 @@ async function connect() {
   controls();
 }
 function controls() {
+  $("send-daily").disabled = state.busy || !state.resultRun?.completed_at;
   const locked = initializing || state.busy || !!state.study;
   for (const id of [
     "selector-search",
@@ -589,7 +591,16 @@ function displayedResults() {
     workingAssessment(r, records.find((x) => x.rfi_id === r.rfi_id) || {}),
   );
 }
+$("send-daily").onclick = () => {
+  try {
+    const shared = envelope({...state.resultRun, records:state.resultRun.records || state.selected}, endpoint());
+    localStorage.setItem(INBOX_KEY, JSON.stringify(shared));
+    location.href = "demo3.html";
+  } catch (e) { notice(`Could not send to Daily To-Do: ${e.message}`, true); }
+};
 function renderResults() {
+  $("send-daily").hidden = state.resultRun?.kind !== "development";
+  $("send-daily").disabled = state.busy || !state.resultRun?.completed_at;
   $("results").hidden = !state.resultRun;
   if (!state.resultRun) return;
   const retryRecords = (state.resultRun.records || state.selected).filter(r => state.results.some(x=>x.rfi_id===r.rfi_id && x.assessment_state==="processing_error"));
@@ -1110,6 +1121,22 @@ async function init() {
       persistWorkspace(); controls();
     }
   } catch { $("recovery-status").textContent = "Saved work could not be restored. Import your source or exported records."; }
+  if (new URLSearchParams(location.search).get("from") === "daily") {
+    try {
+      const transfer = JSON.parse(sessionStorage.getItem(RETURN_KEY) || "null");
+      if (!transfer || Date.now()-transfer.created > 86400000) throw new Error("Selection expired. Return to Daily To-Do and select the records again.");
+      const records = validateRecords(transfer.records);
+      if (transfer.origin !== endpoint()) throw new Error("The selected tasks use a different backend. Change the connection to that backend, then reopen the selection from Daily To-Do.");
+      state.selected = records; state.source = "upload";
+      $("source-dataset").setAttribute("aria-pressed", "false");
+      $("source-upload").setAttribute("aria-pressed", "true");
+      $("dataset-input").hidden = true; $("upload-input").hidden = false;
+      selectionChanged();
+      sessionStorage.removeItem(RETURN_KEY);
+      history.replaceState(null, "", location.pathname);
+      notice("Daily To-Do selection loaded. Review the exact payload and confirm consent to analyze with the existing API. Send completed results back to update your board.");
+    } catch(e) { notice(e.message, true); }
+  }
   controls();
 }
 init();
