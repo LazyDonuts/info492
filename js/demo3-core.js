@@ -36,8 +36,7 @@ export function mergeRun(board, message) {
 export function due(item) { return validDate(item.due_override) ? item.due_override : validDate(item.result.decision_date) ? item.result.decision_date : ''; }
 export function rankable(item) { return item.result.assessment_state !== 'excluded' && !item.result.not_attempted && !item.result.ai_review_failed && ['P0','P1','P2'].includes(item.result.priority); }
 export function recommend(items, day) {
-  const bucket = x => (due(x) && due(x) <= day) || (x.followup_due && x.followup_due <= day) ? 0 : 1;
-  return items.filter(x=>x.status==='suggested' && rankable(x)).sort((a,b)=>bucket(a)-bucket(b) || ['P0','P1','P2'].indexOf(a.result.priority)-['P0','P1','P2'].indexOf(b.result.priority) || (due(a)||'9999').localeCompare(due(b)||'9999') || a.record.rfi_id.localeCompare(b.record.rfi_id));
+  return items.filter(x=>x.status==='suggested' && rankable(x)).sort((a,b)=>['P0','P1','P2'].indexOf(a.result.priority)-['P0','P1','P2'].indexOf(b.result.priority) || (due(a)||'9999').localeCompare(due(b)||'9999') || a.record.rfi_id.localeCompare(b.record.rfi_id) || a.key.localeCompare(b.key));
 }
 export function wakeSnoozed(board, day) {
   for (const x of board.items) if(x.status==='snoozed' && x.wake_date<=day) {x.status='suggested'; x.followup_due=x.wake_date; x.wake_date=null;}
@@ -57,4 +56,22 @@ export function reorder(board, key, target) {
   if(from<0||to<0||from===to) return;
   const [x]=list.splice(from,1);list.splice(to,0,x);list.forEach((i,n)=>i.order=n);x.manual=true;
   board.audit.push({at:new Date().toISOString(),key,action:'reorder',target});
+}
+
+export function planCandidates(items, day) {
+  return recommend(items.filter(x=>['suggested','planned'].includes(x.status)).map(x=>({...x,status:'suggested'})),day);
+}
+export function generatePlan(board, day) {
+  if(!validDate(day)) throw Error('Choose a valid planning date.');
+  const items=board.items.filter(x=>!board.project || (x.record.package_id||'Unassigned project')===board.project);
+  const ranked=planCandidates(items,day), limit=Number(board.capacity);
+  if(![3,5,10].includes(limit))throw Error('Choose a daily capacity of 3, 5 or 10.');
+  if(!ranked.length)throw Error('No eligible assessments. Send completed results from Demo 2 first.');
+  const chosen=ranked.slice(0,limit),keys=new Set(chosen.map(x=>x.key));
+  for(const x of items){
+    if(x.status==='planned'&&!keys.has(x.key)){x.status='suggested';x.plan_date=null;x.manual=false;}
+    if(keys.has(x.key)){x.status='planned';x.order=chosen.findIndex(i=>i.key===x.key);x.plan_date=day;x.manual=false;}
+  }
+  board.audit.push({at:new Date().toISOString(),action:'generate-plan',day,project:board.project,policy:'priority-first-1',keys:chosen.map(x=>x.key)});
+  return chosen.length;
 }
