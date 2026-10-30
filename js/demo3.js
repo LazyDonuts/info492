@@ -61,6 +61,7 @@ $('tasks').addEventListener('pointermove',e=>{
   dropKey=target?.dataset.key || null; if(target && dropKey!==drag)target.classList.add('over');
 });
 $('tasks').addEventListener('pointerup',()=>{
+  if(!drag)return;
   const source=drag,target=dropKey;drag=null;pointerStart=null;dropKey=null;
   if(source && target && source!==target)mutate(()=>reorder(board,source,target));else render();
 });
