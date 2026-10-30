@@ -19,6 +19,7 @@ for (const page of [
   "index.html",
   "dashboard.html",
   "demo2.html",
+  "demo3.html",
   "methodology.html",
 ]) {
   const html = await readFile(page, "utf8");
