@@ -161,7 +161,7 @@ Development mode now displays provisional working P0/P1/P2 for incomplete cases,
 
 ## Demo 3 — Daily RFI To-Do
 
-Demo 3 is a standalone import, Jev-classification and daily planning workflow. Import 1–10 CSV/JSON RFIs, search by RFI ID, authorize the payload, and classify one item or the batch with Jev. The sample workbook is Excel format; use its prepared companion JSON at `outputs/light-rail-rfi-demo-sample/Light Rail East Expansion - 10 Random RFIs.json`. Then generate a priority-first plan, reorder, snooze and record review actions. No Demo 2 handoff is used.
+Demo 3 presents a SharePoint-style project list backed by the 10 bundled sample RFIs. Search by RFI ID, select records, classify them with Jev, then generate a daily plan with capacity up to 50. This is a demo list, not a live SharePoint connection. No Demo 2 handoff is used.
 
 - [Workflow, limitations and data handling](docs/DEMO3.md)
 - [Page](demo3.html) · [Styles](css/demo3.css) · [UI](js/demo3.js) · [Board logic](js/demo3-core.js)
