@@ -1,0 +1,94 @@
+{
+  "records": [
+    {
+      "rfi_id": "R200-CRE-06251",
+      "title": "R200-REC-04869 RFI 00127 TPSS PSE Coordination",
+      "description": "During coordination regarding electrical service to the traction power substations, PSE presented the attached letter titled “Follow-up Response to 6/1/2020 Memo TPSS Power Demand on Utility Coordination” dated 03/29/2021 as the basis of their protection design. This letter was sent from Sound Transit to PSE to provide expected AC Current Demand. The Current Demand provided within the referenced letter does not allow operation of the Traction Power Transformer Rectifier Unit within the extra Heavy Traction Duty Cycle as required within specification 34 21 16.26. Loading provided in Letter Loading required per Specification Continuous Notprovided 154 A (100%) 2h Notprovided 231 A (150%) 15m in 149 A Notprovided 5min Notprovided 461A (300%) Imin 301 A Notprovided 15s 415 A 692 A (450%) >ls Notprovided 1846A (1200%) Unless the utility protection settings are updated to allow the loading required per specification, the AC Protective Relay inside each TPSS would have to be set so that it does not allow operation of the referenced duty cycle.",
+      "submitted_date": "2022-03-21",
+      "due_date": "2022-04-10",
+      "package_id": "Light Rail East Expansion",
+      "provenance": "User-provided 10-RFI demo sample; verify source and current status."
+    },
+    {
+      "rfi_id": "R200-CRE-06678",
+      "title": "R200-REC-04732 RFI 00130 E31 Switchboard NEMA Rating",
+      "description": "SWK is working on procurement for SWBD-01 at the E31 Station. There is conflicting information about the requirements for this equipment: Specification section 26 24 13 2.01 B.10 calls for switchboard enclosures to be NEMA 1. Drawing E31-EPS953 calls for Switchboard enclosures to be NEMA 12. DCM chapter 23 calls for switchboard enclosures to be NEMA 12. However, no manufacturer makes a NEMA 12 switchboard enclosure, they are only produced in NEMA 1 or NEMA 3R. A 3R enclosure will add doors to the enclosure, SWK has verified that the equipment size will still work with the current room layout. Please confirm if a NEMA 1 or NEMA 3R enclosure is acceptable for E31-SWBD-01.",
+      "submitted_date": "2022-04-21",
+      "due_date": "2022-05-11",
+      "package_id": "Light Rail East Expansion",
+      "provenance": "User-provided 10-RFI demo sample; verify source and current status."
+    },
+    {
+      "rfi_id": "R200-CRE-07033",
+      "title": "R200-REC-04734 RFI 00133 EP29 FACP Location",
+      "description": "PR 7.1.3.2.3 directs SWK to place the Fire Alarm Control Panel (FACP) at the EP29 Garage in the Electrical Room. This does not conform to City of Redmond Fire requirements to have the FACP in the Fire Sprinkler Riser Room (FSRR). This conflict was raised by SWK during the design phase with alternative solutions presented. After presenting this in the Task Force Meeting SWK was directed on 02/14/2020 to leave the FACP in the electrical room and RFD would accept this. The design proceeded as such to the IFC milestone. During review of the fire alarm permit drawings in April 2022, RFD said they will not approve the design without the FACP in the FSRR. A meeting was held on 5/13/2022 to determine the direction to allow RFD to approve these permit drawings, it was determined that the FACP needs to relocated to the FSRR, with the connection to the ST DDC and EVS needs to be maintained. Please confirm and provide appropriate change direction that SWK should proceed with design and construction rework to change the location of the FACP from the Electrical Room to the FSRR at EP29.",
+      "submitted_date": "2022-05-24",
+      "due_date": null,
+      "package_id": "Light Rail East Expansion",
+      "provenance": "User-provided 10-RFI demo sample; verify source and current status."
+    },
+    {
+      "rfi_id": "R200-CRE-07315",
+      "title": "R200-REC-05234 RFI 00137 Signal House Hasp Requirements Removal",
+      "description": "In pushing for final approval for signal houses on R200 through the Labor and Industries (L&I) Gold Seal process, the third-party reviewer for L&I (BHC) has stated that the following spec 34 42 38 2.01 D.2 (shown below) violates IBC / WAC 1010.1.9.4 - Locks and Latches. The reviewer has clearly stated that L&I will not approve or attach any seal for a latching system that does not allow for egress when locked. The reviewer will not move plans forward until the hasp is removed or noted that it will not be installed during the manufacturing of the building. 34 42 38 2.01 D.2: Securely fasten a ¼ inch by two inch angle plate on the exterior of all instrument house doors with provisions made for a vandal proof lock to secure the door angle plate to an angle plate securely fastened on the instrument house. Provide this locking arrangement in addition to the normal locking mechanism and handle.",
+      "submitted_date": "2022-06-16",
+      "due_date": "2022-07-07",
+      "package_id": "Light Rail East Expansion",
+      "provenance": "User-provided 10-RFI demo sample; verify source and current status."
+    },
+    {
+      "rfi_id": "R200-CRE-12422",
+      "title": "R200-REC-08674 RFI 00201 Decorative Flat-Work and Seat Wall Mock up IFC Changes",
+      "description": "During the decorative concrete flat-work and seat wall mock up walk, ST expressed interest in two changes to IFC design. 1 - Medium Etch Sierra Finish After the mock-up review walk, Sound transit expressed interest in changing the medium etched color 5 Sierra finish to a broom finish on the following pages, E29-LHD101 to E29-LHD104. Please provide direction if Sound Transit would like to revise current finish for Color 5 Sierra on the pages listed above. 2- Seat Wall Skate Stops Currently the approved IFC drawings show a depressed skate stop in the seat walls per PR 7.13.8.1G.1, see 4/E29-LHD101 & 4/E31-LHD102. SWK/LaRusso constructed a mock-up to match the IFC detail. In mock-up review walk, Sound Transit and the installing contractor expressed concerns about the long term visual appearance of the skate stop as the depression has the possibility to chip over time. Please provide direction if Sound Transit would like to revise design to a post installed skate stop.",
+      "submitted_date": "2023-08-23",
+      "due_date": "2023-09-12",
+      "package_id": "Light Rail East Expansion",
+      "provenance": "User-provided 10-RFI demo sample; verify source and current status."
+    },
+    {
+      "rfi_id": "R200-CRE-14954",
+      "title": "R200-REC-10360 RFI 00257 Hilti HAD-PF M12 Buy America Waiver Request",
+      "description": "SWK is requesting a Buy America Waiver for the Hilti HDA-PF M12 undercut anchors to be used in the installation of OSD per NCR 203, REC 09872. SWK has pursued other buy America anchors for this scope of work but were unable to find an anchor that met the spec requirements under 03 15 25. The Hilti HDA-PF M12 undercut anchors have been approved under NCR 203, REC 09872 and meet all project requirements. Quantities are shown on page 6. The total material value for these anchors is $4,375.04 and the estimated labor cost for install is $1,997.04, totaling $6,372.08 for both labor and material. We have not reached out to Hilti for a letter showing best efforts as we know they have other anchors that could meet buy America However, those anchors don’t meet the other requirements called out in the 03 15 25 spec. These anchors we are trying to use are called out in the spec, (see page 2) hopefully this will be a satisfactory documentation/justification. NOTE: we are resubmitting the same content for previously approved RFI-00246 (Security Fencing Top Rail to Top of Mesh Clarification, was incorrect) We are updating the title to match the content. The content has not changed. RFI-00257 will supersede RFI-00246.",
+      "submitted_date": "2024-04-02",
+      "due_date": "2024-04-22",
+      "package_id": "Light Rail East Expansion",
+      "provenance": "User-provided 10-RFI demo sample; verify source and current status."
+    },
+    {
+      "rfi_id": "R200-CRE-15135",
+      "title": "R200-REC-10523 RFI 00260 Guideway Signage Installation",
+      "description": "SWK is asking Sound Transit to confirm the guideway signage installation requirements as outlined within the Project Requirements section 4.4.2 LRT Guideway Signage. Within this section, \"The contractor shall install the mile post signage for the guideway, and all other guideway signage shall be delivered to Sound Transit after fabrication.\" If ST would prefer SWK to perform installation of all other guideway signage, please provide direction to do so via RFP or CNWD.",
+      "submitted_date": "2024-04-15",
+      "due_date": "2024-05-05",
+      "package_id": "Light Rail East Expansion",
+      "provenance": "User-provided 10-RFI demo sample; verify source and current status."
+    },
+    {
+      "rfi_id": "R200-CRE-15465",
+      "title": "R200-REC-10717 RFI 00268 DT Station Bradley 9114-US Coat Hook BAA Waiver",
+      "description": "Hensel Phelps is seeking permission to utilize non-Buy America compliant Bradley 9114-US Domestic Robe Hook in construction of the E31 project. Best efforts have been made including working with several distributors, conferring with other domestic installers, and contacting multiple known manufacturers with facilities in the United States. Ultimately, it was determined that no manufacturer in operation can meet specifications and BAA requirement. The value of components in question is $200 for all material with $600 of labor totaling $800.",
+      "submitted_date": "2024-05-15",
+      "due_date": "2024-06-04",
+      "package_id": "Light Rail East Expansion",
+      "provenance": "User-provided 10-RFI demo sample; verify source and current status."
+    },
+    {
+      "rfi_id": "R200-CRE-15664",
+      "title": "R200-REC-10907 RFI 00272 DTS Window Treatment 1 Aluminum Blinds BAA Waiver",
+      "description": "Hensel Phelps is seeking permission to utilize non-Buy America compliant SWF Contract 1\" Aluminum Blinds in construction of the E31 project. Please note this was also a specification requirement. All spec'd items do not meet BAA requirements. Best efforts have been made including working with several distributors, conferring with other domestic installers, and and contacting all known manufacturers with facilities in the United States as shown in the attached documents. Ultimately, it was determined that no manufacturer in operation can meet BAA requirement. The estimated value of the SWF Contract 1\" Aluminum Blinds in question is $5000 for all material with $3000 of labor totaling $8000.",
+      "submitted_date": "2024-05-30",
+      "due_date": "2024-06-28",
+      "package_id": "Light Rail East Expansion",
+      "provenance": "User-provided 10-RFI demo sample; verify source and current status."
+    },
+    {
+      "rfi_id": "R200-CRE-16179",
+      "title": "R200-REC-11984 RFI 00285 Relocating DTS Backbone Fiber Splices inside Communications Room",
+      "description": "The current design of the backbone fiber for Downtown Redmond Station (DTS) shows the backbone fiber splices located in pullboxes on the roof of the DTS Communications Room. There are challenges with seismic mounting at this location to will lengthen the project schedule and create risk of damage to already installed equipment. The schedule and damage risks can be mitigated if the fiber splices are relocated inside the communications room and placed on the wall above the E31-FDC-01 Cabinet. Splice cases will be secured to the wall with unistrut mounting brackets. Additional information is shown on the attached exhibits. DCM Chapter 15 supports moving splices out of the right-of-way for ease of maintenance access.",
+      "submitted_date": "2024-07-15",
+      "due_date": "2024-08-05",
+      "package_id": "Light Rail East Expansion",
+      "provenance": "User-provided 10-RFI demo sample; verify source and current status."
+    }
+  ]
+}

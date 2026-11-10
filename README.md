@@ -5,11 +5,11 @@ The team takes the General Contractor perspective. The research website and work
 
 ## Mid-quarter submission: repository table of contents
 
-This index covers **code, data, LLM prompts used, and dependencies for Demo 1 and Demo 2**. The current Demo 2 target is at least **70% agreement with a team-developed ten-case answer key**. The earlier 10% cost-reduction target remains historical motivation, not a measured outcome. Historical specifications and homepage copy may retain that earlier wording.
+This index covers **code, data, LLM prompts and dependencies for Demo 1, Demo 2 and the standalone Demo 3 workflow**. The current Demo 2 target is at least **70% agreement with a team-developed ten-case answer key**. The earlier 10% cost-reduction target remains historical motivation, not a measured outcome. Historical specifications and homepage copy may retain that earlier wording.
 
 | Area | Demo 1 — Structured RFI Dashboard | Demo 2 — AI RFI Prioritization Agent |
 | --- | --- | --- |
-| Live application | [Dashboard](https://lazydonuts.github.io/info492/dashboard.html) | [AI agent](https://lazydonuts.github.io/info492/demo2.html) |
+| Live application | [Dashboard](https://micahsantos51.github.io/info492/dashboard.html) | [AI agent](https://micahsantos51.github.io/info492/demo2.html) |
 | Interface code | [dashboard.html](dashboard.html), [dashboard.js](js/dashboard.js), [dashboard.css](css/dashboard.css) | [demo2.html](demo2.html), [demo2.js](js/demo2.js), [demo2.css](css/demo2.css) |
 | Data and decision logic | [rfi-data.js](js/rfi-data.js): CSV parsing, joins, filters, sorting and summaries | [demo2-core.js](js/demo2-core.js): input whitelist, evidence rules, working priorities and scoring; [demo2-recovery.js](js/demo2-recovery.js): recovery and retry merging |
 | Backend | None; static browser application | [index.js](server/index.js): HTTP API and access controls; [agent.js](server/agent.js): provider calls; [extraction.js](server/extraction.js): prompt, schema and evidence validation; [public-demo.js](server/public-demo.js): shared limits |
@@ -33,6 +33,8 @@ The JavaScript application uses native browser APIs and Node built-ins; `package
 
 The published prototype uses GitHub Pages for the frontend and Render for its backend. Its configured provider during the documented Demo 2 development was Google Gemini, model `gemini-3.1-flash-lite`. The code retains an explicitly selected OpenAI adapter; it is not an automatic fallback. Provider keys and team tokens must stay outside Git and frontend assets. Fonts are loaded through Google Fonts; see the page stylesheets for the presentation-only external font dependency.
 
+Demo 1 also has an optional, user-triggered Jev priority classification in the RFI detail view. It still uses its team-token flow. Demo 3 uses a separate public, rate-limited Jev endpoint: configure `JEV_API_KEY` and `JEV_MODEL` (`jev-latest` by default) on the backend, never in the browser. The browser sends submitted date, due date and description; Jev returns one of four urgency categories and confidence.
+
 ### Results and submission boundaries
 
 The [team evaluation write-up](eval/writeup.md) reports **3/10 for each AI run and 7/10 for a simple cost-based comparison**, below the AI target of 7/10. The cost-based classroom comparison is distinct from the application's documented keyword baseline. The [answer-key CSV](eval/answer_key.csv) is a header-only template and the [evaluation report](eval/evaluation_report.md) is an unfilled template; neither is a completed evidence file. The committed write-up does not contain the full case-level run exports needed to independently reconstruct the scores. Software regression passes are not classification-accuracy measurements.
@@ -49,7 +51,8 @@ python3 -m http.server 4920 --bind 127.0.0.1
 
 - Team site: http://127.0.0.1:4920/
 - Dashboard: http://127.0.0.1:4920/dashboard.html
-- Published dashboard: https://lazydonuts.github.io/info492/dashboard.html
+- Published dashboard: https://micahsantos51.github.io/info492/dashboard.html
+- Published Demo 3: https://micahsantos51.github.io/info492/demo3.html
 
 The homepage navigation and Demo 1 card link to the dashboard. The original six-request prioritization concept remains on the research homepage; it is separate from Demo 1.
 
@@ -67,7 +70,7 @@ The dashboard loads **all 1,370 supplied synthetic RFIs** and related CSV tables
 - Local task timer, observer-entered accuracy, retained trials and CSV export
 - Loading/retry, no-match, empty-source, missing-field and optional-file warning states
 
-**Demo 1 runs no LLM and generates no AI risk scores or priority predictions.** Contractor priority is the original source flag. Outcome-derived ground truth is labeled and excluded from search/ranking. The thesis's 10% cost reduction is a hypothesis, not a measured result.
+**Demo 1 makes no AI request automatically.** An optional, user-triggered Jev classification uses only submitted date, due date and description. Contractor priority remains the original source flag. Outcome-derived ground truth is labeled and excluded from search/ranking. The thesis's 10% cost reduction is a hypothesis, not a measured result.
 
 ## Data
 

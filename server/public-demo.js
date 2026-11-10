@@ -37,14 +37,13 @@ export function publicDemoBudget(now = Date.now) {
   };
 }
 
-// Public Jev calls are bounded per source address and reset with the process.
 export function publicJevBudget(now = Date.now) {
   const callers = new Map();
   return {
     reserve(address) {
       const current = now();
-      const bucket = callers.get(address) || { day: '', daily: 0, hourly: [] };
       const day = new Date(current).toISOString().slice(0, 10);
+      const bucket = callers.get(address) || { day, daily: 0, hourly: [] };
       if (bucket.day !== day) { bucket.day = day; bucket.daily = 0; }
       bucket.hourly = bucket.hourly.filter(start => current - start < 3600000);
       if (bucket.daily >= 250) return { allowed: false, retry_after: Math.ceil((Date.parse(`${day}T00:00:00Z`) + 86400000 - current) / 1000) };

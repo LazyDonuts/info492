@@ -6,7 +6,11 @@ import { fileURLToPath } from "node:url";
 import { timingSafeEqual } from "node:crypto";
 import { makeAgent } from "./agent.js";
 import { MAX_BYTES } from "../js/demo2-core.js";
-import { createJevPriorityService, JevPriorityError, validateJevPriorityRequest } from "./jev-priority.js";
+import {
+  createJevPriorityService,
+  JevPriorityError,
+  validateJevPriorityRequest,
+} from "./jev-priority.js";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export async function createServer({
   env = process.env,
@@ -19,10 +23,14 @@ export async function createServer({
     "utf8",
   );
   const agent = makeAgent({ env, rubric, providerFetch, executionMode });
-  const jevPriority = createJevPriorityService({ apiKey: env.JEV_API_KEY, model: env.JEV_MODEL || "jev-latest", fetchImpl: providerFetch });
+  const jevPriority = createJevPriorityService({
+    apiKey: env.JEV_API_KEY,
+    model: env.JEV_MODEL || "jev-latest",
+    fetchImpl: providerFetch,
+  });
   const origins = (
     env.ALLOWED_ORIGINS ||
-    "http://127.0.0.1:4922,http://localhost:4922,http://127.0.0.1:4920"
+    "https://micahsantos51.github.io,https://lazydonuts.github.io,http://127.0.0.1:4922,http://localhost:4922,http://127.0.0.1:4920"
   )
     .split(",")
     .map((s) => s.trim());
@@ -34,7 +42,7 @@ export async function createServer({
   }
   const publicDemo = env.DEMO2_PUBLIC_DEMO === "true";
   const publicBudget = publicDemoBudget(now);
-  const jevPublicBudget = publicJevBudget(now);
+  const jevBudget = publicJevBudget(now);
   const config = () => ({ ...agent.config(), access: {
     mode: publicDemo ? "public_demo" : "team_token",
     token_required: !publicDemo,
@@ -75,10 +83,17 @@ export async function createServer({
       if (path === "/api/config" && req.method === "GET")
         return json(200, config());
       if (path === "/api/jev/config" && req.method === "GET")
-        return json(200, { configured: jevPriority.configured, model: jevPriority.model, token_required: false, limits: { per_hour: 50, per_utc_day: 250 } });
+        return json(200, {
+          configured: jevPriority.configured,
+          model: jevPriority.model,
+          token_required: false,
+          limits: { per_hour: 50, per_utc_day: 250 },
+        });
       if (path === "/api/jev/classify" && req.method === "POST") {
-        if (!jevPriority.configured) return json(503, { error: "Jev priority classification is not configured." });
-        if (!/^application\/json(?:;|$)/i.test(req.headers["content-type"] || "")) return json(415, { error: "Use application/json." });
+        if (!jevPriority.configured)
+          return json(503, { error: "Jev priority classification is not configured." });
+        if (!/^application\/json(?:;|$)/i.test(req.headers["content-type"] || ""))
+          return json(415, { error: "Use application/json." });
         let bytes = 0;
         const chunks = [];
         for await (const chunk of req) {
@@ -87,12 +102,18 @@ export async function createServer({
           chunks.push(chunk);
         }
         let body;
-        try { body = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks))); }
-        catch { return json(400, { error: "Invalid UTF-8 JSON request." }); }
+        try {
+          body = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks)));
+        } catch {
+          return json(400, { error: "Invalid UTF-8 JSON request." });
+        }
         let request;
-        try { request = validateJevPriorityRequest(body); }
-        catch (error) { return json(error.status || 400, { error: error.message }); }
-        const reservation = jevPublicBudget.reserve(req.socket.remoteAddress || "unknown");
+        try {
+          request = validateJevPriorityRequest(body);
+        } catch (error) {
+          return json(error.status || 400, { error: error.message });
+        }
+        const reservation = jevBudget.reserve(req.socket.remoteAddress || "unknown");
         if (!reservation.allowed) {
           res.setHeader("Retry-After", String(reservation.retry_after));
           return json(429, { error: "Shared Jev demo limit reached. Keep your input and try later.", retry_after: reservation.retry_after });

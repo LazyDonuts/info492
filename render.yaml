@@ -18,7 +18,7 @@ services:
       - key: HOST
         value: 0.0.0.0
       - key: ALLOWED_ORIGINS
-        value: https://lazydonuts.github.io,http://127.0.0.1:4922,http://localhost:4922
+        value: https://micahsantos51.github.io,https://lazydonuts.github.io,http://127.0.0.1:4922,http://localhost:4922
       - key: AI_PROVIDER
         value: gemini
       - key: GEMINI_MODEL
