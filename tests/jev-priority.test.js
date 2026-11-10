@@ -150,22 +150,26 @@ test("record ID stays in the app envelope and each API result is associated with
   assert.deepEqual(Object.keys(jevBody.state), ["submitted_date", "due_date", "description"]);
 });
 
-test("classification endpoint requires the team token and keeps API failures distinct", async (t) => {
+test("public classification endpoint needs no visitor token and keeps API failures distinct", async (t) => {
   const env = { JEV_API_KEY: "fixture-jev-key", DEMO2_ACCESS_TOKEN: "t".repeat(40) };
-  const server = await createServer({ env, providerFetch: async () => new Response("{}", { status: 503 }) });
+  let providerCalls = 0;
+  const server = await createServer({ env, providerFetch: async () => {
+    providerCalls++;
+    return new Response("{}", { status: 503 });
+  } });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   t.after(() => new Promise((resolve) => server.close(resolve)));
   const origin = `http://127.0.0.1:${server.address().port}`;
+  const configResponse = await fetch(origin + "/api/jev/config");
+  const config = await configResponse.json();
+  assert.equal(configResponse.status, 200);
+  assert.equal(config.token_required, false);
+  assert.equal(config.configured, true);
   const body = JSON.stringify({ rfi_id: "RFI-78", evaluation_input: cases[0][1] });
-  const denied = await fetch(origin + "/api/jev/classify", { method: "POST", headers: { "Content-Type": "application/json" }, body });
-  assert.equal(denied.status, 401);
-  const failed = await fetch(origin + "/api/jev/classify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${env.DEMO2_ACCESS_TOKEN}` },
-    body,
-  });
-  const payload = await failed.json();
-  assert.equal(failed.status, 502);
+  const response = await fetch(origin + "/api/jev/classify", { method: "POST", headers: { "Content-Type": "application/json" }, body });
+  const payload = await response.json();
+  assert.equal(response.status, 502);
+  assert.equal(providerCalls, 1);
   assert.equal(payload.evaluation, undefined);
   assert.doesNotMatch(JSON.stringify(payload), /lacking_info/);
 });
