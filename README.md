@@ -5,7 +5,7 @@ The team takes the General Contractor perspective. The research website and work
 
 ## Mid-quarter submission: repository table of contents
 
-This index covers **code, data, LLM prompts used, and dependencies for Demo 1 and Demo 2**. The current Demo 2 target is at least **70% agreement with a team-developed ten-case answer key**. The earlier 10% cost-reduction target remains historical motivation, not a measured outcome. Historical specifications and homepage copy may retain that earlier wording.
+This index covers **code, data, LLM prompts and dependencies for Demo 1, Demo 2 and the standalone Demo 3 workflow**. The current Demo 2 target is at least **70% agreement with a team-developed ten-case answer key**. The earlier 10% cost-reduction target remains historical motivation, not a measured outcome. Historical specifications and homepage copy may retain that earlier wording.
 
 | Area | Demo 1 — Structured RFI Dashboard | Demo 2 — AI RFI Prioritization Agent |
 | --- | --- | --- |
@@ -32,6 +32,8 @@ This index covers **code, data, LLM prompts used, and dependencies for Demo 1 an
 The JavaScript application uses native browser APIs and Node built-ins; `package.json` declares no third-party npm dependencies. Node is required for Demo 2 and automated checks, but not for viewing Demo 1 on a static host. Python plus `openpyxl>=3.1,<4` is needed only to reconvert the workbook. `npm run start:env` additionally requires a Node release supporting `--env-file` (the deployment used Node 24); on other supported Node versions, set environment variables before `npm start`.
 
 The published prototype uses GitHub Pages for the frontend and Render for its backend. Its configured provider during the documented Demo 2 development was Google Gemini, model `gemini-3.1-flash-lite`. The code retains an explicitly selected OpenAI adapter; it is not an automatic fallback. Provider keys and team tokens must stay outside Git and frontend assets. Fonts are loaded through Google Fonts; see the page stylesheets for the presentation-only external font dependency.
+
+Demo 1 also has an optional, user-triggered Jev priority classification in the RFI detail view. Configure the backend with `JEV_API_KEY` and `JEV_MODEL` (`jev-latest` by default), plus the existing `DEMO2_ACCESS_TOKEN`. The browser sends only the RFI identifier for association and the submitted date, due date and description to the backend; the identifier is omitted from the Jev request. The current source dataset has no explicit due-date field, so Jev receives `null` for due date. Jev results are separate from the contractor's original priority flag and Demo 2's P0/P1/P2 assessment.
 
 ### Results and submission boundaries
 
@@ -67,7 +69,7 @@ The dashboard loads **all 1,370 supplied synthetic RFIs** and related CSV tables
 - Local task timer, observer-entered accuracy, retained trials and CSV export
 - Loading/retry, no-match, empty-source, missing-field and optional-file warning states
 
-**Demo 1 runs no LLM and generates no AI risk scores or priority predictions.** Contractor priority is the original source flag. Outcome-derived ground truth is labeled and excluded from search/ranking. The thesis's 10% cost reduction is a hypothesis, not a measured result.
+**Demo 1 makes no AI request automatically.** An optional, user-triggered Jev classification uses only submitted date, due date and description. Contractor priority remains the original source flag. Outcome-derived ground truth is labeled and excluded from search/ranking. The thesis's 10% cost reduction is a hypothesis, not a measured result.
 
 ## Data
 
@@ -107,7 +109,7 @@ npm test
 npm run build
 ```
 
-`build` validates CSVs and all local HTML references. This is a static site, so it does not emit a bundle: the repository files are the production artifacts. Keep HTML, CSS, JS and `data/` together. GitHub Pages uses **`gh-page` / root**; pushing only `main` does not publish changes. Update the publication branch too and verify its Pages deployment succeeds. Increment asset version query strings after CSS/JS changes to avoid stale caches.
+`build` validates CSVs and all local HTML references. This is a static site, so it does not emit a bundle: the repository files are the production artifacts. Keep HTML, CSS, JS and `data/` together. The active GitHub Pages deployment uses **`fixed` / root** (verified October 30, 2026); `gh-page` is an older publication branch. Pushing only `main` does not publish changes. Update the publication branch too and verify its Pages deployment succeeds. Increment asset version query strings after CSS/JS changes to avoid stale caches.
 
 ## Assignment materials
 
@@ -157,11 +159,11 @@ The live Demo 2 selects Google Gemini (`AI_PROVIDER=gemini`, model `gemini-3.1-f
 
 Development mode now displays provisional working P0/P1/P2 for incomplete cases, with independent missing-information/AI-failure flags. Confirmed v0.3 assessments are retained. Input-rule suggestions for failed AI responses are explicitly labeled; no invalid model output becomes evidence. Evaluation can freeze v0.3 or working-triage-0.4 before running; human reference labels must match the chosen policy, and processing errors remain failures. See [working priority v0.4](docs/DEMO2-WORKING-PRIORITY.md).
 
-## Demo 3 — Daily RFI To-Do framework
+## Demo 3 — Daily RFI To-Do
 
-Open [Daily To-Do](demo3.html) after a Demo 2 development run and choose **Send to Daily To-Do**. Add, reorder, snooze and review tasks; select 2–10 tasks to bring their packets back into the existing Demo 2 API workflow. Updated assessments preserve personal planning decisions.
+Demo 3 is a standalone import, Jev-classification and daily planning workflow. Import 1–10 CSV/JSON RFIs, search by RFI ID, authorize the payload, and classify one item or the batch with Jev. The sample workbook is Excel format; use its prepared companion JSON at `outputs/light-rail-rfi-demo-sample/Light Rail East Expansion - 10 Random RFIs.json`. Then generate a priority-first plan, reorder, snooze and record review actions. No Demo 2 handoff is used.
 
-- [Workflow, limitations and validation](docs/DEMO3.md)
-- [Page](demo3.html) · [Styles](css/demo3.css) · [UI](js/demo3.js) · [Shared handoff / board logic](js/demo3-core.js) · [Tests](tests/demo3-core.test.js)
-- Uses the current Demo 2 backend and data contract, with no new runtime package dependencies.
-- Initial local-browser prototype only: no authenticated roles, team sync or automatic source-RFI updates. Illustrative examples are labeled and do not call the model.
+- [Workflow, limitations and data handling](docs/DEMO3.md)
+- [Page](demo3.html) · [Styles](css/demo3.css) · [UI](js/demo3.js) · [Board logic](js/demo3-core.js)
+- Jev calls use the standalone `/api/jev/classify` endpoint. The browser sends the RFI ID to the backend for association; Jev receives only submitted date, due date and description.
+- Board data and classifications stay in local browser storage. There are no authenticated roles, team sync or automatic source-RFI updates.

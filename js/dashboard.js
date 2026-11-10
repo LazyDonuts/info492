@@ -8,7 +8,32 @@ import {
   date,
   packageCounts,
 } from "./rfi-data.js?v=20261012-2";
+import {
+  evaluationInputForRecord,
+  JEV_PRIORITY_CATEGORIES,
+  JEV_PRIORITY_LABELS,
+  setJevResult,
+} from "./jev-priority.js?v=20261109-jev1";
+import { teamTokenStorage } from "./demo2-auth.js?v=20261109-jev1";
 const $ = (id) => document.getElementById(id);
+const roleTitles = {
+  submitter: "RFI SUBMITTER WORKSPACE",
+  checker: "CHECKER WORKSPACE",
+  responder: "RFI RESPONDER WORKSPACE",
+  manager: "SCHEDULE MANAGER WORKSPACE",
+  reader: "RFI READER WORKSPACE",
+};
+let roleSession;
+try {
+  roleSession = JSON.parse(sessionStorage.getItem("info492-role-session") || "null");
+} catch {
+  roleSession = null;
+}
+if (!roleSession || !roleTitles[roleSession.role]) {
+  window.location.replace("signin.html");
+} else {
+  $("role-title").textContent = roleTitles[roleSession.role];
+}
 const escape = (value) =>
   String(value ?? "").replace(
     /[&<>"']/g,
@@ -66,7 +91,13 @@ const state = {
   page: 1,
   size: 25,
   mode: "structured",
+  jevResults: new Map(),
+  jevStates: new Map(),
+  jevConfigured: false,
 };
+const jevStorageKey = "info492.jev-priority-results.v1";
+let jevOpenRecordId = null;
+let jevTokenOrigin = null;
 let opener = null,
   running = null,
   tick = null,
@@ -108,6 +139,52 @@ function priorityBadge(r) {
       ? r.priority.toLowerCase()
       : "",
   );
+}
+function jevInputKey(record) {
+  const input = evaluationInputForRecord(record);
+  const value = JSON.stringify(input);
+  let a = 2166136261;
+  let b = 2246822519;
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    a = Math.imul(a ^ code, 16777619);
+    b = Math.imul(b ^ code, 3266489917);
+  }
+  return `${value.length}:${(a >>> 0).toString(16)}:${(b >>> 0).toString(16)}`;
+}
+function jevCategoryClass(category) {
+  return JEV_PRIORITY_CATEGORIES.includes(category) ? category.replace("_", "-") : "";
+}
+function jevResultFor(record) {
+  const saved = state.jevResults.get(record.id);
+  return saved?.inputKey === jevInputKey(record) ? saved.evaluation : null;
+}
+function jevClassificationMarkup(record) {
+  const result = jevResultFor(record);
+  if (result) {
+    return `<span class="jev-badge ${jevCategoryClass(result.category)}">${escape(JEV_PRIORITY_LABELS[result.category])}</span><span class="cell-sub">Classification confidence: ${(result.confidence * 100).toFixed(0)}%</span>`;
+  }
+  const status = state.jevStates.get(record.id);
+  if (status?.state === "pending") return '<span class="jev-state" aria-label="Classification pending">Classifying…</span>';
+  if (status?.state === "error") return '<span class="jev-state error-state">Classification failed · retry in details</span>';
+  return '<span class="jev-state">Not classified</span>';
+}
+function jevDetailMarkup(record) {
+  const result = jevResultFor(record);
+  const status = state.jevStates.get(record.id);
+  const buttonDisabled = status?.state === "pending" || Boolean(result);
+  const output = result
+    ? `<p><span class="jev-badge ${jevCategoryClass(result.category)}">${escape(JEV_PRIORITY_LABELS[result.category])}</span></p><p>Classification confidence: ${(result.confidence * 100).toFixed(0)}%</p>`
+    : `<p class="jev-state" role="status" aria-live="polite">${status?.state === "pending" ? "Classifying…" : status?.state === "error" ? `Classification failed: ${escape(status.message)} No category was assigned.` : "Not classified."}</p>`;
+  return `<section class="drawer-section jev-detail"><h3>Jev priority classification</h3>${output}<button id="classify-priority" type="button" ${buttonDisabled ? "disabled" : ""}>${result ? "Already classified" : status?.state === "pending" ? "Classifying…" : "Classify with Jev"}</button><p class="quiet">The contractor priority above remains a separate original submission flag.</p></section>`;
+}
+function updateJevDetail(record) {
+  const content = $("detail-content");
+  const oldPanel = content.querySelector(".jev-detail");
+  if (!oldPanel) return;
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = jevDetailMarkup(record);
+  oldPanel.replaceWith(wrapper.firstElementChild);
 }
 function metric(label, value, note) {
   return `<article class="summary-card"><span class="metric-name">${label}</span><strong>${value}</strong><small>${note}</small></article>`;
@@ -231,7 +308,7 @@ function render() {
     $("rows").innerHTML = visible
       .map(
         (r) =>
-          `<tr data-rfi="${escape(r.id)}"><td><button class="record-link" data-rfi="${escape(r.id)}" aria-label="Open ${escape(r.id)}"><span>${escape(r.id)}</span><strong>${escape(r.title)}</strong></button><span class="cell-sub">${display(r.package)} · ${display(r.location)}</span></td><td>${display(r.category)}<span class="cell-sub">${display(r.trade)}</span></td><td>${statusBadge(r)}</td><td>${display(r.responsible)}</td><td>${dateText(r.submitted)}</td><td>${priorityBadge(r)}</td><td><span class="${r.costFlag ? "cost-yes" : "cost-no"}">${r.costFlag === null ? "Flag not recorded" : r.costFlag ? "Cost impact claimed" : "No cost impact claimed"}</span><span class="cell-sub">${r.hasEstimate ? `${escape(estimate(r))}<br>Estimate · recorded later` : "Estimate not recorded"}</span>${r.linkedIds.length ? `<span class="cell-sub">${r.linkedIds.length} linked CO${r.linkedIds.length > 1 ? "s" : ""} · later<br>Allocated approved: ${money(r.approved)}</span>` : ""}</td></tr>`,
+          `<tr data-rfi="${escape(r.id)}"><td><button class="record-link" data-rfi="${escape(r.id)}" aria-label="Open ${escape(r.id)}"><span>${escape(r.id)}</span><strong>${escape(r.title)}</strong></button><span class="cell-sub">${display(r.package)} · ${display(r.location)}</span></td><td>${display(r.category)}<span class="cell-sub">${display(r.trade)}</span></td><td>${statusBadge(r)}</td><td>${display(r.responsible)}</td><td>${dateText(r.submitted)}</td><td>${jevClassificationMarkup(r)}</td><td>${priorityBadge(r)}</td><td><span class="${r.costFlag ? "cost-yes" : "cost-no"}">${r.costFlag === null ? "Flag not recorded" : r.costFlag ? "Cost impact claimed" : "No cost impact claimed"}</span><span class="cell-sub">${r.hasEstimate ? `${escape(estimate(r))}<br>Estimate · recorded later` : "Estimate not recorded"}</span>${r.linkedIds.length ? `<span class="cell-sub">${r.linkedIds.length} linked CO${r.linkedIds.length > 1 ? "s" : ""} · later<br>Allocated approved: ${money(r.approved)}</span>` : ""}</td></tr>`,
       )
       .join("");
     document
@@ -280,6 +357,7 @@ function showDetail(id, trigger) {
   if (!r) return;
   opener = trigger;
   $("detail-title").textContent = r.id;
+  jevOpenRecordId = id;
   const entries = [
     entry("Content category", display(r.category), "At submission"),
     entry(
@@ -361,7 +439,7 @@ function showDetail(id, trigger) {
   if (!cos)
     cos = `<p>${r.linkedIds.length ? `Source lists ${escape(r.linkedIds.join(", "))}, but allocation-level records are unavailable. Existing RFI-level allocated amounts are shown above.` : "No linked change order is recorded for this RFI."}</p>`;
   $("detail-content").innerHTML =
-    `<section class="drawer-section"><p class="detail-subject">${escape(r.title)}</p><p>${display(r.description)}</p>${grid(entries)}</section>
+    `${jevDetailMarkup(r)}<section class="drawer-section"><p class="detail-subject">${escape(r.title)}</p><p>${display(r.description)}</p>${grid(entries)}</section>
   <section class="drawer-section"><h3>Responsibility &amp; routing</h3>${grid([entry("Submitting contractor", display(r.contractor)), entry("Submitted by", display(r.submittedBy)), entry("Responsible party / assigned reviewer", display(r.responsible), "At submission"), entry("Submitted", dateText(r.submitted)), entry("Response requirement", days(number(r.raw.required_response_days)), "At submission"), entry("Spec section", display(r.raw.spec_section), "At submission")])}</section>
   <section class="drawer-section"><h3>Cost information</h3><div class="cost-stage">The Data Dictionary marks estimates and CO amounts as unavailable at submission. These are recorded estimates and modeled outcomes, not predictions.</div>${grid([entry("Contractor claims cost impact", flagText(r.costFlag), "At submission"), entry("Contractor estimate range", escape(estimate(r)), "Recorded later · not approved cost"), entry("Allocated approved CO cost", r.linkedIds.length ? money(r.approved) : "No linked CO recorded", "Retrospective RFI-level allocation"), entry("Allocated requested CO cost", r.linkedIds.length ? money(r.requested) : "No linked CO recorded", "Retrospective RFI-level allocation")])}</section>
   <section class="drawer-section"><h3>Linked change orders <span class="timing">Retrospective modeled outcomes</span></h3>${cos}</section>
@@ -380,6 +458,148 @@ function flagRaw(v) {
       ? false
       : null;
 }
+function jevEndpoint() {
+  const raw = $("jev-endpoint").value.trim();
+  if (!raw) return location.origin;
+  const url = new URL(raw);
+  if (url.username || url.password || url.search || url.hash ||
+      (url.protocol !== "https:" && !(url.protocol === "http:" && ["127.0.0.1", "localhost"].includes(url.hostname))) ||
+      url.pathname !== "/") {
+    throw new Error("Use an HTTPS backend origin, or localhost for development, without a path or credentials.");
+  }
+  return url.origin;
+}
+function jevTokenStore() {
+  return teamTokenStorage(() => window.localStorage, jevEndpoint());
+}
+function restoreJevToken() {
+  try {
+    jevTokenOrigin = jevEndpoint();
+    const saved = jevTokenStore().load();
+    $("jev-remember").checked = saved.remember;
+    $("jev-token").value = saved.token;
+    if (!saved.available) $("jev-connection-status").textContent = "Browser storage is unavailable; enter the team token for this tab.";
+  } catch (error) {
+    jevTokenOrigin = null;
+    $("jev-connection-status").textContent = error.message;
+  }
+}
+function saveJevToken() {
+  try {
+    if (jevEndpoint() !== jevTokenOrigin) restoreJevToken();
+    jevTokenStore().save($("jev-token").value, $("jev-remember").checked);
+    $("jev-connection-status").textContent = $("jev-remember").checked
+      ? "Team token saved for this backend on this browser."
+      : "Team token will remain only in this tab.";
+  } catch (error) {
+    $("jev-connection-status").textContent = error.message;
+  }
+}
+async function checkJevConnection() {
+  $("jev-connection-status").textContent = "Checking the Jev backend…";
+  try {
+    const response = await fetch(jevEndpoint() + "/api/jev/config", {
+      cache: "no-store",
+      signal: AbortSignal.timeout(15000),
+    });
+    const config = await response.json();
+    if (!response.ok) throw new Error(config.error || `Backend error (HTTP ${response.status}).`);
+    state.jevConfigured = config.configured === true && config.token_required === true;
+    $("jev-connection-status").textContent = state.jevConfigured
+      ? `Ready · Jev model ${config.model} · team token required.`
+      : "Jev is not configured on this backend. No classifications will be fabricated.";
+  } catch (error) {
+    state.jevConfigured = false;
+    $("jev-connection-status").textContent = `Jev unavailable: ${error.message}`;
+  }
+}
+function loadStoredJevResults() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(jevStorageKey) || "[]");
+    if (!Array.isArray(saved)) return;
+    for (const item of saved) {
+      const evaluation = item?.evaluation;
+      if (typeof item?.rfi_id === "string" && typeof item.inputKey === "string" &&
+          JEV_PRIORITY_CATEGORIES.includes(evaluation?.category) &&
+          typeof evaluation.confidence === "number" && Number.isFinite(evaluation.confidence) &&
+          evaluation.confidence >= 0 && evaluation.confidence <= 1 &&
+          Object.keys(evaluation).length === 2) {
+        state.jevResults.set(item.rfi_id, { inputKey: item.inputKey, evaluation: { category: evaluation.category, confidence: evaluation.confidence } });
+      }
+    }
+  } catch { /* A bad local cache is ignored; no category is invented. */ }
+}
+function saveJevResults() {
+  try {
+    localStorage.setItem(jevStorageKey, JSON.stringify([...state.jevResults].map(([rfi_id, value]) => ({ rfi_id, inputKey: value.inputKey, evaluation: value.evaluation }))));
+  } catch {
+    $("jev-connection-status").textContent = "Classification is available, but this browser could not save results for refresh recovery.";
+  }
+}
+function validateJevEnvelope(payload, recordId) {
+  const evaluation = payload?.evaluation;
+  if (payload?.rfi_id !== recordId || !evaluation || Object.keys(evaluation).length !== 2 ||
+      !JEV_PRIORITY_CATEGORIES.includes(evaluation.category) ||
+      typeof evaluation.confidence !== "number" || !Number.isFinite(evaluation.confidence) ||
+      evaluation.confidence < 0 || evaluation.confidence > 1) {
+    throw new Error("The backend returned an invalid classification. No result was saved.");
+  }
+  return { category: evaluation.category, confidence: evaluation.confidence };
+}
+async function classifyRfi(recordId) {
+  const record = state.model?.records.find((item) => item.id === recordId);
+  if (!record || state.jevStates.get(recordId)?.state === "pending") return;
+  if (!state.jevConfigured) {
+    $("jev-settings").open = true;
+    $("jev-connection-status").textContent = "Check the backend connection before classifying an RFI.";
+    return;
+  }
+  if (!$("jev-token").value.trim()) {
+    $("jev-settings").open = true;
+    $("jev-connection-status").textContent = "Enter the team access token to classify an RFI. Do not enter a Jev API key.";
+    $("jev-token").focus();
+    return;
+  }
+  const inputKey = jevInputKey(record);
+  const cached = state.jevResults.get(recordId);
+  if (cached?.inputKey === inputKey) return;
+  state.jevStates.set(recordId, { state: "pending" });
+  render();
+  if (jevOpenRecordId === recordId) updateJevDetail(record);
+  try {
+    const response = await fetch(jevEndpoint() + "/api/jev/classify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${$("jev-token").value.trim()}` },
+      body: JSON.stringify({ rfi_id: record.id, evaluation_input: evaluationInputForRecord(record) }),
+      signal: AbortSignal.timeout(20000),
+    });
+    let payload;
+    try { payload = await response.json(); } catch { throw new Error("The backend returned an unreadable response."); }
+    if (!response.ok) throw new Error(payload.error || `Classification failed (HTTP ${response.status}).`);
+    const evaluation = validateJevEnvelope(payload, record.id);
+    setJevResult(state.jevResults, record.id, evaluation);
+    state.jevResults.set(record.id, { inputKey, evaluation });
+    saveJevResults();
+    state.jevStates.delete(record.id);
+  } catch (error) {
+    state.jevStates.set(record.id, { state: "error", message: error.message });
+  }
+  render();
+  if (jevOpenRecordId === recordId) updateJevDetail(record);
+}
+$("jev-endpoint").addEventListener("change", () => { restoreJevToken(); checkJevConnection(); });
+$("jev-token").addEventListener("change", saveJevToken);
+$("jev-remember").addEventListener("change", saveJevToken);
+$("jev-connect").addEventListener("click", () => { saveJevToken(); checkJevConnection(); });
+$("jev-forget").addEventListener("click", () => {
+  try { jevTokenStore().forget(); } catch {}
+  $("jev-token").value = "";
+  $("jev-remember").checked = false;
+  $("jev-connection-status").textContent = "Saved team token cleared.";
+});
+$("detail-content").addEventListener("click", (event) => {
+  if (event.target.closest("#classify-priority")) classifyRfi(jevOpenRecordId);
+});
 $("toggle-filters").addEventListener("click", () => {
   const expanded = $("toggle-filters").getAttribute("aria-expanded") !== "true";
   $("toggle-filters").setAttribute("aria-expanded", String(expanded));
@@ -645,6 +865,7 @@ $("source-info").addEventListener("click", () => $("methodology").showModal());
 $("quality-info").addEventListener("click", () => $("methodology").showModal());
 async function initialize() {
   try {
+    loadStoredJevResults();
     state.model = await loadData();
     $("dataset-description").textContent = `The team supplied ${integer(state.model.records.length)} synthetic RFIs modeled around East Link and Downtown Redmond Link. RFI text, dates, costs and outcomes are generated examples, not official Sound Transit records.`;
     $("quality-warning").hidden = !state.model.warnings.length;
@@ -687,4 +908,18 @@ async function initialize() {
     );
   }
 }
+async function initializeJevSettings() {
+  try {
+    const response = await fetch("data/demo2-config.json", { cache: "no-store" });
+    if (response.ok) {
+      const config = await response.json();
+      if (typeof config.backend_origin === "string") $("jev-endpoint").value = config.backend_origin;
+    }
+  } catch { /* The operator can enter a backend origin below. */ }
+  if (!$("jev-endpoint").value && ["127.0.0.1", "localhost"].includes(location.hostname) && location.port !== "4922")
+    $("jev-endpoint").value = "http://127.0.0.1:4922";
+  restoreJevToken();
+  checkJevConnection();
+}
+initializeJevSettings();
 initialize();

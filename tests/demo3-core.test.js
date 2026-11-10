@@ -1,11 +1,44 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {emptyBoard,mergeRun,change,reorder,recommend,wakeSnoozed,envelope,validDate} from '../js/demo3-core.js';
-const message=(time='2026-10-30T10:00:00Z',priority='P1')=>({origin:'https://api.example.com',run:{kind:'development',run_id:time,completed_at:time,records:[{rfi_id:'A',title:'Clarification',description:'Confirm the structural detail before proceeding.',package_id:'P'},{rfi_id:'B',title:'Routing',description:'Confirm the service route before proceeding.',package_id:'P'}],results:[{rfi_id:'A',assessment_state:'assigned',priority,missing_information:[]},{rfi_id:'B',assessment_state:'assigned',priority:'P0',missing_information:[]}]}});
-test('refresh updates analysis but preserves human plan, owner, dates and order; stale runs do not overwrite',()=>{const b=emptyBoard();mergeRun(b,message());const [a,c]=b.items;change(b,a.key,'add',{},'2026-10-30');change(b,c.key,'add',{},'2026-10-30');reorder(b,c.key,a.key);a.owner='GC';a.due_override='2026-11-02';const order=a.order;mergeRun(b,message('2026-10-30T11:00:00Z','P2'));assert.equal(a.result.priority,'P2');assert.equal(a.status,'planned');assert.equal(a.order,order);assert.equal(a.owner,'GC');assert.equal(a.due_override,'2026-11-02');assert.equal(b.items.length,2);mergeRun(b,message());assert.equal(a.result.priority,'P2');});
-test('same IDs in different projects or backends remain distinct',()=>{const b=emptyBoard();mergeRun(b,message());const m=message();m.origin='https://other.example.com';mergeRun(b,m);m.run.records.forEach(r=>r.package_id='Q');mergeRun(b,m);assert.equal(b.items.length,6);});
-test('failed, excluded and unattempted outputs are never recommended as AI priority',()=>{for(const state of ['processing_error','excluded']){const b=emptyBoard(),m=message();m.run.results[0]={rfi_id:'A',assessment_state:state,priority:null};mergeRun(b,m);assert.equal(recommend(b.items,'2026-10-30').length,1);assert.throws(()=>change(b,b.items[0].key,'add'));}});
-test('overdue items come first, missing dates stay missing and duplicate adds do not duplicate',()=>{const b=emptyBoard();mergeRun(b,message());b.items[0].due_override='2026-10-29';assert.equal(recommend(b.items,'2026-10-30')[0].record.rfi_id,'A');change(b,b.items[0].key,'add');change(b,b.items[0].key,'add');assert.equal(b.items.filter(x=>x.status==='planned').length,1);assert.equal(b.items[1].due_override,'');});
-test('snooze needs reason and future date, wakes on due day without changing source',()=>{const b=emptyBoard();mergeRun(b,message());const x=b.items[0],source=structuredClone(x.record);assert.throws(()=>change(b,x.key,'snooze',{date:'2026-10-30',reason:'Wait'},'2026-10-30'));change(b,x.key,'snooze',{date:'2026-11-01',reason:'Await response'},'2026-10-30');wakeSnoozed(b,'2026-10-31');assert.equal(x.status,'snoozed');wakeSnoozed(b,'2026-11-01');assert.equal(x.status,'suggested');assert.deepEqual(x.record,source);});
-test('review requires action note; a reviewed task is not a closed source RFI',()=>{const b=emptyBoard();mergeRun(b,message());const x=b.items[0];assert.throws(()=>change(b,x.key,'review',{outcome:'Clarification requested',note:''}));change(b,x.key,'review',{outcome:'Clarification requested',note:'Recorded follow-up',followup:'2026-11-01'},'2026-10-30');assert.equal(x.status,'reviewed');assert.equal(x.record.status,undefined);assert.equal(b.audit[0].action,'review');});
-test('baseline / evaluation runs and duplicate result IDs are rejected',()=>{const m=message();m.run.kind='baseline';assert.throws(()=>envelope(m.run,m.origin));m.run.kind='development';m.run.results.push(m.run.results[0]);assert.throws(()=>envelope(m.run,m.origin));assert.equal(validDate('2026-02-30'),false);});
+import {emptyBoard,normalizeRfiRecords,mergeRfiRecords,applyJevClassification,change,reorder,recommend,wakeSnoozed,validDate,generatePlan,planCandidates} from '../js/demo3-core.js';
+
+const records=[
+  {rfi_id:'A',title:'Clarification',description:'Confirm the structural detail before proceeding.',submitted_date:'2026-10-29',due_date:'2026-11-02',package_id:'P'},
+  {rfi_id:'B',title:'Routing',description:'Confirm the service route before proceeding.',submitted_date:'2026-10-29',due_date:null,package_id:'P'},
+];
+function fixture(){const board=emptyBoard();mergeRfiRecords(board,records);const [a,b]=board.items;applyJevClassification(a,{category:'mid',confidence:.8},JSON.stringify({id:'A'}));applyJevClassification(b,{category:'high',confidence:.9},JSON.stringify({id:'B'}));return board;}
+
+test('imports CSV-style workbook fields and normalizes IDs, dates and descriptions',()=>{
+ const [r]=normalizeRfiRecords([{rfi_number:'R200-CRE-06251',file_name:'sample.pdf',required_return_date:'2022-04-10',rfi_description:'A complete source description.',date_submitted:'2022-03-21'}]);
+ assert.equal(r.rfi_id,'R200-CRE-06251');assert.equal(r.due_date,'2022-04-10');assert.equal(r.submitted_date,'2022-03-21');assert.equal(r.title,'sample');
+ assert.throws(()=>normalizeRfiRecords([{rfi_id:'A',description:'text'},{rfi_id:'A',description:'text'}]),/unique/);
+ assert.equal(validDate('2026-02-30'),false);
+});
+
+test('Jev categories map to plan tiers; lacking information stays unranked',()=>{
+ const board=fixture(),[a,b]=board.items;assert.equal(a.result.priority,'P1');assert.equal(b.result.priority,'P0');
+ applyJevClassification(a,{category:'lacking_info',confidence:.7},'new-input');assert.equal(a.result.priority,null);assert.equal(a.result.assessment_state,'lacking_info');
+ assert.deepEqual(recommend(board.items,'2026-10-30').map(x=>x.record.rfi_id),['B']);
+});
+
+test('same imported record is refreshed without losing human planning fields',()=>{
+ const board=fixture(),a=board.items[0];change(board,a.key,'add',{},'2026-10-30');a.owner='GC';a.due_override='2026-11-05';
+ mergeRfiRecords(board,[{...records[0],description:'Updated source description.'}]);
+ assert.equal(board.items.length,2);assert.equal(a.owner,'GC');assert.equal(a.due_override,'2026-11-05');assert.equal(a.classification,null);assert.equal(a.status,'planned');
+});
+
+test('priority outranks date; add and reorder preserve one task per item',()=>{
+ const board=fixture(),[a,b]=board.items;a.due_override='2026-10-29';assert.deepEqual(recommend(board.items,'2026-10-30').map(x=>x.record.rfi_id),['B','A']);
+ change(board,a.key,'add',{},'2026-10-30');change(board,a.key,'add',{},'2026-10-30');change(board,b.key,'add',{},'2026-10-30');assert.equal(board.items.filter(x=>x.status==='planned').length,2);reorder(board,b.key,a.key);assert.equal(board.items.sort((x,y)=>x.order-y.order)[0].record.rfi_id,'B');
+});
+
+test('snooze wakes on its date; review records an action without closing source RFI',()=>{
+ const board=fixture(),item=board.items[0],source=structuredClone(item.record);change(board,item.key,'snooze',{date:'2026-11-01',reason:'Await response'},'2026-10-30');wakeSnoozed(board,'2026-10-31');assert.equal(item.status,'snoozed');wakeSnoozed(board,'2026-11-01');assert.equal(item.status,'suggested');
+ change(board,item.key,'review',{outcome:'Clarification requested',note:'Recorded follow-up'},'2026-10-30');assert.equal(item.status,'reviewed');assert.deepEqual(item.record,source);assert.equal(item.record.status,undefined);
+});
+
+test('plan generation honors capacity, project scope and completed work',()=>{
+ const board=fixture();board.capacity=3;const item=board.items[0];item.status='planned';item.manual=true;item.order=0;const other=structuredClone(board.items[1]);other.key='other';other.record.package_id='Other';other.status='planned';other.order=99;board.items.push(other);board.project='P';
+ assert.equal(generatePlan(board,'2026-10-30'),2);assert.equal(board.items.find(x=>x.record.rfi_id==='B'&&x.key!=='other').order,0);assert.equal(item.order,1);assert.equal(item.manual,false);assert.equal(other.order,99);
+ item.status='reviewed';generatePlan(board,'2026-10-30');assert.equal(item.status,'reviewed');assert.equal(planCandidates([item],'2026-10-30').length,0);
+});

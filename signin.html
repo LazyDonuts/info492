@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Sign in to the construction RFI workspace." />
+    <meta name="theme-color" content="#2468dc" />
+    <title>Sign in · INFO 492 RFI Workspace</title>
+    <link rel="stylesheet" href="css/style.css?v=20261007-2" />
+    <link rel="stylesheet" href="css/dashboard.css?v=20261012-2" />
+    <link rel="stylesheet" href="css/role-access.css?v=20261103-1" />
+    <script type="module" src="js/signin.js?v=20261103-1"></script>
+  </head>
+  <body class="dash signin-page">
+    <header class="dash-header">
+      <a class="brand" href="index.html">INFO 492 <span>·</span> Team 1</a>
+      <a href="index.html">Project overview <span aria-hidden="true">↗</span></a>
+    </header>
+    <main class="signin-main">
+      <section class="signin-card" aria-labelledby="signin-title">
+        <p class="overline">CONSTRUCTION RFI WORKSPACE</p>
+        <h1 id="signin-title">Sign in</h1>
+        <p>Choose the workspace view that matches your role.</p>
+        <form id="signin-form">
+          <label>Email address<input name="email" type="email" autocomplete="username" required placeholder="you@company.com" /></label>
+          <label>Password<input name="password" type="password" autocomplete="current-password" required /></label>
+          <label>Role
+            <select name="role" required>
+              <option value="submitter">RFI submitter</option>
+              <option value="checker">Checker</option>
+              <option value="responder">Responder</option>
+              <option value="manager">Schedule manager</option>
+              <option value="reader">Reader</option>
+            </select>
+          </label>
+          <p id="signin-error" class="signin-error" role="alert" hidden></p>
+          <button class="primary-button" type="submit">Continue to workspace</button>
+        </form>
+        <p class="signin-note">Sign-in and role selection are a prototype and are not connected to secure authentication.</p>
+      </section>
+    </main>
+  </body>
+</html>

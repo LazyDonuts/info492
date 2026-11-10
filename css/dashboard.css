@@ -302,6 +302,84 @@
   margin-top: 4px;
   color: var(--muted);
 }
+.jev-settings {
+  margin: 0 22px 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f9fbfe;
+}
+.jev-settings summary {
+  color: var(--blue);
+  font-weight: 600;
+  cursor: pointer;
+}
+.jev-settings-fields {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  margin-top: 14px;
+}
+.jev-settings-fields > label:not(.jev-remember) {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+.jev-settings-fields .jev-remember {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 13px;
+}
+.jev-settings-fields .jev-remember input {
+  width: auto;
+}
+.jev-settings-fields > div {
+  display: flex;
+  gap: 8px;
+}
+.jev-settings > p {
+  margin: 10px 0 0;
+}
+.jev-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid #d5e0eb;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.jev-badge.low {
+  color: #376451;
+  background: #edf7f1;
+  border-color: #cbe6d6;
+}
+.jev-badge.mid {
+  color: #795814;
+  background: #fff6df;
+  border-color: #efdfad;
+}
+.jev-badge.high {
+  color: #8e3434;
+  background: #fff0ee;
+  border-color: #edceca;
+}
+.jev-badge.lacking-info {
+  color: #565477;
+  background: #f1f0f9;
+  border-color: #d7d5eb;
+}
+.jev-state {
+  color: var(--muted);
+  font-size: 13px;
+}
+.jev-detail > p {
+  margin: 10px 0;
+}
+.jev-detail .quiet {
+  max-width: 620px;
+}
 .view-switch {
   display: flex;
   gap: 3px;
@@ -842,6 +920,9 @@ body.dash:has(dialog[open]) {
   }
 }
 @media (max-width: 1050px) {
+  .jev-settings-fields {
+    grid-template-columns: 1fr 1fr;
+  }
   .workspace-layout {
     grid-template-columns: 205px minmax(0, 1fr);
     gap: 15px;
@@ -881,6 +962,12 @@ body.dash:has(dialog[open]) {
   }
 }
 @media (max-width: 760px) {
+  .jev-settings {
+    margin-inline: 15px;
+  }
+  .jev-settings-fields {
+    grid-template-columns: 1fr;
+  }
   .dash-header {
     height: auto;
     min-height: 78px;
