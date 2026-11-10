@@ -1,4 +1,4 @@
-import { publicDemoBudget } from "./public-demo.js";
+import { publicDemoBudget, publicJevBudget } from "./public-demo.js";
 import http from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { resolve, extname, dirname } from "node:path";
@@ -34,6 +34,7 @@ export async function createServer({
   }
   const publicDemo = env.DEMO2_PUBLIC_DEMO === "true";
   const publicBudget = publicDemoBudget(now);
+  const jevPublicBudget = publicJevBudget(now);
   const config = () => ({ ...agent.config(), access: {
     mode: publicDemo ? "public_demo" : "team_token",
     token_required: !publicDemo,
@@ -74,13 +75,9 @@ export async function createServer({
       if (path === "/api/config" && req.method === "GET")
         return json(200, config());
       if (path === "/api/jev/config" && req.method === "GET")
-        return json(200, { configured: jevPriority.configured, model: jevPriority.model, token_required: true });
+        return json(200, { configured: jevPriority.configured, model: jevPriority.model, token_required: false, limits: { per_hour: 50, per_utc_day: 250 } });
       if (path === "/api/jev/classify" && req.method === "POST") {
         if (!jevPriority.configured) return json(503, { error: "Jev priority classification is not configured." });
-        if (!(env.DEMO2_ACCESS_TOKEN?.length >= 32)) return json(503, { error: "A team access token is not configured." });
-        const token = Buffer.from(req.headers.authorization || "");
-        const expected = Buffer.from(`Bearer ${env.DEMO2_ACCESS_TOKEN}`);
-        if (token.length !== expected.length || !timingSafeEqual(token, expected)) return json(401, { error: "Team access token required." });
         if (!/^application\/json(?:;|$)/i.test(req.headers["content-type"] || "")) return json(415, { error: "Use application/json." });
         let bytes = 0;
         const chunks = [];
@@ -95,6 +92,11 @@ export async function createServer({
         let request;
         try { request = validateJevPriorityRequest(body); }
         catch (error) { return json(error.status || 400, { error: error.message }); }
+        const reservation = jevPublicBudget.reserve(req.socket.remoteAddress || "unknown");
+        if (!reservation.allowed) {
+          res.setHeader("Retry-After", String(reservation.retry_after));
+          return json(429, { error: "Shared Jev demo limit reached. Keep your input and try later.", retry_after: reservation.retry_after });
+        }
         try {
           const evaluation = await jevPriority.classify(request.evaluation_input);
           return json(200, { rfi_id: request.rfi_id, evaluation });

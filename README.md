@@ -157,11 +157,11 @@ The live Demo 2 selects Google Gemini (`AI_PROVIDER=gemini`, model `gemini-3.1-f
 
 Development mode now displays provisional working P0/P1/P2 for incomplete cases, with independent missing-information/AI-failure flags. Confirmed v0.3 assessments are retained. Input-rule suggestions for failed AI responses are explicitly labeled; no invalid model output becomes evidence. Evaluation can freeze v0.3 or working-triage-0.4 before running; human reference labels must match the chosen policy, and processing errors remain failures. See [working priority v0.4](docs/DEMO2-WORKING-PRIORITY.md).
 
-## Demo 3 — Daily RFI To-Do framework
+## Demo 3 — Daily RFI To-Do and Jev intake
 
-Open [Daily To-Do](demo3.html) after a Demo 2 development run and choose **Send to Daily To-Do**. Add, reorder, snooze and review tasks; select 2–10 tasks to bring their packets back into the existing Demo 2 API workflow. Updated assessments preserve personal planning decisions.
+Open [Daily To-Do](demo3.html), select a CSV or JSON file up to 256 KB with 1–50 RFI records, and choose **Evaluate with Jev**. No visitor account, API key, or connection setup is required. The site operator must provide `JEV_API_KEY` privately to the hosted backend once; it is never included in frontend files. Results enter the daily review board, where users can build a plan, reorder, snooze and review tasks. Demo 2 runs can still be synced into Demo 3.
 
 - [Workflow, limitations and validation](docs/DEMO3.md)
 - [Page](demo3.html) · [Styles](css/demo3.css) · [UI](js/demo3.js) · [Shared handoff / board logic](js/demo3-core.js) · [Tests](tests/demo3-core.test.js)
 - Uses the current Demo 2 backend and data contract, with no new runtime package dependencies.
-- Initial local-browser prototype only: no authenticated roles, team sync or automatic source-RFI updates. Illustrative examples are labeled and do not call the model.
+- The review board is local to the browser; there are no authenticated roles, team sync or automatic source-RFI updates. Jev intake supports CSV and JSON (not PDF/Word extraction). Illustrative examples are labeled and do not call the model. See [Demo 3 workflow and setup limits](docs/DEMO3.md).

@@ -1,14 +1,14 @@
-# Demo 3 — Daily RFI To-Do (initial framework)
+# Demo 3 — Daily RFI To-Do and Jev intake
 
-This local-browser prototype turns Demo 2 development results into a GC review plan. It reuses the current Gemini backend through Demo 2; there is no new API, secret, or automatic inference call in Demo 3.
+Demo 3 can classify user-supplied RFIs directly with Jev, then turn those results into a GC review plan. Visitors do not enter credentials or configure a connection. The shared backend holds the Jev API key; the board and plan remain in the current browser.
 
 ## Walkthrough
 
-1. Open `demo2.html`, select 2–10 records, review the outbound payload, consent and analyze.
-2. On a completed development run, choose **Send to Daily To-Do**. Demo 3 receives the original submission packets, results, provenance, model metadata and run timestamp.
-3. Add suggestions to My To-Do, reorder by drag or arrow buttons, set a planning date/owner in Review, snooze with a reason, or record a review outcome.
-4. Select 2–10 tasks for AI and choose **Open selected in Demo 2**. The selection replaces the development selection and resets consent. Analyze using the existing connection, then send results back. Existing task order, owner, planning dates, and review status survive updates.
-5. Export the board and activity as JSON. The export is for review/analysis; automatic board-backup import is not implemented. A completed Demo 2 run JSON can be imported from the empty-board screen.
+1. On Demo 3, choose a UTF-8 CSV or JSON file up to 256 KB with 1–50 RFIs. Include `rfi_id`, `title`, and a `description` of at least 20 characters. `submitted_date` and `due_date` are optional.
+2. Select **Evaluate with Jev**. Only the ID and Jev input fields (dates and description) are sent to the configured Jev service. Provider credentials never enter the browser. Results are mapped to the board as High, Mid, Low, or Lacking info.
+3. Add eligible suggestions to My To-Do, reorder by drag or arrow buttons, set a planning date/owner in Review, snooze with a reason, or record a review outcome. Lacking-info results stay out of priority recommendations until a human resolves the missing context.
+4. Optionally sync a Demo 2 development run or select tasks for the existing Demo 2 workflow. Existing task order, owner, planning dates, and review status survive updated assessments.
+5. Export the board and activity as JSON. The export is for review/analysis; automatic board-backup import is not implemented.
 
 ## Decisions
 
@@ -27,6 +27,8 @@ This local-browser prototype turns Demo 2 development results into a GC review p
 Shared results and plans use localStorage on the same browser origin; the return selection uses sessionStorage in the same tab, expiring after 24 hours. No credentials are transferred. Localhost and GitHub Pages cannot share browser storage. Storage errors display an export warning.
 
 There is **no authenticated role system, multiuser collaboration, cross-device persistence, scheduled background processing, or production construction-platform integration** in this first framework. The GC label is a workspace description, not an authenticated identity. Those features require a backend persistence/auth design in a subsequent stage.
+
+The public Jev route is limited to 50 classifications per source address per hour and 250 per UTC day; limits reset on backend restart. The hosted service requires the operator to add `JEV_API_KEY` as a server secret once and deploy. Without that one-time backend setup, the page reports that Jev is unavailable; visitors still need no key or setup. Intake currently supports CSV and JSON, not PDF or Word extraction.
 
 The explicit illustrative-task button loads five labeled UI examples with no AI call. These examples cannot be sent to the model and are not evidence of accuracy.
 

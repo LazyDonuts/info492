@@ -9,6 +9,7 @@ export const FIELDS = [
   "title",
   "description",
   "submitted_date",
+  "due_date",
   "decision_time",
   "package_id",
   "location",
@@ -44,16 +45,16 @@ export function projectDataset(rows) {
     ),
   );
 }
-export function validateRecords(rows, { exactlyTen = false, minimum = 2 } = {}) {
+export function validateRecords(rows, { exactlyTen = false, minimum = 2, maximum = 10 } = {}) {
   if (
     !Array.isArray(rows) ||
     rows.length < minimum ||
-    rows.length > 10 ||
+    rows.length > maximum ||
     (exactlyTen && rows.length !== 10)
   )
     throw new Error(exactlyTen
       ? "Provide exactly 10 RFI records for evaluation. No records were omitted."
-      : `Provide ${minimum}–10 RFI records. No records were omitted.`);
+      : `Provide ${minimum}–${maximum} RFI records. No records were omitted.`);
   const ids = new Set();
   return rows.map((row, index) => {
     if (!row || typeof row !== "object" || Array.isArray(row))
@@ -107,6 +108,8 @@ export function validateRecords(rows, { exactlyTen = false, minimum = 2 } = {}) 
       throw new Error(
         `${r.rfi_id}: submitted_date must be a valid YYYY-MM-DD.`,
       );
+    if (r.due_date && !date(r.due_date))
+      throw new Error(`${r.rfi_id}: due_date must be a valid YYYY-MM-DD.`);
     // Decision time is a declared snapshot, not the current wall clock.
     if (r.decision_time && !date(r.decision_time))
       throw new Error(`${r.rfi_id}: decision_time must be YYYY-MM-DD.`);
@@ -116,7 +119,7 @@ export function validateRecords(rows, { exactlyTen = false, minimum = 2 } = {}) 
 export function parseUpload(text, filename, options = {}) {
   if (new TextEncoder().encode(text).length > MAX_BYTES)
     throw new Error(
-      "File exceeds 256 KB. Split into a submission-only file of 2–10 records.",
+      `File exceeds 256 KB. Split it into smaller files of up to ${options.maximum ?? 10} records.`,
     );
   const ext = filename.split(".").pop().toLowerCase();
   let rows;

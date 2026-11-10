@@ -31,3 +31,7 @@ services:
         value: "true"
       - key: DEMO2_ACCESS_TOKEN
         generateValue: true
+      - key: JEV_API_KEY
+        sync: false
+      - key: JEV_MODEL
+        value: jev-latest
