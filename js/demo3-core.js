@@ -86,7 +86,7 @@ export function generatePlan(board, day) {
   if(!validDate(day)) throw Error('Choose a valid planning date.');
   const items=board.items.filter(x=>!board.project || (x.record.package_id||'Unassigned project')===board.project);
   const ranked=planCandidates(items,day), limit=Number(board.capacity);
-  if(![3,5,10].includes(limit))throw Error('Choose a daily capacity of 3, 5 or 10.');
+  if(!Number.isInteger(limit)||limit<1||limit>50)throw Error('Choose a daily limit from 1 to 50.');
   if(!ranked.length)throw Error('No classified RFIs are ready for planning yet. Classify an RFI first.');
   const chosen=ranked.slice(0,limit),keys=new Set(chosen.map(x=>x.key));
   for(const x of items){
