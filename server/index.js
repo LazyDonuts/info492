@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { timingSafeEqual } from "node:crypto";
 import { makeAgent } from "./agent.js";
 import { MAX_BYTES } from "../js/demo2-core.js";
+import { createJevPriorityService, JevPriorityError, validateJevPriorityRequest } from "./jev-priority.js";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export async function createServer({
   env = process.env,
@@ -18,6 +19,7 @@ export async function createServer({
     "utf8",
   );
   const agent = makeAgent({ env, rubric, providerFetch, executionMode });
+  const jevPriority = createJevPriorityService({ apiKey: env.JEV_API_KEY, model: env.JEV_MODEL || "jev-latest", fetchImpl: providerFetch });
   const origins = (
     env.ALLOWED_ORIGINS ||
     "http://127.0.0.1:4922,http://localhost:4922,http://127.0.0.1:4920"
@@ -71,6 +73,36 @@ export async function createServer({
     try {
       if (path === "/api/config" && req.method === "GET")
         return json(200, config());
+      if (path === "/api/jev/config" && req.method === "GET")
+        return json(200, { configured: jevPriority.configured, model: jevPriority.model, token_required: true });
+      if (path === "/api/jev/classify" && req.method === "POST") {
+        if (!jevPriority.configured) return json(503, { error: "Jev priority classification is not configured." });
+        if (!(env.DEMO2_ACCESS_TOKEN?.length >= 32)) return json(503, { error: "A team access token is not configured." });
+        const token = Buffer.from(req.headers.authorization || "");
+        const expected = Buffer.from(`Bearer ${env.DEMO2_ACCESS_TOKEN}`);
+        if (token.length !== expected.length || !timingSafeEqual(token, expected)) return json(401, { error: "Team access token required." });
+        if (!/^application\/json(?:;|$)/i.test(req.headers["content-type"] || "")) return json(415, { error: "Use application/json." });
+        let bytes = 0;
+        const chunks = [];
+        for await (const chunk of req) {
+          bytes += chunk.length;
+          if (bytes > MAX_BYTES) return json(413, { error: "Request exceeds 256 KB." });
+          chunks.push(chunk);
+        }
+        let body;
+        try { body = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks))); }
+        catch { return json(400, { error: "Invalid UTF-8 JSON request." }); }
+        let request;
+        try { request = validateJevPriorityRequest(body); }
+        catch (error) { return json(error.status || 400, { error: error.message }); }
+        try {
+          const evaluation = await jevPriority.classify(request.evaluation_input);
+          return json(200, { rfi_id: request.rfi_id, evaluation });
+        } catch (error) {
+          const status = error instanceof JevPriorityError ? error.status : 502;
+          return json(status, { error: error.message || "Jev classification failed." });
+        }
+      }
       // Operator metadata lookup: no prompts, keys or provider response bodies
       // are returned. Use it to select an actually available Gemini model.
       if (path === "/api/models" && req.method === "GET") {
@@ -220,7 +252,7 @@ export async function createServer({
           .replace(/^\/info492(?=\/)/, "")
           .replace(/^\//, "") || "index.html";
       if (
-        !/^(index\.html|dashboard\.html|demo2\.html|methodology\.html|(?:css|js|data|docs|eval)\/[A-Za-z0-9_./-]+)$/.test(
+        !/^(index\.html|dashboard\.html|demo2\.html|demo3\.html|methodology\.html|(?:css|js|data|docs|eval)\/[A-Za-z0-9_./-]+)$/.test(
           local,
         ) ||
         local.split("/").some((p) => p.startsWith(".")) ||
