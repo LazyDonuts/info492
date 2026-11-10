@@ -4,7 +4,7 @@ export function validDate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s || '') && !Nu
 export function emptyBoard() { return {version:2, items:[], audit:[], capacity:5, project:'', updated:null}; }
 const text = value => typeof value === 'string' ? value.trim() : '';
 export function normalizeRfiRecords(rows) {
-  if (!Array.isArray(rows) || rows.length < 1 || rows.length > 10) throw Error('Import 1–10 RFI records.');
+  if (!Array.isArray(rows) || rows.length < 1 || rows.length > 50) throw Error('Import 1–50 RFI records.');
   const records = rows.map((row, index) => {
     if (!row || typeof row !== 'object' || Array.isArray(row)) throw Error(`Record ${index + 1} must be an object.`);
     const rfi_id = text(row.rfi_id ?? row.id ?? row.rfi_number ?? row['RFI Number']);

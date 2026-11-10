@@ -4,9 +4,9 @@
 **Project:** Prioritizing High-Risk RFIs with AI  
 **Deliverable:** Navigation refresh + working Demo 2 AI RFI Prioritization Agent  
 **Status:** Implementation request, not a completed-feature report  
-**Existing website:** https://lazydonuts.github.io/info492/  
-**Existing Demo 1:** https://lazydonuts.github.io/info492/dashboard.html  
-**Repository:** https://github.com/LazyDonuts/info492  
+**Current website:** https://micahsantos51.github.io/info492/
+**Current Demo 1:** https://micahsantos51.github.io/info492/dashboard.html
+**Repository:** https://github.com/micahsantos51/info492
 **Design references:** Existing Team 1 website and Demo 1 dashboard; the team's workflow and assessment mockups; `RFI Priority Criteria` v0.3 research; INFO 492 Evaluation Lab Worksheet.
 
 > **Instruction to Codex:** Inspect the current repository and the available research/data documents first. Implement and verify the features below in the existing codebase. This is **not** a request to recreate the team website or replace Demo 1. Use the existing site as the source of truth for frameworks, file paths, deployment, and visual design. Where source files are missing, provide explicit setup steps; do not fabricate test outcomes or data.

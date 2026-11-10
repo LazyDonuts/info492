@@ -9,7 +9,7 @@ This index covers **code, data, LLM prompts and dependencies for Demo 1, Demo 2 
 
 | Area | Demo 1 — Structured RFI Dashboard | Demo 2 — AI RFI Prioritization Agent |
 | --- | --- | --- |
-| Live application | [Dashboard](https://lazydonuts.github.io/info492/dashboard.html) | [AI agent](https://lazydonuts.github.io/info492/demo2.html) |
+| Live application | [Dashboard](https://micahsantos51.github.io/info492/dashboard.html) | [AI agent](https://micahsantos51.github.io/info492/demo2.html) |
 | Interface code | [dashboard.html](dashboard.html), [dashboard.js](js/dashboard.js), [dashboard.css](css/dashboard.css) | [demo2.html](demo2.html), [demo2.js](js/demo2.js), [demo2.css](css/demo2.css) |
 | Data and decision logic | [rfi-data.js](js/rfi-data.js): CSV parsing, joins, filters, sorting and summaries | [demo2-core.js](js/demo2-core.js): input whitelist, evidence rules, working priorities and scoring; [demo2-recovery.js](js/demo2-recovery.js): recovery and retry merging |
 | Backend | None; static browser application | [index.js](server/index.js): HTTP API and access controls; [agent.js](server/agent.js): provider calls; [extraction.js](server/extraction.js): prompt, schema and evidence validation; [public-demo.js](server/public-demo.js): shared limits |
@@ -33,7 +33,7 @@ The JavaScript application uses native browser APIs and Node built-ins; `package
 
 The published prototype uses GitHub Pages for the frontend and Render for its backend. Its configured provider during the documented Demo 2 development was Google Gemini, model `gemini-3.1-flash-lite`. The code retains an explicitly selected OpenAI adapter; it is not an automatic fallback. Provider keys and team tokens must stay outside Git and frontend assets. Fonts are loaded through Google Fonts; see the page stylesheets for the presentation-only external font dependency.
 
-Demo 1 also has an optional, user-triggered Jev priority classification in the RFI detail view. Configure the backend with `JEV_API_KEY` and `JEV_MODEL` (`jev-latest` by default), plus the existing `DEMO2_ACCESS_TOKEN`. The browser sends only the RFI identifier for association and the submitted date, due date and description to the backend; the identifier is omitted from the Jev request. The current source dataset has no explicit due-date field, so Jev receives `null` for due date. Jev results are separate from the contractor's original priority flag and Demo 2's P0/P1/P2 assessment.
+Demo 1 also has an optional, user-triggered Jev priority classification in the RFI detail view. It still uses its team-token flow. Demo 3 uses a separate public, rate-limited Jev endpoint: configure `JEV_API_KEY` and `JEV_MODEL` (`jev-latest` by default) on the backend, never in the browser. The browser sends submitted date, due date and description; Jev returns one of four urgency categories and confidence.
 
 ### Results and submission boundaries
 
@@ -51,7 +51,8 @@ python3 -m http.server 4920 --bind 127.0.0.1
 
 - Team site: http://127.0.0.1:4920/
 - Dashboard: http://127.0.0.1:4920/dashboard.html
-- Published dashboard: https://lazydonuts.github.io/info492/dashboard.html
+- Published dashboard: https://micahsantos51.github.io/info492/dashboard.html
+- Published Demo 3: https://micahsantos51.github.io/info492/demo3.html
 
 The homepage navigation and Demo 1 card link to the dashboard. The original six-request prioritization concept remains on the research homepage; it is separate from Demo 1.
 
@@ -161,7 +162,7 @@ Development mode now displays provisional working P0/P1/P2 for incomplete cases,
 
 ## Demo 3 — Daily RFI To-Do
 
-Demo 3 presents a SharePoint-style project list backed by the 10 bundled sample RFIs. Search by RFI ID, select records, classify them with Jev, then generate a daily plan with capacity up to 50. This is a demo list, not a live SharePoint connection. No Demo 2 handoff is used.
+Demo 3 presents 10 bundled sample RFIs or user-imported CSV/JSON with up to 50 records. Search by RFI ID, select records, classify them with Jev without a visitor API key or backend setup, then generate a daily plan with capacity up to 50. The Jev backend must have a private `JEV_API_KEY` and allow the current GitHub Pages origin; its public endpoint has per-IP hourly and daily limits. This is a demo list, not a live SharePoint connection. No Demo 2 handoff is used.
 
 - [Workflow, limitations and data handling](docs/DEMO3.md)
 - [Page](demo3.html) · [Styles](css/demo3.css) · [UI](js/demo3.js) · [Board logic](js/demo3-core.js)
