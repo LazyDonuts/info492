@@ -10,10 +10,10 @@
     <meta name="theme-color" content="#2468dc" />
     <title>RFI Management Dashboard · INFO 492 Team 1</title>
     <link rel="stylesheet" href="css/style.css?v=20261007-2" />
-    <link rel="stylesheet" href="css/dashboard.css?v=20261012-2" />
+    <link rel="stylesheet" href="css/dashboard.css?v=20261109-jev1" />
     <link rel="stylesheet" href="css/demo-menu.css?v=20261017-align" />
     <script type="module" src="js/demo-menu.js?v=20261016"></script>
-    <script type="module" src="js/dashboard.js?v=20261012-2"></script>
+    <script type="module" src="js/dashboard.js?v=20261109-jev1"></script>
   </head>
   <body class="dash">
     <a class="skip-link" href="#workspace">Skip to dashboard</a>
@@ -101,6 +101,17 @@
                   </button>
                 </div>
               </div>
+              <details id="jev-settings" class="jev-settings">
+                <summary>Jev classification connection</summary>
+                <div class="jev-settings-fields">
+                  <label>Backend URL<input id="jev-endpoint" type="url" autocomplete="off" placeholder="https://your-team-backend.example" /></label>
+                  <label>Team access token<input id="jev-token" type="password" autocomplete="off" placeholder="Team token, never a Jev API key" /></label>
+                  <label class="jev-remember"><input id="jev-remember" type="checkbox" checked /> Remember token on this browser</label>
+                  <div><button id="jev-connect" type="button">Check connection</button> <button id="jev-forget" type="button">Clear saved token</button></div>
+                </div>
+                <p id="jev-connection-status" class="quiet" role="status" aria-live="polite">Classification is available when the team backend and Jev are configured.</p>
+                <p class="quiet">A classification request sends only the RFI ID for association and the submitted date, due date, and description to the team backend. The ID is not sent to Jev. This data set has no explicit due-date field, so due date is sent as missing.</p>
+              </details>
               <div id="active-task" class="active-task" hidden><div><strong>Task in progress</strong><p id="active-task-text"></p></div><button id="return-study">Record answer ↗</button></div>
               <div id="search-sort" class="search-toolbar">
                 <label class="search-box"
@@ -165,6 +176,7 @@
                         <button>Responsible party</button>
                       </th>
                       <th scope="col" data-sort="submitted"><button>Submitted</button></th>
+                      <th scope="col">Jev classification</th>
                       <th scope="col" data-sort="priority">
                         <button>Contractor priority<span class="column-note">Original flag · not AI</span></button>
                       </th>
@@ -296,8 +308,7 @@
         <footer class="dash-footer">
           <span>INFO 492 · Team 1 / Demo 1</span
           ><span
-            >Synthetic RFIs and modeled outcomes · No AI analysis in this
-            demo</span
+            >Synthetic RFIs and modeled outcomes · Jev classification is user-triggered</span
           ><a href="docs/DEMO-NOTE.md">Demo note ↗</a>
         </footer>
       </div>

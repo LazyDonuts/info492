@@ -1,50 +1,27 @@
-# Demo 3 — Daily RFI To-Do (initial framework)
+# Demo 3 — Daily RFI To-Do
 
-This local-browser prototype turns Demo 2 development results into a GC review plan. It reuses the current Gemini backend through Demo 2; there is no new API, secret, or automatic inference call in Demo 3.
+Demo 3 is independent of Demo 2. It imports RFI records, classifies their priority with Jev, and lets the user prepare a daily review plan.
 
-## Walkthrough
+## Use the 10-RFI sample
 
-1. Open `demo2.html`, select 2–10 records, review the outbound payload, consent and analyze.
-2. On a completed development run, choose **Send to Daily To-Do**. Demo 3 receives the original submission packets, results, provenance, model metadata and run timestamp.
-3. Add suggestions to My To-Do, reorder by drag or arrow buttons, set a planning date/owner in Review, snooze with a reason, or record a review outcome.
-4. Select 2–10 tasks for AI and choose **Open selected in Demo 2**. The selection replaces the development selection and resets consent. Analyze using the existing connection, then send results back. Existing task order, owner, planning dates, and review status survive updates.
-5. Export the board and activity as JSON. The export is for review/analysis; automatic board-backup import is not implemented. A completed Demo 2 run JSON can be imported from the empty-board screen.
+1. Open `demo3.html` from the running site.
+2. Choose **Import RFIs (CSV / JSON)** and select `outputs/light-rail-rfi-demo-sample/Light Rail East Expansion - 10 Random RFIs.json`. The Excel workbook itself is not parsed in the browser.
+3. Search by an RFI ID in **Find an RFI**. For example, `R200-CRE-06251`.
+4. Confirm the data-sharing notice, check the authorization box, and choose **Classify unclassified RFIs** or classify one RFI from its card.
+5. After classification, generate today’s plan, adjust its order if needed, and record review actions.
 
-## Decisions
+The file contains the ten sample rows previously prepared from the user-provided workbook. It includes each RFI ID, description, submitted date and required return date, plus a title and project label. Its data remains local to the workspace unless the user imports it in the browser. Do not commit the companion JSON or workbook to a public deployment without confirming the data-sharing decision.
 
-- P0/High, P1/Medium and P2/Low reflect Demo 2 working triage; provisional and missing-information flags remain visible.
-- Failed AI checks/input-rule fallbacks, unattempted records, and exclusions are shown under items needing attention; they are not recommended as valid AI assessments.
-- Priority comes first (High → Medium → Low), with known needed-by dates and RFI ID breaking ties within each priority. Overdue and follow-up dates remain visible for human judgment. Missing dates are not invented from historical submissions. AI decision dates need human verification. A GC may enter a separate planning override.
-- Imported historical synthetic RFIs are exercises, not a claimed live open-project feed. Source outcomes/closed status remain excluded from the Demo 2 submission contract. An actual open-RFI feed is future work.
-- Task identity includes backend, package and RFI ID. Older/equal analysis timestamps do not overwrite newer results. Refreshed results do not silently reset the human plan.
-- Capacity is a soft preference, not a hard limit. Additions are unique. Search and package filters do not delete or reorder hidden tasks.
-- Reviewed means a review action was recorded, not that the RFI was answered or closed. Follow-ups re-enter suggestions when the planning date reaches their date; earlier review outcomes remain in task history.
-- A planning-date control supports classroom replay. It advances follow-up states; it is not an immutable historical view.
-- No automatic emails or external project writes. Recorded actions describe user activity; they do not execute it.
+## Input and Jev handling
 
-## Storage and limitations
+- Import accepts UTF-8 CSV and JSON with 1–10 unique RFI IDs. JSON may be an array or an object with a `records` array. Excel files must first be exported as CSV or JSON.
+- The RFI search filters records already imported into the board; it does not fetch arbitrary IDs from an external system.
+- Before a Jev call, the user must authorize sharing. The backend receives the RFI ID to associate the response. Jev receives only submitted date, due date and description.
+- The backend needs `JEV_API_KEY`, an optional `JEV_MODEL`, and a team access token. Demo 3 stores its backend URL and token settings separately in the browser. It makes no model call on import or page load.
+- Classifications persist with the board in this browser. Reimporting a matching record replaces its source fields and clears the prior classification for that item.
+- `high`, `mid` and `low` map to High, Mid and Low plan tiers. `lacking_info` remains visible for human review and is excluded from automatic plan ranking.
+- Recommendations are advisory. The source workbook and its records are never modified by classification or review actions.
 
-Shared results and plans use localStorage on the same browser origin; the return selection uses sessionStorage in the same tab, expiring after 24 hours. No credentials are transferred. Localhost and GitHub Pages cannot share browser storage. Storage errors display an export warning.
+## Local scope
 
-There is **no authenticated role system, multiuser collaboration, cross-device persistence, scheduled background processing, or production construction-platform integration** in this first framework. The GC label is a workspace description, not an authenticated identity. Those features require a backend persistence/auth design in a subsequent stage.
-
-The explicit illustrative-task button loads five labeled UI examples with no AI call. These examples cannot be sent to the model and are not evidence of accuracy.
-
-## Evaluation
-
-The activity export captures additions, manual moves, snoozes, review outcomes and timestamps. It is not yet a controlled experiment timer or an accuracy score. Formal task timing, reference labels and comparisons remain separate evaluation work.
-
-## Validation (October 30, 2026)
-
-- 83 Node tests passed, including seven new tests for merging/preservation, project isolation, failure exclusion, ranking, snooze, review and invalid imports.
-- Static page/link/data validation passed for 1,370 dataset records.
-- Isolated Chrome browser test: sample loading, persistence after reload, manual reorder, snooze, review, Demo 2 → Demo 3 → Demo 2 analysis → Demo 3, and retained personal order. API responses were mocked for browser integration; this does not measure live AI quality.
-- Desktop and 390px mobile layout inspected; no horizontal overflow in the tested mobile view.
-
-- Follow-up browser QA replaced inconsistent native HTML dragging with pointer-based handles; actual Chrome dragging and Undo were verified. Arrow controls remain available.
-
-## Priority-first plan generation
-
-Generate Today’s Plan selects up to the chosen capacity from eligible suggested and planned records in the selected project scope. Search does not limit generation. Existing plans require an explicit replacement confirmation; Undo restores the previous board. Snoozed, reviewed, excluded and failed assessments are not selected. Cards compare current user order with the current eligible-pool suggested rank, which may change as assessments arrive or tasks are reviewed. AI updates never automatically regenerate the plan.
-
-Validation: 85 unit tests passed; browser integration verified priority-first generation, canceling replacement, and existing bidirectional Demo 2 workflow.
+The board, notes and classifications are stored in browser local storage. There is no account authentication, cross-device sync, background classification, automatic messaging or external project-system update. Export the board before switching devices or clearing browser storage.
