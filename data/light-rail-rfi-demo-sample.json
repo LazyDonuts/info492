@@ -94,17 +94,9 @@
       "rfi_id":"R200-CRE-02175",
       "title":"R200-REC-01874 RFI 00081 Radio Enhancement System Question on DAS Antennas in Elevators.pdf",
       "description":"Sound Transit DCM Section 15, 25.4.1, E, 3 requires antennas for elevator cars in underground stations. R200 has only above ground stations. Standard Spec Sections 14 21 00, 2.03, G, I, 5 and 14 24 00, 2.03, J, 5 require the following: \"Radio Antenna: Provide mounting provisions for a Commprod antenna and cabling from the car to the interface terminal cabinet in the machine room for Sound Transit provided radio antenna in the elevator cab.\" Contract Spec Section 27 60 02 requires coverage in elevator cabs and has specifications for 50/75 ohm transformers for matching impedance traveling cables for elevators. Previous discussions with Sound Transit indicated needing radio antennas in elevator cabs. However, more recent discussions with Vertical Transportation Design and Construction partners and Sound Transit have suggested that elevator inspectors are rejecting radio antennas in elevators.",
-      "submitted_date":"4/12/2021",
-      "due_date":"5/2/2021",
+      "submitted_date":"2021-4-12",
+      "due_date":"2021-5-2",
       "package_id":"Light Rail Bellevue Expansion",
-      "provenance":"Real Data"},
-    {
-      "rfi_id":"R200-CRE-02224",
-      "title":"R200-REC-01600 RFI 00083 Increasing 8-inch Waterline to 12-inch for RL161.pdf",
-      "description":"The RFP concept drawing L90-UCP127 show a waterline and installation of a 12\"x12\"x8\" tee with an 8\" gate to valve to provide an 8\" waterline to property RL161. The City of Redmond is requiring the waterline and associated fittings to RL161 be increased in size to 12\". The requirement has been communicated to SWK during task force meetings by Jeff Thompson with the City of Redmond to up size the waterline from 8\" DI pipe and fittings to 12\" DI pipe and fittings.",
-      "submitted_date":"4/15/2021",
-      "due_date":"4/29/2021",
-      "package_id":"Light Rail Bellevue Expansion","provenance":"Real Data"
-    }
+      "provenance":"Real Data"}
   ]
 }
