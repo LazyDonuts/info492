@@ -23,7 +23,39 @@ function card(x,kind,index){const key=x.key,rank=suggestedRanks.get(key),rankTex
 <div class="actions">${kind==='suggested'&&!rankable(x)?button('classify','Classify',key):''}${kind==='suggested'&&rankable(x)?button('add','Add to today',key):''}${button('review',kind==='reviewed'?'Details':'Review',key,kind==='planned'?'primary':'')}${kind==='planned'?button('up','↑',key)+button('down','↓',key)+button('snooze','Later',key)+button('remove','Remove',key):''}${kind==='archive'&&rankable(x)?button('add','Plan again',key):''}</div></div></article>`;}
 function sourceKey(record){return JSON.stringify([sampleOrigin,record.package_id,record.rfi_id]);}
 function renderSourceList(){const query=$('search').value.trim().toLowerCase(),visible=sampleRecords.filter(r=>`${r.rfi_id} ${r.title}`.toLowerCase().includes(query));$('source-total').textContent=sampleLoaded?`${visible.length} of ${sampleRecords.length} RFIs`:'Loading RFIs…';let rowsHtml='<p class="empty-note">Could not load the demo RFI list.</p>';if(sampleLoaded){rowsHtml=visible.length?visible.map(r=>{const added=board.items.some(x=>x.key===sourceKey(r)),checked=added||selectedIds.has(r.rfi_id);return `<label class="source-row"><input type="checkbox" data-source-id="${esc(r.rfi_id)}" ${checked?'checked':''} ${added?'disabled':''}><span class="source-id">${esc(r.rfi_id)}</span><span class="source-main"><strong>${esc(r.title)}</strong><small>Submitted ${esc(r.submitted_date||'—')} · Needed by ${esc(r.due_date||'—')}</small></span><span class="source-state">${added?'In review':''}</span></label>`;}).join(''):'<p class="empty-note">No matching RFIs.</p>';}$('source-list').innerHTML=rowsHtml;const selectable=visible.filter(r=>!board.items.some(x=>x.key===sourceKey(r))),selected=selectable.filter(r=>selectedIds.has(r.rfi_id)).length;$('select-visible').checked=selectable.length>0&&selected===selectable.length;$('select-visible').indeterminate=selected>0&&selected<selectable.length;$('select-visible').disabled=!selectable.length;$('add-selected').disabled=!selectedIds.size;$('add-selected').textContent=selectedIds.size?`Add selected (${selectedIds.size})`:'Add selected to review';}
-async function loadSampleList(){try{const response=await fetch('data/light-rail-rfi-demo-sample.json',{cache:'no-store'});if(!response.ok)throw Error('Sample list unavailable.');const payload=await response.json();sampleOrigin=SAMPLE_ORIGIN;sampleRecords=normalizeRfiRecords(payload.records);sampleLoaded=true;}catch{sampleRecords=[];sampleLoaded=false;}renderSourceList();}
+async function loadSampleList(){
+  const primaryUrl='data/realData/converted.json';
+  const fallbackUrl='data/light-rail-rfi-demo-sample.json';
+  try {
+    let response=await fetch(primaryUrl,{cache:'no-store'});
+    if(!response.ok){
+      response=await fetch(fallbackUrl,{cache:'no-store'});
+      if(!response.ok)throw Error('Sample list unavailable.');
+      sampleOrigin='Light Rail East Expansion fallback sample';
+    } else {
+      sampleOrigin='Real data · converted.json';
+    }
+    const payload=await response.json();
+    const rows=Array.isArray(payload)?payload:payload?.records;
+    if(!Array.isArray(rows))throw Error('Expected a records array.');
+    const uniqueRows=[];
+    const seenIds=new Set();
+    for(const row of rows){
+      const id=row?.rfi_id ?? row?.id ?? row?.rfi_number ?? row?.['RFI Number'];
+      if(id==null || seenIds.has(String(id)))continue;
+      seenIds.add(String(id));
+      uniqueRows.push(row);
+    }
+    const usableRows=uniqueRows.slice(0,50);
+    if(!usableRows.length)throw Error('No records available to load.');
+    sampleRecords=normalizeRfiRecords(usableRows);
+    sampleLoaded=true;
+  } catch {
+    sampleRecords=[];
+    sampleLoaded=false;
+  }
+  renderSourceList();
+}
 function render(){wakeSnoozed(board,day());for(const x of board.items)if(x.status==='reviewed'&&x.followup&&x.followup<=day()){x.history.push({date:x.reviewed_date,outcome:x.outcome,note:x.note});x.status='suggested';x.followup_due=x.followup;x.followup='';}
   $('capacity').value=board.capacity;
   const list=scope(),planned=list.filter(x=>x.status==='planned').sort((a,b)=>a.order-b.order),reviewed=list.filter(x=>x.status==='reviewed'&&x.reviewed_date===day()),candidates=planCandidates(list,day());suggestedRanks=new Map(candidates.map((x,i)=>[x.key,i+1]));
