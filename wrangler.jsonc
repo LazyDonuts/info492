@@ -1,0 +1,43 @@
+{
+  "name": "info492",
+  "main": "worker/index.js",
+  "compatibility_date": "2025-09-15",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "html_handling": "none",
+    "run_worker_first": [
+      "/",
+      "/api/*",
+      "/info492/*"
+    ]
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "LIMITS",
+        "class_name": "Limits"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "Limits"
+      ]
+    }
+  ],
+  // Non-secret settings (same values as render.yaml). Secrets are set with `wrangler secret put`.
+  "vars": {
+    "AI_PROVIDER": "gemini",
+    "GEMINI_MODEL": "gemini-3.1-flash-lite",
+    "GEMINI_MIN_INTERVAL_MS": "13000",
+    "DEMO2_PUBLIC_DEMO": "true",
+    "JEV_MODEL": "jev-latest",
+    "ALLOWED_ORIGINS": "https://micahsantos51.github.io,https://lazydonuts.github.io,http://127.0.0.1:8787,http://localhost:8787"
+  }
+}

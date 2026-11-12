@@ -6,7 +6,13 @@
     "test": "node --test tests/*.test.js",
     "build": "node scripts/validate-site.js",
     "start": "node server/index.js",
-    "start:env": "node --env-file=.env server/index.js"
+    "start:env": "node --env-file=.env server/index.js",
+    "build:worker": "node scripts/build-worker.js",
+    "dev:worker": "npm run build:worker && wrangler dev",
+    "deploy:worker": "npm test && npm run build && npm run build:worker && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.161.0"
   },
   "engines": {
     "node": ">=18"

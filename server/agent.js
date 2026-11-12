@@ -23,6 +23,7 @@ export function makeAgent({
   rubric,
   providerFetch = fetch,
   executionMode = "provider",
+  sourceTexts,
 }) {
   const prompt = extractionPrompt(rubric);
   const selectedProvider = env.AI_PROVIDER || "openai";
@@ -31,9 +32,9 @@ export function makeAgent({
   const providerKey = gemini ? env.GEMINI_API_KEY : env.OPENAI_API_KEY;
   const spacing = gemini
     ? Math.min(
-        60000,
-        Math.max(0, Number(env.GEMINI_MIN_INTERVAL_MS ?? 13000) || 0),
-      )
+      60000,
+      Math.max(0, Number(env.GEMINI_MIN_INTERVAL_MS ?? 13000) || 0),
+    )
     : 0;
   const validProvider = ["openai", "gemini"].includes(selectedProvider);
   const validModel =
@@ -53,9 +54,12 @@ export function makeAgent({
     engine_version: ENGINE_VERSION,
     input_version: INPUT_VERSION,
     implementation_hash: hash(
-      ["./agent.js", "./extraction.js", "../js/demo2-core.js"]
-        .map((path) => readFileSync(new URL(path, import.meta.url), "utf8"))
-        .join("\n"),
+      (
+        sourceTexts ??
+        ["./agent.js", "./extraction.js", "../js/demo2-core.js"].map((path) =>
+          readFileSync(new URL(path, import.meta.url), "utf8"),
+        )
+      ).join("\n"),
     ),
     rubric_hash: hash(rubric),
     prompt_hash: hash(prompt),
@@ -83,32 +87,32 @@ export function makeAgent({
     missing.push("DEMO2_ACCESS_TOKEN (at least 32 characters)");
   const configured = missing.length === 0;
   function validateRequest(body) {
-      if (!configured)
-        throw Object.assign(
-          new Error("AI backend is not configured. See docs/DEMO2-SETUP.md."),
-          { status: 503 },
-        );
-      if (
-        !body ||
-        Object.keys(body).some((k) => !["records", "config_hash", "retry_failed"].includes(k))
-      )
-        throw Object.assign(
-          new Error(
-            "Only records and config_hash are allowed; no answer key or outcome fields.",
-          ),
-          { status: 400 },
-        );
-      if (body.config_hash !== metadata.config_hash)
-        throw Object.assign(
-          new Error(
-            "Model/prompt configuration changed. Refresh connection; a frozen evaluation needs a new study.",
-          ),
-          { status: 409 },
-        );
-      if (body.retry_failed !== undefined && body.retry_failed !== true)
-        throw Object.assign(new Error("retry_failed must be true when present."), {status:400});
-      try { return validateRecords(body.records, {minimum:body.retry_failed === true ? 1 : 2}); }
-      catch (error) { throw Object.assign(error, {status:400}); }
+    if (!configured)
+      throw Object.assign(
+        new Error("AI backend is not configured. See docs/DEMO2-SETUP.md."),
+        { status: 503 },
+      );
+    if (
+      !body ||
+      Object.keys(body).some((k) => !["records", "config_hash", "retry_failed"].includes(k))
+    )
+      throw Object.assign(
+        new Error(
+          "Only records and config_hash are allowed; no answer key or outcome fields.",
+        ),
+        { status: 400 },
+      );
+    if (body.config_hash !== metadata.config_hash)
+      throw Object.assign(
+        new Error(
+          "Model/prompt configuration changed. Refresh connection; a frozen evaluation needs a new study.",
+        ),
+        { status: 409 },
+      );
+    if (body.retry_failed !== undefined && body.retry_failed !== true)
+      throw Object.assign(new Error("retry_failed must be true when present."), { status: 400 });
+    try { return validateRecords(body.records, { minimum: body.retry_failed === true ? 1 : 2 }); }
+    catch (error) { throw Object.assign(error, { status: 400 }); }
   }
   return {
     validateRequest,
@@ -156,49 +160,49 @@ export function makeAgent({
                 method: "POST",
                 headers: gemini
                   ? {
-                      "x-goog-api-key": providerKey,
-                      "Content-Type": "application/json",
-                    }
+                    "x-goog-api-key": providerKey,
+                    "Content-Type": "application/json",
+                  }
                   : {
-                      Authorization: `Bearer ${providerKey}`,
-                      "Content-Type": "application/json",
-                    },
+                    Authorization: `Bearer ${providerKey}`,
+                    "Content-Type": "application/json",
+                  },
                 signal: AbortSignal.timeout(45000),
                 body: JSON.stringify(
                   gemini
                     ? {
-                        systemInstruction: { parts: [{ text: prompt }] },
-                        contents: [
-                          {
-                            role: "user",
-                            parts: [{ text: JSON.stringify(r) }],
-                          },
-                        ],
-                        generationConfig: {
-                          candidateCount: 1,
-                          maxOutputTokens: 7000,
-                          responseMimeType: "application/json",
-                          responseJsonSchema: EXTRACTION_SCHEMA,
-                          ...(model.startsWith("gemini-2.5-")
-                            ? { thinkingConfig: { thinkingBudget: 0 } }
-                            : {}),
+                      systemInstruction: { parts: [{ text: prompt }] },
+                      contents: [
+                        {
+                          role: "user",
+                          parts: [{ text: JSON.stringify(r) }],
                         },
-                      }
+                      ],
+                      generationConfig: {
+                        candidateCount: 1,
+                        maxOutputTokens: 7000,
+                        responseMimeType: "application/json",
+                        responseJsonSchema: EXTRACTION_SCHEMA,
+                        ...(model.startsWith("gemini-2.5-")
+                          ? { thinkingConfig: { thinkingBudget: 0 } }
+                          : {}),
+                      },
+                    }
                     : {
-                        model,
-                        store: false,
-                        instructions: prompt,
-                        input: JSON.stringify(r),
-                        max_output_tokens: 7000,
-                        text: {
-                          format: {
-                            type: "json_schema",
-                            name: "rfi_evidence",
-                            strict: true,
-                            schema: EXTRACTION_SCHEMA,
-                          },
+                      model,
+                      store: false,
+                      instructions: prompt,
+                      input: JSON.stringify(r),
+                      max_output_tokens: 7000,
+                      text: {
+                        format: {
+                          type: "json_schema",
+                          name: "rfi_evidence",
+                          strict: true,
+                          schema: EXTRACTION_SCHEMA,
                         },
                       },
+                    },
                 ),
               },
             );
@@ -211,7 +215,7 @@ export function makeAgent({
               let code;
               try {
                 code = (await response.json()).error?.code;
-              } catch {}
+              } catch { }
               // Only interpret known codes; never echo arbitrary provider bodies.
               providerBlocked = [
                 "insufficient_quota",
@@ -229,10 +233,10 @@ export function makeAgent({
             }
             if (!response.ok) {
               const failure = [401, 403].includes(response.status)
-                  ? "Provider authentication failed. Ask the operator to check server credentials."
-                  : response.status === 404
-                    ? "Configured provider model is unavailable (HTTP 404). Operator must select an available model before retrying."
-                    : `Provider request failed (HTTP ${response.status}).`,
+                ? "Provider authentication failed. Ask the operator to check server credentials."
+                : response.status === 404
+                  ? "Configured provider model is unavailable (HTTP 404). Operator must select an available model before retrying."
+                  : `Provider request failed (HTTP ${response.status}).`,
                 error = new Error(failure);
               if ([401, 403, 404].includes(response.status))
                 providerBlocked = failure;

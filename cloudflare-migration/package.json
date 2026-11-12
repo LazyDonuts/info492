@@ -1,0 +1,20 @@
+{
+  "name": "info492-rfi-dashboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "build": "node scripts/validate-site.js",
+    "start": "node server/index.js",
+    "start:env": "node --env-file=.env server/index.js",
+    "build:worker": "node scripts/build-worker.js",
+    "dev:worker": "npm run build:worker && wrangler dev",
+    "deploy:worker": "npm test && npm run build && npm run build:worker && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.dev.vars
+node_modules/
+__pycache__/
+*.pyc
+.private/
+*.log
+.DS_Store
+dist/
+.wrangler/
+worker/sources.js
