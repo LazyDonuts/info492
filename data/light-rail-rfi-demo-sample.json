@@ -82,13 +82,12 @@
       "provenance": "User-provided 10-RFI demo sample; verify source and current status."
     },
     {
-      "rfi_id": "R200-CRE-16179",
-      "title": "R200-REC-11984 RFI 00285 Relocating DTS Backbone Fiber Splices inside Communications Room",
-      "description": "The current design of the backbone fiber for Downtown Redmond Station (DTS) shows the backbone fiber splices located in pullboxes on the roof of the DTS Communications Room. There are challenges with seismic mounting at this location to will lengthen the project schedule and create risk of damage to already installed equipment. The schedule and damage risks can be mitigated if the fiber splices are relocated inside the communications room and placed on the wall above the E31-FDC-01 Cabinet. Splice cases will be secured to the wall with unistrut mounting brackets. Additional information is shown on the attached exhibits. DCM Chapter 15 supports moving splices out of the right-of-way for ease of maintenance access.",
-      "submitted_date": "2024-07-15",
-      "due_date": "2024-08-05",
-      "package_id": "Light Rail East Expansion",
-      "provenance": "User-provided 10-RFI demo sample; verify source and current status."
+      "rfi_id":"R200-CRE-02175",
+      "title":"R200-REC-01874 RFI 00081 Radio Enhancement System Question on DAS Antennas in Elevators.pdf",
+      "description":"Sound Transit DCM Section 15, 25.4.1, E, 3 requires antennas for elevator cars in underground stations. R200 has only above ground stations. Standard Spec Sections 14 21 00, 2.03, G, I, 5 and 14 24 00, 2.03, J, 5 require the following: \"Radio Antenna: Provide mounting provisions for a Commprod antenna and cabling from the car to the interface terminal cabinet in the machine room for Sound Transit provided radio antenna in the elevator cab.\" Contract Spec Section 27 60 02 requires coverage in elevator cabs and has specifications for 50/75 ohm transformers for matching impedance traveling cables for elevators. Previous discussions with Sound Transit indicated needing radio antennas in elevator cabs. However, more recent discussions with Vertical Transportation Design and Construction partners and Sound Transit have suggested that elevator inspectors are rejecting radio antennas in elevators.",
+      "submitted_date":"2021-4-12",
+      "due_date":"5/2/2021",
+      "package_id":"Light Rail Bellevue Expansion","provenance":"User-provided 10-RFI demo sample; verify source and current status."
     }
   ]
 }
