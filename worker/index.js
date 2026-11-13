@@ -16,7 +16,7 @@ const DEFAULT_ORIGINS =
   "https://micahsantos51.github.io,https://lazydonuts.github.io,http://127.0.0.1:4922,http://localhost:4922,http://127.0.0.1:4920";
 // Same allowlist as server/index.js (plus signin.html, which dashboard.js redirects to).
 const PUBLIC_FILES =
-  /^(index\.html|signin\.html|dashboard\.html|demo2\.html|demo3\.html|methodology\.html|(?:css|js|data|docs|eval)\/[A-Za-z0-9_./-]+)$/;
+  /^(index\.html|signin\.html|workspace\.html|dashboard\.html|demo2\.html|demo3\.html|methodology\.html|(?:css|js|data|docs|eval)\/[A-Za-z0-9_./-]+)$/;
 
 let shared;
 function app(env) {

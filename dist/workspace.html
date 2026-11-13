@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#2468dc" />
+  <title>RFI Workspace · INFO 492</title>
+  <link rel="stylesheet" href="css/style.css?v=20261007-2" />
+  <link rel="stylesheet" href="css/dashboard.css?v=20261012-2" />
+  <link rel="stylesheet" href="css/workspace.css?v=20261112-1" />
+  <script type="module" src="js/workspace.js?v=20261112-1"></script>
+</head>
+<body class="dash role-workspace">
+  <a class="skip-link" href="#workspace">Skip to workspace</a>
+  <header class="dash-header workspace-header">
+    <a class="brand" href="index.html">INFO 492 <span>·</span> Team 1</a>
+    <div class="workspace-account" id="account" hidden>
+      <span id="identity"></span>
+      <a href="demo3.html">Demo 3 · Live AI</a>
+      <a href="signin.html">Switch role</a>
+      <button type="button" id="sign-out">Sign out</button>
+    </div>
+  </header>
+  <main id="workspace" class="workspace-main" tabindex="-1">
+    <div id="workspace-content"></div>
+    <p id="workspace-notice" class="workspace-notice" role="status" hidden></p>
+  </main>
+  <dialog id="workspace-dialog" aria-labelledby="dialog-title"></dialog>
+</body>
+</html>

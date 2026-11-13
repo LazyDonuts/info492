@@ -6,7 +6,7 @@ import { readFile, writeFile, mkdir, rm, cp, readdir } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 
 const root = process.cwd();
-const FILES = ["index.html", "signin.html", "dashboard.html", "demo2.html", "demo3.html", "methodology.html"];
+const FILES = ["index.html", "signin.html", "workspace.html", "dashboard.html", "demo2.html", "demo3.html", "methodology.html"];
 const DIRS = ["css", "js", "data", "docs", "eval"];
 const SAFE_NAME = /^[A-Za-z0-9_./-]+$/;
 
