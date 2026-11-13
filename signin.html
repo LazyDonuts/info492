@@ -8,8 +8,8 @@
     <title>Sign in · INFO 492 RFI Workspace</title>
     <link rel="stylesheet" href="css/style.css?v=20261007-2" />
     <link rel="stylesheet" href="css/dashboard.css?v=20261012-2" />
-    <link rel="stylesheet" href="css/role-access.css?v=20261110-role-restore" />
-    <script type="module" src="js/signin.js?v=20261110-role-restore"></script>
+    <link rel="stylesheet" href="css/role-access.css?v=20261103-1" />
+    <script type="module" src="js/signin.js?v=20261112-1"></script>
   </head>
   <body class="dash signin-page">
     <header class="dash-header">
@@ -20,10 +20,8 @@
       <section class="signin-card" aria-labelledby="signin-title">
         <p class="overline">CONSTRUCTION RFI WORKSPACE</p>
         <h1 id="signin-title">Sign in</h1>
-        <p>Choose a workspace role and get started with your documents.</p>
+        <p>Choose a demo role to enter the project workspace.</p>
         <form id="signin-form">
-          <label>Email address<input name="email" type="email" autocomplete="username" required placeholder="you@company.com" /></label>
-          <label>Password<input name="password" type="password" autocomplete="current-password" required placeholder="Enter any password" /></label>
           <label>Role
             <select name="role" required>
               <option value="submitter">RFI submitter</option>
@@ -34,9 +32,10 @@
             </select>
           </label>
           <p id="signin-error" class="signin-error" role="alert" hidden></p>
-          <button class="primary-button" type="submit">Continue to Demo 3</button>
+          <button class="primary-button" type="submit">Continue to workspace</button>
         </form>
-        <p class="signin-note">Prototype sign-in only: any valid email and non-empty password will continue. No account is checked. Your role is saved for this tab; your review board is saved in this browser.</p>
+        <p class="signin-note"><a href="demo3.html">Open Demo 3 · Live AI review board ↗</a></p>
+        <p class="signin-note">Demo workspace · Uses fictional records and saves activity in this browser.</p>
       </section>
     </main>
   </body>

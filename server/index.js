@@ -275,7 +275,7 @@ export async function createServer({
           .replace(/^\/info492(?=\/)/, "")
           .replace(/^\//, "") || "index.html";
       if (
-        !/^(index\.html|dashboard\.html|demo2\.html|demo3\.html|methodology\.html|(?:css|js|data|docs|eval)\/[A-Za-z0-9_./-]+)$/.test(
+        !/^(index\.html|signin\.html|workspace\.html|dashboard\.html|demo2\.html|demo3\.html|methodology\.html|(?:css|js|data|docs|eval)\/[A-Za-z0-9_./-]+)$/.test(
           local,
         ) ||
         local.split("/").some((p) => p.startsWith(".")) ||

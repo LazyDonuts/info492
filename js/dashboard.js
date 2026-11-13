@@ -16,24 +16,6 @@ import {
 } from "./jev-priority.js?v=20261109-jev1";
 import { teamTokenStorage } from "./demo2-auth.js?v=20261109-jev1";
 const $ = (id) => document.getElementById(id);
-const roleTitles = {
-  submitter: "RFI SUBMITTER WORKSPACE",
-  checker: "CHECKER WORKSPACE",
-  responder: "RFI RESPONDER WORKSPACE",
-  manager: "SCHEDULE MANAGER WORKSPACE",
-  reader: "RFI READER WORKSPACE",
-};
-let roleSession;
-try {
-  roleSession = JSON.parse(sessionStorage.getItem("info492-role-session") || "null");
-} catch {
-  roleSession = null;
-}
-if (!roleSession || !roleTitles[roleSession.role]) {
-  window.location.replace("signin.html");
-} else {
-  $("role-title").textContent = roleTitles[roleSession.role];
-}
 const escape = (value) =>
   String(value ?? "").replace(
     /[&<>"']/g,

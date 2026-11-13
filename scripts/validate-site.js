@@ -21,12 +21,14 @@ for (const page of [
   "demo2.html",
   "demo3.html",
   "methodology.html",
+  "signin.html",
+  "workspace.html",
 ]) {
   const html = await readFile(page, "utf8");
   for (const [, url] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
     if (/^(https?:|#|mailto:)/.test(url)) continue;
     const path = url.split(/[?#]/)[0];
-    if (path) await access(resolve(root, dirname(page), path));
+    if (path) await access(resolve(root, dirname(page), decodeURIComponent(path)));
   }
 }
 const tables = Object.fromEntries(
