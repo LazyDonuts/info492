@@ -1,0 +1,94 @@
+{
+  "records": [
+    {
+      "rfi_id": "R200-CRE-06318",
+      "title": "R200-REC-04852 RFI 00128 Station Control Unit Cobranet Card.pdf",
+      "description": "The use of COBRANET communication protocol and the End-of-Life notification for many parts for this system was previously discussed with Sound Transit in August-October of 2021. SWK has received another notification that the AuidioScience COBRANET CIRRUS Chip for the Station Control Unit is going End of Life in April/May 2022. Please confirm that it is still Sound Transits direction to proceed with COBRANET and that this equipment should be ordered with the understanding that the warranty begins on shipment on this equipment. Please also advise if any additional spare equipment should be ordered to ensure that Sound Transit has available supply for future maintenance. Products will be reviewed and approved by the Engineer of Record prior to any order being placed.",
+      "submitted_date": "2022-03-24",
+      "due_date": "2022-04-13",
+      "package_id": "Light Rail Bellevue Expansion",
+      "provenance": "Real Data"
+    },
+    {
+      "rfi_id": "R200-CRE-04378",
+      "title": "R200-REC-03015 RFI 00110 Fiber Optic Cable Subcomponent for Buy America.pdf",
+      "description": "The attached letter from the FTA defines the components of a traffic signal system as mast arms, mast bases, control system, traffic signals, pedestrian crossing signals, pedestrian crossing buttons, street lights and street name signs. Fiber Optic cable is used to connect controllers as part of the control system for traffic signals, making it a subcomponent. Please confirm that SWK is able to define Fiber Optic cable for traffic systems as a subcomponent, consistent with the FTA determination dated Jun 8, 2011, and Buy America documentation doesn't need to be provided for this material.",
+      "submitted_date": "2021-10-22",
+      "due_date": "2021-11-20",
+      "package_id": "Light Rail Bellevue Expansion",
+      "provenance": "Real Data"
+    },
+    {
+      "rfi_id": "R200-CRE-06678",
+      "title": "R200-REC-04732 RFI 00130 E31 Switchboard NEMA Rating.pdf",
+      "description": "SWK is working on procurement for SWBD-01 at the E31 Station. There is conflicting information about the requirements for this equipment: Specification section 26 24 13 2.01 B.10 calls for switchboard enclosures to be NEMA 1. Drawing E31-EPS953 calls for Switchboard enclosures to be NEMA 12. DCM chapter 23 calls for switchboard enclosures to be NEMA 12. However, no manufacturer makes a NEMA 12 switchboard enclosure, they are only produced in NEMA 1 or NEMA 3R. A 3R enclosure will add doors to the enclosure, SWK has verified that the equipment size will still work with the current room layout. Please confirm if a NEMA 1 or NEMA 3R enclosure is acceptable for E31-SWBD-01.",
+      "submitted_date": "2022-04-21",
+      "due_date": "2022-05-11",
+      "package_id": "Light Rail Bellevue Expansion",
+      "provenance": "Real Data"
+    },
+    {
+      "rfi_id": "R200-CRE-08222",
+      "title": "R200-REC-06224 RFI 00157 Back Flow Preventer and Dual Check Valve Assembly.pdf",
+      "description": "Holmberg is seeking permission to utilize non-Buy America compliant Watts LF007 Dual Check Valve Assembly in construction of the R200 project. Best efforts have been made including, working with several distributors, conferring with other domestic installers, and contacting multiple known manufacturers with facilities in the United States. Ultimately, it was determined that no back flow preventer manufacturer in operation can meet the BAA requirement, given the need for all components to be of U.S. origin. The estimated total value of valves in question is $4,500, which includes all material $5,000 for labor totaling $9,500. Please confirm that the Buy America requirement can be waived as it pertains to the Watts LF007 Dual Check Valve Assembly on the R200 project, as the value falls under the $150,000 threshold for a small purchase waiver.",
+      "submitted_date": "2022-08-24",
+      "due_date": "2022-09-12",
+      "package_id": "Light Rail Bellevue Expansion",
+      "provenance": "Real Data"
+    },
+    {
+      "rfi_id": "R200-CRE-08265",
+      "title": "R200-REC-05935 RFI 00159 OCS Component Samples.pdf",
+      "description": "Spec 34 23 26-1.03 A.3 states that one initial sample and up to a maximum of 5 samples of each listed OCS component shall be provided as requested by the resident engineer for: 01) Brackets and hinges. 02) Tunnel supports. 03) Termination components. 04) Conductor clamps, including contact wire clamps. 05) Insulators. 06) Section insulators. 07) Insulated cable. 08) Castings. 09) Fittings. 10) Surge arresters. 11) Warning Signs. 12) Other items upon request by the Resident Engineer. Please confirm if the physical samples are requested to be provided, if so please specify which parts list above should be provided.",
+      "submitted_date": "2022-08-26",
+      "due_date": "2022-09-15",
+      "package_id": "Light Rail Bellevue Expansion",
+      "provenance": "Real Data"
+    },
+    {
+      "rfi_id": "R200-CRE-09087",
+      "title": "R200-REC-06230 RFI 00166 Security Fencing Top Rail to Top of Mesh Clarification.pdf",
+      "description": "Drawing L90-CRD317 Note 1 states “substitute a top rail for top tension wire that is 3” below the top of the mesh”. Drawing L90-CRD317 detail 2 (figure 1 below) depicts the wire approximately ½ diamond above the wire. It is industry standard that the mesh is installed ½” diamond above the top rail as opposed to 3”. Commercial Fence Corporation has raised a concern that over time the 3” mesh above the top rail will fold over the top rail which will be perceived as poor craftsmanship. PR Section 5.12.1.1, Security Fencing, specifies this 3\" distance requirement. SWK requests to install the security fencing mesh ½ diamond above the top rail for all security fencing. Please confirm this is acceptable.",
+      "submitted_date": "2022-11-03",
+      "due_date": "2022-11-22",
+      "package_id": "Light Rail Bellevue Expansion",
+      "provenance": "Real Data"
+    },
+    {
+      "rfi_id": "R200-CRE-11321",
+      "title": "R200-REC-07869 RFI 00182 Garage Electrical Extension Ring BAA Waiver.pdf",
+      "description": "Hensel Phelps is seeking permission to utilize non Buy America compliant RACO and Steel City Extension Boxes (see attached product data) in the construction of the Downtown Redmond Link Extension (DRLE) South East Garage. Under 49 CFR 661.7 (b) the FTA has issued a general public interest waiver in which small purchases are exempt from its Buy America Act requirements. Under current law small purchases are defined as purchases of $150,000.00 or less, regardless of project size. Reference email from Sturgeon and attached letters confirming best efforts were made to procure material compliant with the Buy America Act. Extension Boxes Materials Value = $1,085.00 Labor Value = $1,250.00 Total Value = $2,335.00",
+      "submitted_date": "2023-05-25",
+      "due_date": "2023-06-02",
+      "package_id": "Light Rail Bellevue Expansion",
+      "provenance": "Real Data"
+    },
+    {
+      "rfi_id": "R200-CRE-12071",
+      "title": "R200-REC-08558 RFI 00195 MVS Decorative Picket Panel Infill For OCS Protection.pdf",
+      "description": "At Marymoor Village Plaza, Decorative Picket Fence surrounds OCS Poles and Foundations. In Drawing L90-SWD496 the fence is called to have “Perforated Metal Infill Panel where OCS Protection is required”. However, in the Spec for “Decorative Metal and Mesh Fences” it calls for the Infill Panel to be “welded wire mesh, black vinyl coated. Mesh shall be 1-inch by 1-inch square, 16 gauge.” The conflict between the PR language and the specification language requires Sound Transit resolution. Please see DOR response in attached DB-RFI.",
+      "submitted_date": "2023-07-26",
+      "due_date": "2023-08-15",
+      "package_id": "Light Rail Bellevue Expansion",
+      "provenance": "Real Data"
+    },
+    {
+      "rfi_id": "R200-CRE-12093",
+      "title": "R200-REC-08415 RFI 00196 NDC 00368-002 CNWD 076 Omitted Striping.pdf",
+      "description": "SWK believes key note “102 GREEN BICYCLE LANE MARKING PER COR 319C” was omitted from WB 202 at both new driveway locations (Mercury Coffee and Sunbelt). (see pg 11 of attached pdf)",
+      "submitted_date": "2023-07-31",
+      "due_date": "2023-08-20",
+      "package_id": "Light Rail Bellevue Expansion",
+      "provenance": "Real Data"
+    },
+    {
+      "rfi_id": "R200-CRE-16966",
+      "title": "R200-REC-12471 RFI 00301 DTS Joint Layout Concerns.pdf",
+      "description": "SWK has noticed cracking between expansion and contraction joints where the joints do not align and \"T\" into each other. This \"T\" joint is designed throughout the DTS plaza as seen on E31-LHD112 through LHD116. See photos from E31-LHD115 of cracks that are occurring due to this IFC joint layout design. SWK and the installing contractor recognized the high potential of cracking at these locations and requested the joint layout be revised to reduce the risk of cracking, the DOR has rejected the proposed joint revisions because they do not meet the design intent. (See attached DB-RFI-1555)",
+      "submitted_date": "2024-10-17",
+      "due_date": "2024-11-05",
+      "package_id": "Light Rail Bellevue Expansion",
+      "provenance": "Real Data"
+    }
+  ]
+}

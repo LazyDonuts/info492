@@ -9,7 +9,7 @@ Demo 3 is independent of Demo 2. It presents a SharePoint-style project list con
 3. Choose **Add selected to review**, allow Jev to review the selected dates and descriptions, then choose **Classify RFIs**.
 4. Choose **Generate plan** to create today’s list. The daily limit can be set from 3 to 50.
 
-The list data is bundled at `data/light-rail-rfi-demo-sample.json` from the ten sample rows previously prepared from the user-provided workbook. Its dates are historical examples, not current deadlines.
+The list data is bundled at `data/realData/answerTest.json` and contains ten RFI records. Its dates are historical examples, not current deadlines.
 
 ## Jev and data
 
