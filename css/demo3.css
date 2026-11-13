@@ -16,3 +16,11 @@
 .source-list-tools .file-input{min-width:190px!important}
 .source-list-tools .file-input input{display:block;width:100%;max-width:250px;padding:7px 0;font-size:.75rem}
 #upload-status{margin:8px 20px}
+
+/* English upload control, independent of the browser's native UI language. */
+.source-list-tools .file-input{display:flex;flex-direction:column;gap:7px;font-size:.82rem;font-weight:600;max-width:300px}
+.upload-control{display:flex;align-items:center;gap:10px;min-height:42px;padding:0 10px 0 0;background:#fff;border:1px solid #ccd9e9;border-radius:7px}
+.upload-control button{flex-shrink:0;border-width:0 1px 0 0;border-radius:6px 0 0 6px}
+#upload-filename{font-size:.75rem;font-weight:400;color:#607890;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.source-list-tools #rfi-upload[hidden]{display:none}
+#choose-rfi-file:focus-visible{outline:2px solid #2465dd;outline-offset:2px}
