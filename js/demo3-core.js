@@ -96,3 +96,9 @@ export function generatePlan(board, day) {
   board.audit.push({at:new Date().toISOString(),action:'generate-plan',day,project:board.project,policy:'priority-first-1',keys:chosen.map(x=>x.key)});
   return chosen.length;
 }
+
+// Return a fresh board without mutating source records or the undo snapshot.
+export function resetDemoBoard(board) {
+  if (board.items.some(item => item.classification_state === 'pending')) throw Error('Wait for classification to finish before resetting.');
+  return {...emptyBoard(), capacity: board.capacity, project: board.project};
+}

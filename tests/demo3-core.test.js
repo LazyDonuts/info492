@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {emptyBoard,normalizeRfiRecords,mergeRfiRecords,applyJevClassification,change,reorder,recommend,wakeSnoozed,validDate,generatePlan,planCandidates} from '../js/demo3-core.js';
+import {emptyBoard,normalizeRfiRecords,mergeRfiRecords,applyJevClassification,change,reorder,recommend,wakeSnoozed,validDate,generatePlan,planCandidates,resetDemoBoard} from '../js/demo3-core.js';
 
 const records=[
   {rfi_id:'A',title:'Clarification',description:'Confirm the structural detail before proceeding.',submitted_date:'2026-10-29',due_date:'2026-11-02',package_id:'P'},
@@ -41,4 +41,16 @@ test('plan generation honors capacity, project scope and completed work',()=>{
  const board=fixture();board.capacity=3;const item=board.items[0];item.status='planned';item.manual=true;item.order=0;const other=structuredClone(board.items[1]);other.key='other';other.record.package_id='Other';other.status='planned';other.order=99;board.items.push(other);board.project='P';
  assert.equal(generatePlan(board,'2026-10-30'),2);assert.equal(board.items.find(x=>x.record.rfi_id==='B'&&x.key!=='other').order,0);assert.equal(item.order,1);assert.equal(item.manual,false);assert.equal(other.order,99);
  item.status='reviewed';generatePlan(board,'2026-10-30');assert.equal(item.status,'reviewed');assert.equal(planCandidates([item],'2026-10-30').length,0);
+});
+
+
+test('reset clears every board lane without changing the source or undo snapshot',()=>{
+ const board=fixture();board.capacity=10;
+ board.items[0].status='reviewed';board.items[0].note='Keep in undo';board.items[1].status='snoozed';
+ board.audit.push({action:'review'});
+ const before=structuredClone(board),source=structuredClone(records);
+ const cleared=resetDemoBoard(board);
+ assert.equal(cleared.items.length,0);assert.equal(cleared.audit.length,0);assert.equal(cleared.capacity,10);
+ assert.deepEqual(board,before);assert.deepEqual(records,source);
+ board.items[0].classification_state='pending';assert.throws(()=>resetDemoBoard(board),/Wait/);
 });
