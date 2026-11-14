@@ -1,3 +1,5 @@
+## Prompt Switching from Google Gemini to TypeSafeAI's JEV. Generated using perplexity.
+
 Modify this existing project to classify RFI priority using Jev and display
 the result in the existing project UI.
 
